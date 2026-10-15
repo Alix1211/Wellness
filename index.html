@@ -468,6 +468,7 @@ function load(){
   try{ const s=JSON.parse(localStorage.getItem(KEY));
     if(s && s.v===3 && Array.isArray(s.center) && Array.isArray(s.members) && s.cfg){
       const d=newState(); s.cfg={...d.cfg,...s.cfg}; s.ev=[]; s.titles=s.titles||d.titles; s.dlg=s.dlg||{};
+      if(s.poseV!==3){ s.poseV=3; s.members.forEach(m=>{ const R=m.loc&&m.loc.b==='center'&&ROOMS[s.center[m.loc.i]]; if(R&&R.sets) m.pose=Math.floor(Math.random()*R.sets.length); else if(R&&R.dev) m.pose=Math.floor(Math.random()*GEAR.length); }); }
       testGrant(s); s.extra=s.extra||{}; s.office=s.office&&s.office.length?s.office:d.office; s.home=s.home&&s.home.length?s.home:d.home;
       return s; }
   }catch{}
