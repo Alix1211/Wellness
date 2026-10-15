@@ -115,3 +115,9 @@
 - 방 추가: `ROOMS`에 항목 + `ROOM_ORDER`에 이름 + 배경 이미지 추가.
 - 표정/포즈 추가: 해당 폴더에 PNG 추가(투명 배경) 후 `FACES` 또는 `poses` 배열에 등록.
 - 대사/호칭: 게임 안 편집기(코드를 안 고쳐도 됨).
+
+## 배포 방식 (2026-10 변경)
+- 이제 **아티팩트 대신 크롬용 단일 HTML 파일**로 전달한다. `python3 tools/build_standalone.py [출력경로]` → 모든 이미지가 WebP data URI 로 내장된 `gaia-wellness.html` (약 4.4MB, 인터넷 불필요, file:// 로 열림).
+- 저장은 localStorage(`gaia-wellness-v3`) — 파일 경로/브라우저가 바뀌면 저장이 분리될 수 있음. 저장이 사라지면 GitHub Pages 호스팅을 고려.
+- 레이아웃: 가로 기본. `fit()` 은 폭 기준으로만 맞추고 세로는 `#view` 안에서 스크롤. 전체 화면 버튼은 `requestFullscreen`/webkit 접두사 모두 시도, 상태에 따라 라벨 전환.
+- 게임 속도: 설정에서 '하루 길이'(1·2·3·5·10분)와 '속도'(×1~×30) 조절 가능.

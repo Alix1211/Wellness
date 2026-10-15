@@ -631,9 +631,8 @@ function fit(){
   scene.style.zoom=1; scene.style.width='auto'; scene.style.minHeight='0';
   const vis=$$('.building').filter(b=>b.style.display!=='none');
   const natural=vis.reduce((s,b)=>s+b.offsetWidth+16,0)+(vis.length-1)*38+80;
-  const bh=Math.max(0,...vis.map(b=>b.offsetHeight)), natH=bh+100+125+12;
-  const zW=view.clientWidth/natural, zH=Math.max(.6,view.clientHeight/natH);
-  const z=Math.max(.35,Math.min(1.5,zW,zH));
+  const zW=view.clientWidth/natural;
+  const z=Math.max(.35,Math.min(1.5,zW));   // 가로 폭에만 맞추고, 세로는 스크롤
   scene.style.zoom=z; scene.style.width=(view.clientWidth/z)+'px'; scene.style.minHeight=(view.clientHeight/z)+'px';
 }
 addEventListener('resize',fit);
@@ -988,7 +987,9 @@ function openEditor(){
 $$('[data-focus]').forEach(b=>b.onclick=()=>{ focus=b.dataset.focus; applyFocus(); });
 $('#btnEdit').onclick=()=>{ editing=!editing; document.body.classList.toggle('editing',editing); $('#btnEdit').classList.toggle('on',editing); $('#btnEdit').textContent=editing?'변경 완료':'방 변경'; if(editing) toast('바꿀 방을 누르세요.'); };
 $('#btnSet').onclick=openSettings; $('#btnEditor').onclick=openEditor;
-$('#btnFull').onclick=async()=>{ try{ if(document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }catch{ toast('전체 화면을 지원하지 않는 환경입니다.'); } };
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+$('#btnFull').onclick=async()=>{ const d=document.documentElement; try{ if(fsEl()) await (document.exitFullscreen||document.webkitExitFullscreen).call(document); else await (d.requestFullscreen||d.webkitRequestFullscreen).call(d); }catch{ toast('전체 화면을 지원하지 않는 환경입니다.'); } };
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{ $('#btnFull').textContent=fsEl()?'전체 화면 해제':'전체 화면'; setTimeout(fit,50); }));
 
 preload(); render();
 </script>
