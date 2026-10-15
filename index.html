@@ -777,6 +777,7 @@ document.addEventListener('pointerdown',e=>{ if(!card.contains(e.target)&&!e.tar
 
 /* 방 대화창 */
 const dlg=$('#dlg'); let cur=null;
+$('#dStage').addEventListener('click',e=>{ if(e.target.closest('.person')||!sceneAdv) return; sceneAdv(); });
 function stopDlgActors(){ actors=actors.filter(a=>!a.dlg); }
 /* ── 대사집 연출: 방을 열면 회원이 한쪽에서 튀어나와 말하고, 남성 등은 반투명 실루엣 ── */
 const getDlg = k => (S.dlg&&S.dlg[k]&&S.dlg[k].length) ? S.dlg[k] : (DLG_DEF[k]||[]);
@@ -800,14 +801,14 @@ function bustFace(t){
   else c=[1,2,6,3];
   return c[Math.floor(Math.random()*c.length)];
 }
-let sceneRun=0, sceneTimer=0;
-function stopScene(){ sceneRun++; clearTimeout(sceneTimer); }
+let sceneRun=0, sceneTimer=0, sceneAdv=null;
+function stopScene(){ sceneRun++; clearTimeout(sceneTimer); sceneAdv=null; }
 function mountScene(stage,k,i){
   stopScene(); const run=sceneRun;
   $$('.scene',stage).forEach(x=>x.remove());
   const layer=document.createElement('div'); layer.className='scene'; stage.append(layer);
   const setName=k==='center'?'센터':k==='office'?'회사':'집'; let lastSc=null;
-  const next=()=>{
+  const next=fast=>{
     if(run!==sceneRun||!layer.isConnected) return;
     layer.replaceChildren();
     const ms=inRoom(S,k,i); if(!ms.length){ sceneTimer=setTimeout(next,3000); return; }
@@ -829,8 +830,8 @@ function mountScene(stage,k,i){
       bub.className='bub '+(b?side:oth)+(b?'':' male'); bub.firstChild.textContent=b?nameOf(m):who; bub.lastChild.textContent=fillLine(S,m,text); bub.style.opacity=1;
       sceneTimer=setTimeout(step,clamp(1700+text.length*60,2400,5600));
     };
-    bub.onclick=()=>{ clearTimeout(sceneTimer); step(); };
-    sceneTimer=setTimeout(step,500);
+    sceneAdv=()=>{ clearTimeout(sceneTimer); if(li>=sc.l.length){ next(true); } else step(); };
+    sceneTimer=setTimeout(step,fast===true?60:500);
   };
   next();
 }
