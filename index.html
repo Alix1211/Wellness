@@ -106,10 +106,11 @@ dialog::backdrop{background:#203e4966}
 .scene .bust.L{left:1%;transform:translateX(-130%)}
 .scene .bust.R{right:1%;transform:translateX(130%) scaleX(-1)}
 .scene .bust.on{opacity:1}.scene .bust.on.L{transform:none}.scene .bust.on.R{transform:scaleX(-1)}
-.scene .sil{position:absolute;bottom:-2%;height:72%;aspect-ratio:100/130;opacity:0;transition:transform .5s ease,opacity .4s;filter:blur(.8px)}
-.scene .sil svg{width:100%;height:100%;display:block}
-.scene .sil.L{left:3%;transform:translateX(-120%)}.scene .sil.R{right:3%;transform:translateX(120%)}
-.scene .sil.on{opacity:.38;transform:none}
+.scene .sil{position:absolute;width:auto;opacity:0;transform:translateX(var(--tx,0)) scaleX(var(--f,1));transition:transform .5s ease,opacity .4s}
+.scene .sil.full{height:80%;bottom:2%}.scene .sil.half{height:74%;bottom:-1%}
+.scene .sil.L{left:4%;--tx:-130%}.scene .sil.R{right:4%;--tx:130%}
+.scene .sil.flip{--f:-1}
+.scene .sil.on{opacity:.4;--tx:0}
 .scene .bub{position:absolute;top:5%;max-width:58%;min-width:30%;background:#fffdf5f4;color:#2f3a40;border-radius:14px;padding:.55em .9em;font-size:clamp(11px,3.5cqw,17px);line-height:1.45;box-shadow:0 2px 6px #0003;opacity:0;transition:opacity .2s;pointer-events:auto;cursor:pointer}
 .scene .bub b{display:block;font-size:.72em;color:#719b92;margin-bottom:.1em}
 .scene .bub.L{left:27%}.scene .bub.R{right:27%}
@@ -436,6 +437,8 @@ const assetUrl = (...p) => ASSET_BASE + p.map(encodeURIComponent).join('/');
 const bgUrl   = (folder,file) => assetUrl('배경',folder,file);
 const poseUrl = rel => assetUrl('포즈_낱개',...rel.split('/'));
 const faceUrl = f => assetUrl('표정_낱개',f+'.png');
+const silUrl = n => assetUrl('표정_상반신','남성실루엣',n+'.png');
+const SILS = [['01','full',0],['02','full',0],['03','full',0],['04','half',0],['05','half',0],['06','half',1],['07','half',1]];   // [파일, 전신/상반신, 1=왼쪽을 보는 옆모습]
 const bustUrl = (set,n) => assetUrl('표정_상반신',set,String(n).padStart(2,'0')+'.png');
 const DLG_LABEL = {n:{lobby:'로비',basic:'기초방',gear:'기구방',group:'단체방',posture:'자세 점검방',punish:'체벌방',special:'화장실 훈련방',recovery:'회복방',shop:'매점'}, o:{open:'공용 사무실',exec:'개인 사무실',lobby:'회사 로비',wc:'사내 화장실',lounge:'휴게실·탕비실'}, h:{living:'거실',bed:'침실',bath:'화장실',punish:'체벌방'}};
 DLG_LABEL.e = DLG_LABEL.n;
@@ -797,7 +800,6 @@ function bustFace(t){
   else c=[1,2,6,3];
   return c[Math.floor(Math.random()*c.length)];
 }
-const SIL_SVG='<svg viewBox="0 0 100 130" preserveAspectRatio="xMidYMax meet"><circle cx="50" cy="32" r="21" fill="#26303f"/><path d="M4 130C4 86 26 64 50 64s46 22 46 66z" fill="#26303f"/></svg>';
 let sceneRun=0, sceneTimer=0;
 function stopScene(){ sceneRun++; clearTimeout(sceneTimer); }
 function mountScene(stage,k,i){
@@ -815,7 +817,8 @@ function mountScene(stage,k,i){
     let sc=arr[Math.floor(Math.random()*arr.length)]; if(arr.length>1&&sc===lastSc) sc=arr[(arr.indexOf(sc)+1)%arr.length]; lastSc=sc;
     const side=Math.random()<.5?'L':'R', oth=side==='L'?'R':'L';
     const bust=document.createElement('img'); bust.className='bust '+side; bust.alt=''; layer.append(bust);
-    const sil=document.createElement('div'); sil.className='sil '+oth; sil.innerHTML=SIL_SVG; layer.append(sil);
+    const sd=SILS[Math.floor(Math.random()*SILS.length)];
+    const sil=document.createElement('img'); sil.alt=''; sil.src=silUrl(sd[0]); sil.className='sil '+sd[1]+' '+oth+((sd[2]&&oth==='L')?' flip':''); layer.append(sil);
     const bub=document.createElement('div'); bub.className='bub'; bub.innerHTML='<b></b><span></span>'; layer.append(bub);
     let li=0, skip=false;
     const step=()=>{
