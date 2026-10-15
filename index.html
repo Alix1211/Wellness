@@ -220,6 +220,29 @@ dialog::backdrop{background:#203e4966}
 .ed h4{margin:12px 0 4px}
 .setrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #e6eee2}
 @media(max-width:650px){header{height:auto;flex-direction:column;align-items:flex-start;gap:6px}#view{height:calc(100dvh - 140px)}}
+
+/* 고정 회원 도크: 카드에는 이름, 표정, 현위치만 표시 */
+body{display:flex;flex-direction:column;height:100dvh}
+header,#bar{flex:none}
+#view{height:auto;flex:1 1 0;min-height:0}
+.ground{height:148px}
+.center .foundation{padding:4px 8px;gap:4px;flex-wrap:nowrap}
+.center .foundation .pill{padding:3px 9px;border-radius:8px;font-size:12px;line-height:1.2;white-space:nowrap}
+#rosterDock{height:130px;flex:none;display:flex;align-items:center;gap:7px;padding:8px 8px max(8px,env(safe-area-inset-bottom));position:relative;z-index:8;background:#fffaf0f2;border-top:4px solid #92bc93;box-shadow:0 -4px 14px #466c6330}
+#rosterList{flex:1;min-width:0;display:flex;align-items:center;gap:8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x;padding:3px 2px 5px}
+.roster-card{--grade:#e9e9e4;position:relative;flex:0 0 91px;height:107px;padding:3px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;background:#fffdfa;border:4px solid var(--grade);border-radius:16px;color:#344d4d;touch-action:pan-x;user-select:none;-webkit-user-select:none;cursor:grab}
+.roster-card strong{display:block;width:100%;font-size:12px;line-height:17px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.roster-card img.pose{width:100%;height:59px;min-height:0;flex:1;object-fit:contain;pointer-events:none}
+.roster-card small{display:block;width:100%;font-size:11px;line-height:15px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.roster-card.selected{outline:2px solid #fff;box-shadow:0 0 0 3px #528f7c,0 0 13px #badcd5}
+.roster-card.dragging{opacity:.45}
+#btnTools{flex:0 0 40px;width:40px;height:40px;background:#e2ece4;border:1px solid #b7d1c1;border-radius:50%;font-size:24px;line-height:1;color:#416c5c}
+#toolsPopup{position:fixed;bottom:calc(130px + 7px);left:auto;right:8px;transform:none;z-index:12;display:flex;flex-direction:column;align-items:stretch;gap:2px;max-width:min(220px,90vw);padding:6px;border-radius:12px}
+#toolsPopup[hidden]{display:none}
+#toolsPopup button{text-align:left}
+#moveTray{bottom:139px}
+#toast{bottom:143px}
+@media(max-width:650px){#view{height:auto}}
 </style>
 </head>
 <body>
@@ -241,10 +264,11 @@ dialog::backdrop{background:#203e4966}
     <div class="ground"></div>
   </div>
 </main>
+<section id="rosterDock" aria-label="회원 목록"><div id="rosterList" aria-label="회원 가로 스크롤"></div><button id="btnTools" type="button" aria-label="설정과 도구" aria-expanded="false">⚙</button></section>
 <div id="mapLegend" aria-label="회원 상태 색상"><i style="background:#f7f7f2"></i>낮음 <i style="background:#569ce2"></i>성장 <i style="background:#54b87d"></i>입사권 <i style="background:#a778ce"></i>집 이동권 <i style="background:#e6b800"></i>졸업 임박 · 💤 피곤 · <i class="legend-red"></i>재교육</div>
 <section id="moveTray" aria-label="이동할 회원" hidden><div id="moveHead"><strong id="moveTitle"></strong><button id="moveClose" aria-label="회원 목록 닫기">×</button></div><p id="moveHint">회원을 끌거나, 회원을 누른 뒤 목적지 방을 누르세요.</p><div id="moveList"></div></section>
 
-<footer>
+<footer id="toolsPopup" hidden>
   <button id="btnEditor">편집기</button>
   <button id="btnEdit">방 변경</button>
   <button id="btnSet">설정</button>
@@ -827,7 +851,7 @@ function render(){
     }
     b.append(base); row.append(b);
   }
-  applyFocus(); updateHud();refreshMoveTargets();
+  applyFocus(); updateHud();refreshMoveTargets();renderRoster();
 }
 function applyFocus(){
   $$('.building').forEach(b=>{ b.style.display=(focus==='all'||b.dataset.kind===focus)?'':'none'; });
@@ -857,16 +881,64 @@ function updateHud(){
   const lob=inRoom(S,'center',lobbyIndex(S)).length;
   const sig=Object.entries(groups).map(([key,list])=>key+':'+list.map(m=>m.id).join(',')).join('|')+`/${lob}/${mm.length}/${moveState.filter}`;
   if(sig!==alertKey){alertKey=sig;const box=$('#alerts');box.replaceChildren();for(const [key,txt,cls] of [['tired','💤 피곤','hot'],['warn','⚠ 이탈 위험',''],['join','입사 가능','blue'],['marry','집 이동 가능','pink'],['retrain','재교육 필요','hot'],['grad','졸업 임박','gold']]){const list=groups[key];if(!list.length)continue;const c=document.createElement('button');c.className='chip '+cls+(moveState.filter===key?' chosen':'');c.textContent=`${txt} ${list.length}`;c.dataset.candidates=key;c.onclick=()=>openCandidates(key);box.append(c);}const c=document.createElement('button');c.className='chip'+(moveState.filter==='all'?' chosen':'');c.textContent=`회원 ${mm.length}명 · 로비 ${lob}/${ROOMS.lobby.cap}`;c.dataset.candidates='all';c.onclick=()=>openCandidates('all');box.append(c);}
-  renderMoveTray();
+  renderMoveTray();renderRoster();
 }
 function candidateGroups(){const mm=S.members;return {all:mm,tired:mm.filter(m=>m.loc.b==='center'&&m.hp<K.lowHp),warn:mm.filter(m=>m.loc.b==='center'&&statusOf(m)==='warn'),join:mm.filter(m=>m.loc.b==='center'&&avg(m)>=S.cfg.join),marry:mm.filter(m=>m.loc.b==='office'&&avg(m)>=S.cfg.marry),retrain:mm.filter(m=>needsRetrain(S,m)),grad:mm.filter(m=>m.loc.b==='home'&&STATS.every(k=>m.st[k]>=95))};}
 function openCandidates(key){hideCard();moveState.filter=key;moveState.id=null;moveState.key='';focus='all';$('#view').classList.add('candidates-open');updateHud();applyFocus();refreshMoveTargets();}
 function closeCandidates(){moveState.filter=null;moveState.id=null;moveState.key='';$('#moveTray').hidden=true;$('#view').classList.remove('candidates-open');refreshMoveTargets();updateHud();fit();}
 $('#moveClose').onclick=closeCandidates;
-function selectMove(id){moveState.id=moveState.id===id?null:id;moveState.key='';renderMoveTray();refreshMoveTargets();}
+function selectMove(id){moveState.id=moveState.id===id?null:id;moveState.key='';renderMoveTray();refreshMoveTargets();renderRoster();}
 function refreshMoveTargets(id=moveState.id){const m=mById(id);$$('.room').forEach(r=>{const same=m&&m.loc.b===r.dataset.kind&&m.loc.i===+r.dataset.slot;const ok=m&&!same&&canPlace(S,m,r.dataset.kind,+r.dataset.slot).ok;r.classList.toggle('move-ok',!!ok);r.classList.toggle('move-no',!!m&&!ok);});}
 function moveMemberTo(id,b,i){const m=mById(id);if(!m)return false;const check=canPlace(S,m,b,i);if(!check.ok){toast(check.msg);return false;}place(S,m,b,i);moveState.id=null;moveState.key='';save();render();return true;}
 function renderMoveTray(){if(!moveState.filter||dragging||pointerBusy)return;const list=candidateGroups()[moveState.filter]||[],tray=$('#moveTray'),box=$('#moveList');tray.hidden=false;if(moveState.id!==null&&!list.some(m=>m.id===moveState.id)){moveState.id=null;refreshMoveTargets();}const labels={all:'전체 회원',tired:'피곤한 회원',warn:'이탈 위험 회원',join:'입사 가능한 회원',marry:'집으로 이동할 회원',retrain:'재교육이 필요한 회원',grad:'졸업을 앞둔 회원'};$('#moveTitle').textContent=`${labels[moveState.filter]} · ${list.length}명`;const selected=mById(moveState.id);$('#moveHint').textContent=selected?`${nameOf(selected)} 선택 · 밝게 표시된 방을 눌러 주세요.`:list.length?'회원을 끌거나, 회원을 누른 뒤 목적지 방을 누르세요.':'해당하는 회원이 없습니다.';const key=moveState.filter+'/'+moveState.id+'/'+list.map(m=>`${m.id}:${m.loc.b}:${m.loc.i}:${Math.floor(avg(m))}:${Math.floor(m.hp)}:${memberPoses(m)[0]}`).join('|');if(key===moveState.key)return;moveState.key=key;const scroll=box.scrollLeft;box.replaceChildren();for(const m of list){const btn=document.createElement('button');btn.className='move-member'+(moveState.id===m.id?' selected':'');btn.dataset.id=m.id;btn.setAttribute('aria-label',`${nameOf(m)} 선택`);const im=document.createElement('img');im.className='pose';im.alt='';im.src=poseUrl(memberPoses(m)[0]);const name=document.createElement('strong');name.textContent=nameOf(m);const sub=document.createElement('small');sub.textContent=`${m.loc.b==='center'?'센터':TITLE[m.loc.b]} · ${Math.round(avg(m))}점`;btn.append(im,name,sub);bindDrag(btn,m.id,true);btn.onclick=e=>{if(e.detail===0)selectMove(m.id);};box.append(btn);}box.scrollLeft=scroll;}
+
+/* 영구 회원 목록: 프레임 색=등급, 카드 내용=이름/표정/현위치 */
+let rosterKey='';
+function rosterGrade(m){
+  const a=avg(m);
+  return STATS.every(k=>m.st[k]>=95)?'grad':a>=S.cfg.marry?'home':a>=S.cfg.join?'join':a>=S.cfg.join/2?'grow':'low';
+}
+const rosterColors={low:'#e9e9e4',grow:'#569ce2',join:'#54b87d',home:'#a778ce',grad:'#e6b800'};
+function rosterFace(m){
+  if(m.hp<K.tiredHp) return '시무룩';
+  if(m.hp<K.lowHp) return '당황';
+  if(statusOf(m)==='warn'||needsRetrain(S,m)) return '눈물글썽';
+  if(rosterGrade(m)==='grad') return '반짝';
+  if(rosterGrade(m)==='home') return '활짝웃음';
+  if(rosterGrade(m)==='join') return '윙크';
+  if(m.loc.b==='center' && S.center[m.loc.i]==='recovery') return '편안';
+  if(m.loc.b==='home') return '눈감고웃음';
+  return '기본';
+}
+function rosterPlace(m){
+  if(m.loc.b==='center') return ROOMS[S.center[m.loc.i]]?.name||'센터';
+  return stem(S[m.loc.b]?.[m.loc.i]?.img||'')||TITLE[m.loc.b];
+}
+function renderRoster(){
+  if(dragging||pointerBusy) return;
+  const box=$('#rosterList');
+  const key=moveState.id+'/'+S.members.map(m=>[m.id,m.name,rosterGrade(m),rosterFace(m),m.loc.b,m.loc.i,rosterPlace(m)].join(':')).join('|');
+  if(key===rosterKey) return;
+  rosterKey=key;
+  const scroll=box.scrollLeft;
+  box.replaceChildren();
+  for(const m of S.members){
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='roster-card'+(moveState.id===m.id?' selected':'');
+    btn.dataset.id=m.id;btn.style.setProperty('--grade',rosterColors[rosterGrade(m)]);
+    btn.setAttribute('aria-label',nameOf(m)+' · '+rosterPlace(m));
+    const name=document.createElement('strong');name.textContent=m.name;
+    const portrait=document.createElement('img');portrait.className='pose';portrait.alt='';
+    portrait.draggable=false;portrait.src=faceUrl(rosterFace(m));
+    const place=document.createElement('small');place.textContent=rosterPlace(m);
+    btn.append(name,portrait,place);
+    bindDrag(btn,m.id,true,true);
+    btn.onclick=e=>{if(e.detail===0){selectMove(m.id);locate(m.id);}};
+    box.append(btn);
+  }
+  box.scrollLeft=scroll;
+}
+
 function locate(id){
   const m=mById(id); if(!m) return;
   if(focus!=='all')focus=m.loc.b; applyFocus();
@@ -938,25 +1010,25 @@ document.addEventListener('visibilitychange',()=>{ last=Date.now(); if(document.
 /* 드래그 앤 드롭 */
 let suppressClick=false;
 function roomAt(x,y){ const el=document.elementFromPoint(x,y); const r=el&&el.closest?el.closest('.room'):null; return r&&r.dataset.slot!==undefined&&!r.closest('dialog')?r:null; }
-function bindDrag(el,id,fromTray=false){
+function bindDrag(el,id,fromTray=false,fromRoster=false){
   el.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button!==0) return;
     const m=mById(id); if(!m) return;
-    const sx=e.clientX, sy=e.clientY; let started=false, hot=null,scrollRaf=0,px=sx,py=sy; const ghost=$('#ghost');pointerBusy=true;
+    const sx=e.clientX, sy=e.clientY; let started=false, scrolling=false, hot=null,scrollRaf=0,px=sx,py=sy; const ghost=$('#ghost');pointerBusy=true;
     try{ el.setPointerCapture(e.pointerId); }catch{}
     const clear=()=>{ if(hot){ hot.classList.remove('drop-ok','drop-no'); hot=null; } };
     const updateHot=()=>{const r=roomAt(px,py);if(r!==hot){clear();hot=r;}if(hot){const ok=dropOk(m,hot);hot.classList.toggle('drop-ok',ok);hot.classList.toggle('drop-no',!ok);}};
     const scrollFrame=()=>{if(!started)return;const view=$('#view'),r=view.getBoundingClientRect(),tray=$('#moveTray'),bottom=tray.hidden?r.bottom:Math.min(r.bottom,tray.getBoundingClientRect().top),edge=48;const dx=px<r.left+edge?-12:px>r.right-edge?12:0,dy=py<r.top+edge?-14:py>bottom-edge?14:0;if(dx||dy){view.scrollBy(dx,dy);updateHot();}scrollRaf=requestAnimationFrame(scrollFrame);};
     const onMove=ev=>{
       px=ev.clientX;py=ev.clientY;
-      if(!started){ if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<8) return; started=true; dragging=true; el.classList.add('dragging'); ghost.src=$('img.pose',el).src; ghost.hidden=false; hideCard();refreshMoveTargets(id);scrollRaf=requestAnimationFrame(scrollFrame); }
+      if(!started){ if(scrolling) return; const dx=ev.clientX-sx,dy=ev.clientY-sy; if(Math.hypot(dx,dy)<8) return; if(fromRoster && Math.abs(dx)>Math.abs(dy)*1.2){scrolling=true;return;} started=true; dragging=true; el.classList.add('dragging'); ghost.src=$('img.pose',el).src; ghost.hidden=false; hideCard();refreshMoveTargets(id);scrollRaf=requestAnimationFrame(scrollFrame); }
       ev.preventDefault(); ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px';
       updateHot();
     };
     const finish=()=>{pointerBusy=false;cancelAnimationFrame(scrollRaf);el.removeEventListener('pointermove',onMove); el.removeEventListener('pointerup',onUp); el.removeEventListener('pointercancel',onCancel); try{ el.releasePointerCapture(e.pointerId); }catch{} };
     const onUp=ev=>{
       finish();
-      if(!started){ suppressClick=true; setTimeout(()=>suppressClick=false,0);if(fromTray)selectMove(id);else showCard(m,ev.clientX,ev.clientY); return; }
+      if(!started){ suppressClick=true; setTimeout(()=>suppressClick=false,0);if(fromTray){if(!scrolling){selectMove(id);if(fromRoster)locate(id);}}else showCard(m,ev.clientX,ev.clientY); return; }
       ghost.hidden=true; clear(); dragging=false; suppressClick=true; setTimeout(()=>suppressClick=false,0);
       const r=roomAt(ev.clientX,ev.clientY);
       if(r){
@@ -1376,6 +1448,9 @@ function openEditor(){
 $$('[data-focus]').forEach(b=>b.onclick=()=>{ focus=b.dataset.focus; applyFocus(); });
 $('#btnEdit').onclick=()=>{ editing=!editing; document.body.classList.toggle('editing',editing); $('#btnEdit').classList.toggle('on',editing); $('#btnEdit').textContent=editing?'변경 완료':'방 변경'; if(editing) toast('바꿀 방을 누르세요.'); };
 $('#btnSet').onclick=openSettings; $('#btnEditor').onclick=openEditor;
+$('#btnTools').onclick=()=>{const menu=$('#toolsPopup');menu.hidden=!menu.hidden;$('#btnTools').setAttribute('aria-expanded',String(!menu.hidden));};
+$('#toolsPopup button').forEach(btn=>btn.addEventListener('click',()=>{$('#toolsPopup').hidden=true;$('#btnTools').setAttribute('aria-expanded','false');}));
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#btnTools,#toolsPopup')){$('#toolsPopup').hidden=true;$('#btnTools').setAttribute('aria-expanded','false');}});
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
 $('#btnFull').onclick=async()=>{ const d=document.documentElement; try{ if(fsEl()) await (document.exitFullscreen||document.webkitExitFullscreen).call(document); else await (d.requestFullscreen||d.webkitRequestFullscreen).call(d); }catch{ toast('전체 화면을 지원하지 않는 환경입니다.'); } };
 ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{ $('#btnFull').textContent=fsEl()?'전체 화면 해제':'전체 화면'; setTimeout(fit,50); }));
