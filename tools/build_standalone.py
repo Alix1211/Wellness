@@ -43,6 +43,13 @@ silmap={}
 for i in range(1,8):
     im=load(f'{SRC}/표정_상반신/남성실루엣/{i:02d}.png'); im.thumbnail((300,330)); silmap[f'{i:02d}']=uri(im,85)
 
+itemmap={}
+for kind in ['상품','아이콘']:
+    d=f'{SRC}/아이템/{kind}'
+    if os.path.isdir(d):
+        for f in sorted(os.listdir(d)):
+            if f.endswith('.png'): itemmap[f'{kind}/{f[:-4]}']=uri(load(f'{d}/{f}'),88)
+
 def rep(old,new):
     global html
     assert old in html, old[:40]
@@ -53,5 +60,6 @@ rep("const poseUrl = rel => assetUrl('포즈_낱개',...rel.split('/'));","const
 rep("const faceUrl = f => assetUrl('표정_낱개',f+'.png');","const FACEMAP = %s;\nconst faceUrl = f => FACEMAP[f];"%J(facemap))
 rep("const bustUrl = (set,n) => assetUrl('표정_상반신',set,String(n).padStart(2,'0')+'.png');","const BUSTMAP = %s;\nconst bustUrl = (set,n) => BUSTMAP[set+'/'+String(n).padStart(2,'0')];"%J(bustmap))
 rep("const silUrl = n => assetUrl('표정_상반신','남성실루엣',n+'.png');","const SILMAP = %s;\nconst silUrl = n => SILMAP[n];"%J(silmap))
+rep("const itemUrl = (kind,id) => assetUrl('아이템',kind,id+'.png');","const ITEMMAP = %s;\nconst itemUrl = (kind,id) => ITEMMAP[kind+'/'+id];"%J(itemmap))
 open(OUT,'w',encoding='utf-8').write(html)
 print(len(bgmap),'bg',len(posemap),'poses',len(facemap),'faces',len(bustmap),'busts', round(os.path.getsize(OUT)/1e6,1),'MB ->',OUT)
