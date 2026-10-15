@@ -203,28 +203,28 @@ const K = {
   startGold:300, startRep:0,
   testGrant:true,     // 시험용: 처음 한 번 골드 +99,999 / 명성 999 지급. 정식 때는 false
   visitFee:80, monthFee:25, injuryFee:30, thanks:600, thanksRep:10,
-  decay:1.5,          // 하루 동안 훈련을 못 받으면 점수 하나당 깎이는 양
+  decay:3,          // 하루 동안 훈련을 못 받으면 점수 하나당 깎이는 양
   leaveMargin:3,      // 가입 때 평균보다 이만큼 이상 떨어지면 이탈
   grace:1,            // 가입 후 이 일수 동안은 이탈 검사 안 함
-  repPerPt:0.014,      // 점수 1점 오를 때 명성치
+  repPerPt:0.0047,      // 점수 1점 오를 때 명성치
   tiredHp:10, lowHp:30, lowEff:0.5,
   lobbyRegen:6, shopBonus:3, homeRegen:20,
   visitBase:0.3, visitPerRep:0.003, visitMax:1.2,
-  workDrift:[-2.5,1.8], workRepPerDay:0.35, returnMargin:5,
+  workRepPerDay:0.35, returnMargin:5,
   floorCost:200, slotCost:300, maxSlots:3
 };
 /* 방 정의. train: 하루 기준 성장량, cost: 하루 체력 소모, cap: 기본 정원, max: 확장 한계, eff: 1인당 효율 */
 const ROOMS = {
   lobby:   {name:'로비',        bg:'휴게실.png',    cap:6, max:6, place:true, unique:true, cost:0,    unlock:0,   desc:'회원이 도착해서 대기하는 곳입니다. 체력이 천천히 돌아옵니다.', poses:['센터/요가_기본/02.png']},
-  basic:   {name:'기초방',      bg:'요가실.png',    cap:3, max:6, place:true, cost:150,  unlock:0,   train:{ge:9,bo:5},        hp:12, eff:1,   up:100, desc:'신규 회원의 첫 훈련 방입니다.', poses:['센터/푸시업/01.png','센터/푸시업/02.png','센터/푸시업/03.png'], sets:[['센터/푸시업/01.png','센터/푸시업/02.png','센터/푸시업/03.png'],['센터/아기자세/01.png','센터/아기자세/02.png','센터/아기자세/03.png'],['센터/요가_기본/04.png']]},
-  gear:    {name:'기구방',      bg:'트레이닝실.png', cap:2, max:4, place:true, cost:250,  unlock:0,   train:{ki:8,um:5},        hp:16, eff:1,   up:150, dev:true, desc:'형틀·십자대·의자·사슬·밧줄 같은 중세 기구로 훈련하는 방입니다.', poses:[]},
-  group:   {name:'단체방',      bg:'체육관.png',    cap:4, max:8, place:true, cost:300,  unlock:0,   train:{ge:7,bo:6,ki:3},   hp:13, eff:.7,  up:150, desc:'여러 회원이 함께 하는 방입니다. 사람이 많은 대신 1인당 성장이 느립니다.', wander:true, poses:['센터/네발자세/01.png','센터/네발자세/02.png','센터/네발자세/03.png'], sets:[['센터/네발자세/01.png','센터/네발자세/02.png','센터/네발자세/03.png'],['센터/네발자세/04.png','센터/네발자세/05.png','센터/네발자세/06.png']]},
+  basic:   {name:'기초방',      bg:'요가실.png',    cap:3, max:6, place:true, cost:150,  unlock:0,   train:{ge:38,bo:21},      hp:28, eff:1,   up:100, desc:'신규 회원의 첫 훈련 방입니다.', poses:['센터/푸시업/01.png','센터/푸시업/02.png','센터/푸시업/03.png'], sets:[['센터/푸시업/01.png','센터/푸시업/02.png','센터/푸시업/03.png'],['센터/아기자세/01.png','센터/아기자세/02.png','센터/아기자세/03.png'],['센터/요가_기본/04.png']]},
+  gear:    {name:'기구방',      bg:'트레이닝실.png', cap:2, max:4, place:true, cost:250,  unlock:0,   train:{ki:34,um:21},      hp:37, eff:1,   up:150, dev:true, desc:'형틀·십자대·의자·사슬·밧줄 같은 중세 기구로 훈련하는 방입니다.', poses:[]},
+  group:   {name:'단체방',      bg:'체육관.png',    cap:4, max:8, place:true, cost:300,  unlock:0,   train:{ge:29,bo:25,ki:13},  hp:30, eff:.7,  up:150, desc:'여러 회원이 함께 하는 방입니다. 사람이 많은 대신 1인당 성장이 느립니다.', wander:true, poses:['센터/네발자세/01.png','센터/네발자세/02.png','센터/네발자세/03.png'], sets:[['센터/네발자세/01.png','센터/네발자세/02.png','센터/네발자세/03.png'],['센터/네발자세/04.png','센터/네발자세/05.png','센터/네발자세/06.png']]},
   recovery:{name:'회복방',      bg:'샤워실.png',    cap:3, max:6, place:true, cost:200,  unlock:0,   regen:70, up:100, desc:'피곤한 회원이 쉬는 방입니다. 체력이 빠르게 돌아옵니다.', poses:['센터/운동후표정/03.png'], sets:[['센터/운동후표정/02.png'],['센터/운동후표정/01a.png','센터/운동후표정/01b.png'],['센터/요가_기본/07.png'],['센터/운동후표정/03.png']]},
   shop:    {name:'매점',        bg:'매점.png',      cap:0, max:0, place:false, unique:true, cost:150, unlock:10,  desc:'로비 회원의 체력 회복을 조금 돕습니다.', poses:[]},
-  posture: {name:'자세 점검방', bg:'운동실.jpg',    cap:1, max:3, place:true, cost:300,  unlock:25,  train:{ki:10},           hp:16, eff:1,   up:200, desc:'거울 앞에서 자세를 교정하는 방입니다. 1명씩 집중합니다.', poses:['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'], sets:[['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'],['센터/요가_동작변화/07b.png','센터/요가_동작변화/07c.png'],['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/요가_응용/10.png','센터/요가_응용/12.png']]},
-  punish:  {name:'체벌방(?)',   bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:500,  unlock:50,  train:{bo:14,um:7},       hp:26, eff:1,   up:300, desc:'효과가 크지만 체력 소모도 큽니다.', poses:['센터/사과포즈/01.png','센터/사과포즈/02.png'], sets:[['센터/근력운동_하체/04.png','센터/근력운동_하체/05.png','센터/근력운동_하체/06.png'],['센터/근력운동_덤벨바벨/10.png','센터/근력운동_덤벨바벨/11.png','센터/근력운동_덤벨바벨/12.png'],['센터/요가_응용/02.png','센터/요가_응용/03.png'],['센터/준비운동_상체/07.png'],['센터/요가_기본/07.png'],['센터/요가_기본/06.png'],['센터/사과포즈/01.png','센터/사과포즈/02.png']]},
-  special: {name:'별도 훈련방', bg:'개방형화장실.png',    cap:1, max:3, place:true, cost:600,  unlock:90,  train:{um:12,ge:8},       hp:24, eff:1,   up:300, desc:'체벌방과 다른 계열의 훈련 방입니다. (이름 미정)', poses:['센터/준비운동_하체/02.png','센터/준비운동_하체/03.png'], sets:[['센터/준비운동_하체/01.png','센터/준비운동_하체/02.png','센터/준비운동_하체/03.png']]},
-  elite:   {name:'특수훈련실',  bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:1500, unlock:120, minAvg:50, train:{ki:12,um:12,bo:12,ge:12}, hp:32, eff:1, up:500, desc:'입사 기준을 넘은 엘리트 회원만 들어갑니다. 엎드리거나 누운 자세로 훈련하며 효과도 체력 소모도 가장 큽니다.', poses:[], sets:[
+  posture: {name:'자세 점검방', bg:'운동실.jpg',    cap:1, max:3, place:true, cost:300,  unlock:25,  train:{ki:42},           hp:37, eff:1,   up:200, desc:'거울 앞에서 자세를 교정하는 방입니다. 1명씩 집중합니다.', poses:['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'], sets:[['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'],['센터/요가_동작변화/07b.png','센터/요가_동작변화/07c.png'],['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/요가_응용/10.png','센터/요가_응용/12.png']]},
+  punish:  {name:'체벌방(?)',   bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:500,  unlock:50,  train:{bo:59,um:29},      hp:60, eff:1,   up:300, desc:'효과가 크지만 체력 소모도 큽니다.', poses:['센터/사과포즈/01.png','센터/사과포즈/02.png'], sets:[['센터/근력운동_하체/04.png','센터/근력운동_하체/05.png','센터/근력운동_하체/06.png'],['센터/근력운동_덤벨바벨/10.png','센터/근력운동_덤벨바벨/11.png','센터/근력운동_덤벨바벨/12.png'],['센터/요가_응용/02.png','센터/요가_응용/03.png'],['센터/준비운동_상체/07.png'],['센터/요가_기본/07.png'],['센터/요가_기본/06.png'],['센터/사과포즈/01.png','센터/사과포즈/02.png']]},
+  special: {name:'별도 훈련방', bg:'개방형화장실.png',    cap:1, max:3, place:true, cost:600,  unlock:90,  train:{um:50,ge:34},      hp:55, eff:1,   up:300, desc:'체벌방과 다른 계열의 훈련 방입니다. (이름 미정)', poses:['센터/준비운동_하체/02.png','센터/준비운동_하체/03.png'], sets:[['센터/준비운동_하체/01.png','센터/준비운동_하체/02.png','센터/준비운동_하체/03.png']]},
+  elite:   {name:'특수훈련실',  bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:1500, unlock:120, minAvg:50, train:{ki:13,um:13,bo:13,ge:13}, hp:40, eff:1, up:500, desc:'입사 기준을 넘은 엘리트 회원만 들어갑니다. 엎드리거나 누운 자세로 훈련하며 효과도 체력 소모도 가장 큽니다.', poses:[], sets:[
     ['센터/근력운동_하체/04.png','센터/근력운동_하체/05.png','센터/근력운동_하체/06.png'],
     ['센터/근력운동_덤벨바벨/04.png','센터/근력운동_덤벨바벨/05.png','센터/근력운동_덤벨바벨/06.png'],
     ['센터/근력운동_머신/10.png','센터/근력운동_머신/11a.png','센터/근력운동_머신/11b.png'],
@@ -233,6 +233,29 @@ const ROOMS = {
     ['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/운동후표정/02.png'],
     ['센터/특수훈련실/06발사슬.png'],['센터/특수훈련실/07밧줄_앉기.png'],['센터/특수훈련실/09밧줄_꿇기.png']]}
 };
+/* 회사·가정 방 효과 (하루 기준). up: 오르는 점수(낮을수록 크게 오름) / dn: 깎이는 점수(높을수록 크게 깎임) */
+const WFX = {
+  office:{
+    '개인사무실.png':{up:{bo:60,um:52},dn:{ge:18}},
+    '공용사무실.png':{up:{ge:60,bo:52},dn:{ki:18}},
+    '파티션사무실.png':{up:{bo:60,ki:52},dn:{um:18}},
+    '로비.png':{up:{ki:60,ge:52},dn:{bo:18}},
+    '탕비실.png':{up:{ge:60,um:52},dn:{ki:18}},
+    '휴게실.png':{up:{ki:60,um:52},dn:{bo:18}},
+    '사내화장실.png':{up:{um:60,bo:52},dn:{ki:18}},
+    '샤워실.png':{up:{ki:60,um:52},dn:{ge:18}},
+    '화장실.png':{up:{um:60,ge:52},dn:{bo:18}}
+  },
+  home:{
+    '거실.png':{up:{ge:28,ki:24},dn:{um:21}},
+    '침실.png':{up:{ki:28,um:24},dn:{bo:21}},
+    '화장실.png':{up:{um:28,bo:24},dn:{ge:21}},
+    '지하실.png':{up:{bo:28,um:24},dn:{ki:21}},
+    '빈방.png':{up:{ge:28,bo:24},dn:{ki:21}},
+    '서재.png':{up:{bo:28,ge:24},dn:{um:21}}
+  }
+};
+const wfx = (S,b,i) => (WFX[b]&&S[b][i]&&WFX[b][S[b][i].img])||{up:{},dn:{}};
 const ROOM_ORDER = ['lobby','basic','gear','group','recovery','shop','posture','punish','special','elite'];
 const GEARN = ['01','02','03','04','05','08'];   // 기구방에서 쓰는 자세(나머지 06·07·09는 특수훈련실)
 const DEV = ['01형틀_서기','02형틀_꿇기','03기둥_사슬','04의자','05십자대','06발사슬','07밧줄_앉기','08기둥_묶음','09밧줄_꿇기'];
@@ -296,6 +319,7 @@ function canPlace(S,m,b,i){
   const need = b==='office' ? S.cfg.join : S.cfg.marry;
   if(!S[b][i]) return {ok:false,msg:'빈 칸입니다.'};
   if(a<need) return {ok:false,msg:`${b==='office'?'회사는':'집은'} 평균 ${need} 이상만 갈 수 있습니다.`};
+  if(b==='home' && m.loc.b==='center') return {ok:false,msg:'집은 회사를 거친 회원만 갈 수 있습니다.'};
   if(inRoom(S,b,i).some(x=>x!==m)) return {ok:false,msg:'이미 누가 있습니다.'};
   return {ok:true};
 }
@@ -313,7 +337,12 @@ function removeMember(S,m){ S.members=S.members.filter(x=>x!==m); }
 function advance(S, dt){
   const out=[];
   for(const m of S.members){
-    if(m.loc.b!=='center'){ m.hp=Math.min(100,m.hp+K.homeRegen*dt); continue; }
+    if(m.loc.b!=='center'){
+      m.hp=Math.min(100,m.hp+K.homeRegen*dt);
+      const F=wfx(S,m.loc.b,m.loc.i);
+      for(const k in F.up) m.st[k]=Math.min(100,m.st[k]+F.up[k]*dt*(100-m.st[k])/50);
+      for(const k in F.dn) m.st[k]=Math.max(0,m.st[k]-F.dn[k]*dt*m.st[k]/50);
+      continue; }
     const id=S.center[m.loc.i], R=ROOMS[id]; if(!R) continue;
     if(R.train){
       const eff=(m.hp<K.lowHp?K.lowEff:1)*(R.eff||1);
@@ -347,7 +376,6 @@ function endDay(S){
         S.ev.push(`${nameOf(m)}님이 점수가 떨어져 센터를 그만뒀습니다.`);
       }
     }else{
-      STATS.forEach(k=>{ m.st[k]=clamp(m.st[k]+K.workDrift[0]+rnd()*(K.workDrift[1]-K.workDrift[0]),0,100); });
       S.rep+=avg(m)/100*K.workRepPerDay;
       const need=(m.loc.b==='office'?C.join:C.marry)-K.returnMargin;
       if(avg(m)<need){ returnToLobby(S,m); S.ev.push(`${nameOf(m)}님이 ${m.loc.b==='office'?'회사':'집'}에서 점수가 깎여 재입소했습니다.`); }
@@ -384,7 +412,7 @@ function addFloor(S){
   if(S.gold<K.floorCost) return {ok:false,msg:`골드가 부족합니다. (${K.floorCost})`};
   S.gold-=K.floorCost; S.center.push(null,null); return {ok:true};
 }
-const sendable = (S,b) => S.members.filter(m=>m.loc.b==='center' && avg(m)>=(b==='office'?S.cfg.join:S.cfg.marry));
+const sendable = (S,b) => S.members.filter(m=>m.loc.b===(b==='office'?'center':'office') && avg(m)>=(b==='office'?S.cfg.join:S.cfg.marry));
 function expandInfo(S,b){
   const free=S[b].filter((_,i)=>!inRoom(S,b,i).length).length;
   const can=S[b].length<K.maxSlots && sendable(S,b).length>free;
@@ -834,6 +862,7 @@ function mountScene(stage,k,i){
   };
   next();
 }
+const fxText=(img,k)=>{ const F=(WFX[k]||{})[img]; if(!F) return ''; const f=o=>Object.entries(o).map(([a,v])=>SN[a]).join('·'); return `▲ ${f(F.up)} 상승 / ▼ ${f(F.dn)} 하락 (점수가 낮은 항목일수록 크게 오르고, 높은 항목일수록 크게 깎입니다)`; };
 function openRoom(k,i,refresh){
   cur={k,i}; hideCard(); stopScene();
   const id=k==='center'?S.center[i]:null;
@@ -863,7 +892,7 @@ function openRoom(k,i,refresh){
     $('#dTitle').textContent=`${TITLE[k]} · ${i+1}번 · ${stem(sl.img)}`;
     const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER[k],sl.img); bg.alt=''; stage.append(bg);
     fillStage(stage,k,i,true);
-    info.textContent=(k==='office'?`평균 ${S.cfg.join} 이상 회원이 갈 수 있습니다. 회사에서는 점수가 깎일 수 있고, 잘할수록 명성치가 오릅니다.`:`평균 ${S.cfg.marry} 이상(결혼) 회원이 갈 수 있습니다.`); info.style.whiteSpace='';
+    info.textContent=(k==='office'?`평균 ${S.cfg.join} 이상 회원이 갈 수 있습니다. 여기서 평균 ${S.cfg.marry}까지 올리면 집으로 보낼 수 있습니다.`:`회사를 거쳐 평균 ${S.cfg.marry} 이상이 된 회원이 갈 수 있습니다. 점수가 떨어지면 센터로 돌아옵니다.`)+`\n${fxText(S[k][i].img,k)}`; info.style.whiteSpace='pre-line';
   }
   stage.hidden=(k==='center'&&!id); stage.classList.toggle('compact',showChooser);
   if(!showChooser&&(k!=='center'||id)) mountScene(stage,k,i);
@@ -893,7 +922,7 @@ function buildChooser(k,i,box){
   }else{
     IMAGES[k].forEach(f=>{
       const btn=document.createElement('button'); const img=document.createElement('img'); img.src=bgUrl(FOLDER[k],f); img.alt='';
-      btn.append(img,document.createTextNode(stem(f))); btn.disabled=S[k][i].img===f;
+      btn.append(img,document.createTextNode(stem(f))); { const F=(WFX[k]||{})[f]; if(F){ const sm=document.createElement('small'); sm.textContent='▲'+Object.keys(F.up).map(a=>SN[a]).join('·')+' ▼'+Object.keys(F.dn).map(a=>SN[a]).join('·'); btn.append(sm); } } btn.disabled=S[k][i].img===f;
       btn.onclick=()=>{ S[k][i].img=f; save(); render(); openRoom(k,i); }; box.append(btn);
     });
   }
