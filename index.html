@@ -215,10 +215,13 @@ const ROOMS = {
     ['센터/근력운동_머신/10.png','센터/근력운동_머신/11a.png','센터/근력운동_머신/11b.png'],
     ['센터/요가_기본/06.png'],['센터/요가_기본/07.png'],
     ['센터/요가_동작변화/07a.png','센터/요가_동작변화/07b.png','센터/요가_동작변화/07c.png'],
-    ['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/운동후표정/02.png']]}
+    ['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/운동후표정/02.png'],
+    ['센터/특수훈련실/06발사슬.png'],['센터/특수훈련실/07밧줄_앉기.png'],['센터/특수훈련실/09밧줄_꿇기.png']]}
 };
 const ROOM_ORDER = ['lobby','basic','gear','group','recovery','shop','posture','punish','special','elite'];
+const GEARN = ['01','02','03','04','05','08'];   // 기구방에서 쓰는 자세(나머지 06·07·09는 특수훈련실)
 const DEV = ['01형틀_서기','02형틀_꿇기','03기둥_사슬','04의자','05십자대','06발사슬','07밧줄_앉기','08기둥_묶음','09밧줄_꿇기'];
+const GEAR = DEV.filter(n=>GEARN.includes(n.slice(0,2)));
 
 const SUR=['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','홍'];
 const G1=['하','서','지','민','수','예','유','채','다','소','나','윤','아','은','재','시','연','보','가','도'];
@@ -285,7 +288,7 @@ function place(S,m,b,i){
   if(b==='center'){
     const occ=inRoom(S,'center',i).filter(x=>x!==m);
     if(occ.length>=roomCap(S,i) && occ.length) occ[0].loc={...m.loc};     // 정원 1짜리가 차 있으면 자리 교환
-    const RR=ROOMS[S.center[i]]; if(RR&&(RR.sets||RR.dev)) m.pose=Math.floor(rnd()*(RR.sets?RR.sets.length:DEV.length));
+    const RR=ROOMS[S.center[i]]; if(RR&&(RR.sets||RR.dev)) m.pose=Math.floor(rnd()*(RR.sets?RR.sets.length:GEAR.length));
   }
   m.loc={b,i}; m.tr=0;
 }
@@ -400,7 +403,10 @@ const DEF_SCRIPTS = (()=>{
     d[key] = i<2 ? seq(A,'boing') : i===2||i===4 ? seq(B,'boing') : i===3 ? seq(['활짝웃음','당황','충격','시무룩','능청'],'boing') : i===5 ? seq(['놀람','당황','시무룩','눈물참기','능청'],'') : seq(C,''); });
   return d;
 })();
-function scriptKey(S,m){ const id=S.center[m.loc.i]; return ROOMS[id]&&ROOMS[id].dev ? 'dev:'+DEV[m.pose%DEV.length].slice(0,2) : id; }
+function scriptKey(S,m){ const id=S.center[m.loc.i], R=ROOMS[id];
+  if(R&&R.dev) return 'dev:'+GEAR[m.pose%GEAR.length].slice(0,2);
+  if(R&&R.sets){ const f=R.sets[m.pose%R.sets.length][0]; const x=f.match(/특수훈련실\/(\d\d)/); if(x) return 'dev:'+x[1]; }
+  return id; }
 function getScript(S,key){ return (S.scripts&&S.scripts[key]) || DEF_SCRIPTS[key] || DEF_SCRIPTS.basic; }
 function fillLine(S,m,line){
   const t=tierOf(m); let pool=[]; for(let k=t;k>=0&&!pool.length;k--) pool=S.titles[k]||[];
@@ -488,7 +494,7 @@ function personEl(m, big){
   const R=ROOMS[S.center[m.loc.i]];
   let poses;
   if(m.loc.b!=='center') poses=WORKPOSE[m.loc.b];
-  else if(R&&R.dev) poses=['센터/특수훈련실/'+DEV[m.pose%DEV.length]+'.png'];
+  else if(R&&R.dev) poses=['센터/특수훈련실/'+GEAR[m.pose%GEAR.length]+'.png'];
   else if(R&&R.sets) poses=R.sets[m.pose%R.sets.length];
   else poses=(R&&R.poses.length)?R.poses:ROOMS.lobby.poses;
   const p=document.createElement('div'); p.className='person'; p.dataset.id=m.id;
@@ -840,7 +846,7 @@ function openEditor(){
   const tabs=document.createElement('div'); tabs.className='tabs'; const body=document.createElement('div'); b.append(tabs,body);
   const T=[['scene','장면 순서표'],['title','호칭'],['bk','백업']]; let tab='scene', key='basic';
   const keys=()=>[...ROOM_ORDER.filter(r=>ROOMS[r].place&&!ROOMS[r].dev),...DEV.map(n=>'dev:'+n.slice(0,2))];
-  const kname=k=>k.startsWith('dev:')?`기구방 · ${DEV.find(n=>n.startsWith(k.slice(4))).slice(2).replace('_',' ')}`:ROOMS[k].name;
+  const kname=k=>k.startsWith('dev:')?`${GEARN.includes(k.slice(4))?'기구방':'특수훈련실'} · ${DEV.find(n=>n.startsWith(k.slice(4))).slice(2).replace('_',' ')}`:ROOMS[k].name;
   const draw=()=>{
     tabs.replaceChildren(); T.forEach(([id,t])=>{ const x=document.createElement('button'); x.textContent=t; x.className=tab===id?'on':''; x.onclick=()=>{ tab=id; draw(); }; tabs.append(x); });
     body.replaceChildren();
