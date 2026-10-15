@@ -1,8 +1,8 @@
 /* 방 행사와 터치 챌린지. 본편의 저장·아이템·대사 원문을 변경하지 않는다. */
-const MG_TITLES=['움찔 찾기','소시지 합치기','아슬아슬 균형 잡기','백만 대 챌린지','뒤를 조심!!'];
+const MG_TITLES=['움찔 찾기','소시지 합치기','아슬아슬 균형 잡기','백만 대 챌린지','뒤를 조심!!','물어와!'];
 const mgAsset=(kind,i)=>assetUrl('미니게임',kind,String(i).padStart(2,'0')+'.webp');
 const mgDetail=(kind,name)=>assetUrl('미니게임',kind,name+'.webp');
-const MG_IMAGES={animals:[],sausages:[],poses:{},portrait:{},actors:{},effects:[],behind:{}};
+const MG_IMAGES={animals:[],sausages:[],poses:{},portrait:{},actors:{},effects:[],behind:{},fetch:{}};
 function mgState(){return S.minigames||(S.minigames={version:1,next:S.t+.12,offer:null,history:[],plays:0});}
 function mgEligible(){const out=[];for(const b of ['center','office','home'])for(let i=0;i<S[b].length;i++){if(b==='center'&&!S.center[i])continue;const ms=inRoom(S,b,i).filter(m=>m.hp>=25);if(ms.length)out.push({b,i,members:ms.map(m=>m.id)});}return out;}
 function mgOffer(){const st=mgState();if(st.offer&&(!mgEligible().some(r=>r.b===st.offer.b&&r.i===st.offer.i)||S.t>st.offer.until))st.offer=null;if(!st.offer&&S.t>=st.next){const rooms=mgEligible();if(rooms.length){const r=pick(rooms),last=st.lastKind;let kinds=MG_TITLES.map((_,i)=>i).filter(k=>k!==last);st.offer={...r,kind:pick(kinds),until:S.t+.8};st.lastKind=st.offer.kind;st.next=S.t+.8+Math.random()*.5;save();}}return st.offer;}
@@ -58,6 +58,8 @@ async function mgLoad(){
  for(const name of ['surprise','tear','cry','blush','calm'])load('actors',name,mgDetail('actors',name));
  for(let i=1;i<=24;i++)load('effects',i-1,mgAsset('effects',i));
  for(const name of [...Array.from({length:9},(_,i)=>'rear'+(i+1)),'ball','duck','slipper'])load('behind',name,mgDetail('behind',name));
+ for(const name of ['run1','run2','run3','run4','jump1','jump2','jump3','jump4','floor','floor-mirror'])load('fetch',name,mgDetail('fetch',name));
+ for(const name of ['cat','blind','cuffs'])load('fetch',name,itemUrl('상품',name));
  await Promise.all(jobs);
 }
 function openMiniGame(offer,practice=false){
@@ -68,8 +70,8 @@ function openMiniGame(offer,practice=false){
   mgRound={...offer,members:ms.map(m=>m.id),name:mgRoomName(offer),set:offer.b==='office'?'회사':offer.b==='home'?'집':'센터',paid:false,practice};
   if(!practice){const st=mgState();st.offer=null;st.next=Math.max(st.next,S.t+.65);save();}
   mgDialog.replaceChildren();const head=mgNode('div','mg-head',undefined,mgDialog);mgNode('h2','',MG_TITLES[offer.kind]+' · '+mgRound.name,head);const close=mgNode('button','','×',head);close.setAttribute('aria-label','미니게임 닫기');close.onclick=mgClose;
-  const scene=mgNode('div','mg-scene',undefined,mgDialog);scene.classList.toggle('mg-animal-scene',offer.kind===0||offer.kind===4);scene.classList.toggle('mg-behind-scene',offer.kind===4);scene.style.backgroundImage=`url("${mgRoomBG(offer)}")`;const board=mgNode('div','mg-board',undefined,scene);mgNode('div','mg-fx-layer',undefined,scene);const side=mgNode('aside','mg-side',undefined,scene),speech=mgNode('div','mg-speech',undefined,side);mgNode('strong','',nameOf(ms[0])+(ms.length>1?` 외 ${ms.length-1}명`:''),speech);mgNode('span','mg-line','오늘은 어떤 훈련인가요, 조교님?',speech);const frame=mgNode('div','mg-portrait',undefined,side);const im=mgNode('img','mg-face',undefined,frame);im.src=mgDetail('actors','calm');im.alt='참가 회원 표정';im.dataset.face='calm';
-  mgNode('p','mg-instructions',['움찔하는 동물을 찾아 눌러 주세요! 25초 동안 정확하게, 연속으로!','같은 소시지 두 개를 합쳐 보세요. 위치를 골라 놓으면 통통! 60초 점수전입니다.','팔·등·엉덩이 중 난이도를 고르고 컵 균형을 잡아 주세요. 25초 동안 컵 세 개를 지켜 주세요!','세 사람을 번갈아 연타해 게이지를 유지하세요. 한 명이라도 바닥나면 종료! 기록은 버틴 시간입니다.','아래 소품을 아래로 당겼다 놓으세요! 좌우로 피하는 캐릭터를 맞히는 30초 점수전. 소품마다 날아가는 성질이 다릅니다.'][offer.kind],board);
+  const scene=mgNode('div','mg-scene',undefined,mgDialog);scene.classList.toggle('mg-animal-scene',offer.kind===0||offer.kind===4);scene.classList.toggle('mg-behind-scene',offer.kind===4);scene.classList.toggle('mg-fetch-scene',offer.kind===5);scene.classList.toggle('mg-animal-scene',offer.kind===0||offer.kind===4||offer.kind===5);scene.style.backgroundImage=`url("${mgRoomBG(offer)}")`;const board=mgNode('div','mg-board',undefined,scene);mgNode('div','mg-fx-layer',undefined,scene);const side=mgNode('aside','mg-side',undefined,scene),speech=mgNode('div','mg-speech',undefined,side);mgNode('strong','',nameOf(ms[0])+(ms.length>1?` 외 ${ms.length-1}명`:''),speech);mgNode('span','mg-line','오늘은 어떤 훈련인가요, 조교님?',speech);const frame=mgNode('div','mg-portrait',undefined,side);const im=mgNode('img','mg-face',undefined,frame);im.src=mgDetail('actors','calm');im.alt='참가 회원 표정';im.dataset.face='calm';
+  mgNode('p','mg-instructions',['움찔하는 동물을 찾아 눌러 주세요! 25초 동안 정확하게, 연속으로!','같은 소시지 두 개를 합쳐 보세요. 위치를 골라 놓으면 통통! 60초 점수전입니다.','팔·등·엉덩이 중 난이도를 고르고 컵 균형을 잡아 주세요. 25초 동안 컵 세 개를 지켜 주세요!','세 사람을 번갈아 연타해 게이지를 유지하세요. 한 명이라도 바닥나면 종료! 기록은 버틴 시간입니다.','아래 소품을 아래로 당겼다 놓으세요! 좌우로 피하는 캐릭터를 맞히는 30초 점수전. 소품마다 날아가는 성질이 다릅니다.','전진을 연타하고 장애물 앞에서는 점프! 멀리 던진 물건을 회수해 주세요.'][offer.kind],board);
   const preview=mgNode('div','mg-preview',undefined,board);const start=mgButton('그림 준비 중…',()=>{},board);start.disabled=true;mgNode('p','mg-small',practice?'연습 경기 · 성장 보상 없음':`발생 당시 참가 회원 ${ms.length}명에게 성적에 따른 보너스 · 경기 중 본편 일시정지`,board);
   mgDialog.showModal();mgLoad().then(()=>{
  if(!mgDialog.open||!start.isConnected)return;
@@ -81,9 +83,10 @@ function openMiniGame(offer,practice=false){
   ['쉬움 · 팔','보통 · 등','어려움 · 엉덩이'].forEach((t,i)=>{const b=mgNode('button','',t,levels);b.onclick=()=>drawLevel(i);});drawLevel(1);
  }else if(offer.kind===3)previewImages(['tap1','tap2','tap3'].map(n=>MG_IMAGES.poses[n]));
  else if(offer.kind===1){preview.classList.add('sausage-preview');previewImages([0,2,5].map(i=>MG_IMAGES.sausages[i]));}
+ else if(offer.kind===5){preview.classList.add('balance-preview');previewImages([MG_IMAGES.fetch.run1]);}
  else if(offer.kind===4){preview.classList.add('behind-preview');previewImages([MG_IMAGES.behind.rear2]);}
  else previewImages([0,3,8].map(i=>MG_IMAGES.animals[i]));
- start.disabled=false;start.textContent='시작!';start.onclick=()=>{mgAudioUnlock();board.replaceChildren();board.classList.toggle('mg-room-stage',offer.kind===2||offer.kind===3||offer.kind===4);if(offer.kind===0)mgWiggle(board);else if(offer.kind===1)mgMerge(board);else if(offer.kind===2)mgBalance(board);else if(offer.kind===3)mgTap(board);else mgBehind(board);};
+ start.disabled=false;start.textContent='시작!';start.onclick=()=>{mgAudioUnlock();board.replaceChildren();board.classList.toggle('mg-room-stage',offer.kind===2||offer.kind===3||offer.kind===4);if(offer.kind===0)mgWiggle(board);else if(offer.kind===1)mgMerge(board);else if(offer.kind===2)mgBalance(board);else if(offer.kind===3)mgTap(board);else if(offer.kind===4)mgBehind(board);else mgFetch(board);};
 });
 }
 function mgFinish(score,ratio,message){
@@ -177,3 +180,10 @@ function mgBadges(){const offer=mgState().offer;const key=offer?offer.b+':'+offe
 function mgOpenHub(){mgOffer();const offer=mgState().offer;const eligible=mgEligible();if(!eligible.length)return toast('체력 25 이상인 회원이 있는 방에서 즐길 수 있습니다.');const r=eligible.find(r=>cur&&cur.k===r.b&&cur.i===r.i)||eligible[0];const d=document.createElement('dialog');d.innerHTML='<div class="dhead"><h2>미니게임 연습</h2><button class="close">×</button></div><p>랜덤 행사는 방에 🎉 표시로 나타납니다. 지금은 보상 없는 연습을 즐길 수 있습니다.</p>';d.querySelector('button').onclick=()=>d.close();if(offer){const event=mgNode('button','mg-start','🎉 '+MG_TITLES[offer.kind]+' · '+mgRoomName(offer),d);event.style.margin='8px';event.onclick=()=>{d.close();openMiniGame(offer);};}MG_TITLES.forEach((title,kind)=>{const b=mgNode('button','pill',title,d);b.style.margin='8px';b.onclick=()=>{d.close();openMiniGame({...r,kind},true);};});d.addEventListener('close',()=>d.remove());document.body.append(d);d.showModal();}
 const mgHub=mgNode('button','','미니게임',document.querySelector('footer'));mgHub.id='btnMiniGames';mgHub.onclick=mgOpenHub;
 setInterval(()=>{if(document.hidden||mgDialog.open)return;mgOffer();mgBadges();mgHub.textContent=mgState().offer?'🎉 방 이벤트':'미니게임';},1000);
+
+function mgFetch(board){
+ const mount=mgNode('div','',undefined,board);mount.style.cssText='flex:1;min-height:0';
+ const bg=new Image();bg.src=mgRoomBG(mgRound);const round=mgRound;
+ const game=new FetchGame(mount,{assets:{...MG_IMAGES.fetch,duck:MG_IMAGES.behind.duck},bg,onEvent:event=>{if(event==='collision'){sound('bonk');mgReact('surprise',2);mgSay('으악! 물건은 아직 안 놓쳤습니다!', 'tear');}else if(event==='jump')sound('whoosh');else if(event==='clear'){sound('pop');if(game.s.cleared%3===0){mgSay('후욱…! 이번엔 넘었습니다, 조교님!', 'blush');mgHearts(75,40,22);}}else if(event==='fetch'){mgSay('물어왔습니다! 이제 숨 좀…!', 'blush');mgHearts(50,45,40);}} ,onFinish:result=>{round.fetch=result;game.destroy();mgFinish(result.score+'점',clamp(1-result.collisions*.09-Math.max(0,result.time-30)*.008,.15,1),`회수 성공 · ${result.time.toFixed(1)}초 · 충돌 ${result.collisions}회`);}});
+ round.fetchGame=game;mgCleanup=()=>game.destroy();
+}

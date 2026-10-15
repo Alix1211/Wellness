@@ -11,7 +11,7 @@ const assert=require('assert/strict');
  await page.waitForTimeout(500);
  const originalGold=await page.evaluate(()=>S.gold);
  // Open from a real randomly generated room offer, verify participant snapshot and pause.
- await page.evaluate(()=>{const st=mgState();st.next=S.t;mgOffer();mgBadges();});
+ await page.evaluate(()=>{const st=mgState();st.next=S.t;setRnd(()=>0);mgOffer();setRnd(Math.random);mgBadges();});
  assert.equal(await page.locator('.mg-badge').count(),1);
  const participantIds=await page.evaluate(()=>mgState().offer.members);
  console.log('offer ready');await page.locator('.mg-badge').click();console.log('opened');
@@ -40,7 +40,7 @@ const assert=require('assert/strict');
    assert.ok(['surprise','tear','cry','blush'].includes(await page.locator('.mg-face').getAttribute('data-face')));
   }
   if(kind===1)await page.locator('.mg-canvas').dispatchEvent('pointerdown',{clientX:300,clientY:200});
-  await page.evaluate(()=>{for(let n=0;n<1700&&window.testStep;n++)window.testStep(.04);});
+  await page.evaluate(()=>{if(mgRound.kind===5){const g=mgRound.fetchGame;cancelAnimationFrame(g.raf);g.step(1.5);for(let n=0;n<6000&&g.s.phase!=='done';n++){if(n%6===0)g.tap();const o=g.obstacles.find(o=>!o.passed&&o.d>g.s.distance);if(o&&o.d-g.s.distance<Math.max(140,g.s.speed*.31))g.jump();g.step(1/30);}}else for(let n=0;n<1700&&window.testStep;n++)window.testStep(.04);});
   assert.equal(await page.locator('.mg-result').count(),1);
   assert.match(await page.locator('.mg-result').innerText(),/연습 경기/);
   await page.getByRole('button',{name:'방으로 돌아가기'}).click();

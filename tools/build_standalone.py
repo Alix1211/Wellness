@@ -71,7 +71,7 @@ rep("const trainBgUrl = n => assetUrl('배경','조교창',n+'.png');","const TR
 # Inline mini-game source and sprite assets for offline file:// use.
 mg=open(SRC+'/minigames.js',encoding='utf-8').read()
 mgmap={}
-for kind in ['animals','sausages','poses','portrait','actors','effects','behind']:
+for kind in ['animals','sausages','poses','portrait','actors','effects','behind','fetch']:
     for f in sorted(os.listdir(SRC+'/미니게임/'+kind)):
         if f.endswith('.webp'):
             mgmap[kind+'/'+f]=uri(load(SRC+'/미니게임/'+kind+'/'+f),90)
@@ -85,6 +85,8 @@ for f in sorted(os.listdir(SRC+'/미니게임/audio')):
         audiomap[f]='data:audio/ogg;base64,'+base64.b64encode(open(SRC+'/미니게임/audio/'+f,'rb').read()).decode()
 mg=mg.replace("const mgAudioUrl=i=>assetUrl('미니게임','audio',String(i).padStart(2,'0')+'.ogg');","const MG_AUDIO="+J(audiomap)+";\nconst mgAudioUrl=i=>MG_AUDIO[String(i).padStart(2,'0')+'.ogg'];")
 html=html.replace('<script src="vendor/matter.min.js"></script>','<script>'+open(SRC+'/vendor/matter.min.js',encoding='utf-8').read()+'</script>')
+html=html.replace('<script src="fetch-game.js"></script>','<script>'+open(SRC+'/fetch-game.js',encoding='utf-8').read()+'</script>')
+html=html.replace('<script src="camera-ui.js"></script>','<script>'+open(SRC+'/camera-ui.js',encoding='utf-8').read()+'</script>')
 html=html.replace('<script src="minigames.js"></script>','<script>'+mg+'</script>')
 html=html.replace('<script src="minigame_behind.js"></script>','<script>'+open(SRC+'/minigame_behind.js',encoding='utf-8').read()+'</script>')
 open(OUT,'w',encoding='utf-8').write(html)
