@@ -27,8 +27,9 @@ const assert=require('assert/strict');
  await page.evaluate(()=>mgFinish('duplicate',1,'duplicate'));
  assert.equal(await page.evaluate(()=>JSON.stringify(S.members.map(m=>m.st))),after);
  await page.getByRole('button',{name:'방으로 돌아가기'}).click();
- // All four practice games run to completion, no extra rewards.
- for(let kind=0;kind<4;kind++){console.log('practice',kind);
+ // Every practice game runs to completion without extra rewards.
+ const gameCount=await page.evaluate(()=>MG_TITLES.length);
+ for(let kind=0;kind<gameCount;kind++){console.log('practice',kind);
   await page.evaluate(k=>openMiniGame({...mgEligible()[0],kind:k},true),kind);
   await page.getByRole('button',{name:'시작!',exact:true}).click();
   if(kind===3){
@@ -51,6 +52,6 @@ const assert=require('assert/strict');
  assert.equal(await page.evaluate(()=>JSON.stringify(mgState())),saved);
  assert.equal(await page.locator('script[src]').count(),0);
  assert.deepEqual(errors,[]);
- console.log('PASS: random offer, participant snapshot, pause, four full rounds, no duplicate reward, practice, persistence, offline script.');
+ console.log('PASS: random offer, participant snapshot, pause, all full rounds, no duplicate reward, practice, persistence, offline script.');
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1);});
