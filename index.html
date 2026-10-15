@@ -27,7 +27,7 @@ nav button.active{background:var(--leaf);color:#fff}
 .chip.blue{background:#e4f0ff;border-color:#a9c9f3}
 .chip.pink{background:#ffe6f2;border-color:#f3b0d3}
 .chip.gold{background:#fff3c8;border-color:#e6cb6c}
-#view{height:calc(100dvh - 100px);overflow-y:auto;overflow-x:hidden;background:linear-gradient(var(--sky1),var(--sky2) 75%);position:relative}
+#view{height:calc(100dvh - 100px);overflow:auto;background:linear-gradient(var(--sky1),var(--sky2) 75%);position:relative}
 #scene{display:flex;flex-direction:column;position:relative;transform-origin:top left}
 #row{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:38px;padding:100px 40px 0;position:relative;z-index:1}
 .sun{position:absolute;top:34px;right:9%;width:64px;height:64px;border-radius:50%;background:#fff6cc;box-shadow:0 0 60px #fff4c9}
@@ -58,6 +58,10 @@ body.editing .room:not(.empty){outline:3px dashed #3e7969aa;outline-offset:-3px}
 .stage-people{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;gap:2%;padding:0 3% 3.5%;z-index:2;pointer-events:none}
 .person{height:100%;display:flex;align-items:flex-end;justify-content:center;max-width:calc(94% / var(--n,1));pointer-events:auto;touch-action:none;cursor:grab;position:relative}
 .person img.pose{height:100%;width:auto;max-width:100%;object-fit:contain;object-position:bottom;display:block;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none;filter:drop-shadow(0 2px 2px #0003)}
+.person.work-actor img.pose{transform-origin:50% 95%;animation:workSway 3.2s ease-in-out infinite;animation-delay:var(--work-delay,0s)}
+.person.work-actor.dragging img.pose{animation-play-state:paused}
+@keyframes workSway{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-2px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.person.work-actor img.pose{animation:none}}
 .stage-people.free{display:block;padding:0}
 .person.free{position:absolute;bottom:3.5%;height:96.5%;max-width:none}
 .person.dragging{opacity:.3}
@@ -71,12 +75,17 @@ body.editing .room:not(.empty){outline:3px dashed #3e7969aa;outline-offset:-3px}
 .person .hp i{display:block;height:100%;border-radius:3px;background:#5cc27e;width:100%}
 .person .dot{position:absolute;right:4%;top:14%;width:11px;height:11px;border-radius:50%;border:2px solid #fff;background:#5cc27e;pointer-events:none;box-shadow:0 1px 2px #0004}
 .person .dot.warn{background:#f2c230}.person .dot.join{background:#4a90e2}.person .dot.marry{background:#f06aa8}.person .dot.grad{background:#e6b800}
+.person .dot.grade-low{background:#f7f7f2}.person .dot.grade-grow{background:#569ce2}.person .dot.grade-join{background:#54b87d}.person .dot.grade-home{background:#a778ce}.person .dot.grade-grad{background:#e6b800}.person .dot.retrain{border-color:#e34f59;box-shadow:0 0 0 1px #fff,0 0 5px #e34f59}
+.stage-people.community{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));grid-template-rows:repeat(var(--rows),minmax(0,1fr));align-items:end;justify-items:center;gap:2px}.stage-people.community .person{max-width:100%;min-width:0}
+.room.move-ok{box-shadow:inset 0 0 0 3px #459e78;cursor:pointer}.room.move-no{opacity:.48}.room.drop-ok{box-shadow:inset 0 0 0 5px #3dad7f}.room.drop-no{box-shadow:inset 0 0 0 5px #d46a6a}.candidates-open #row{padding-top:160px}
+#mapLegend{position:fixed;right:10px;top:106px;z-index:4;max-width:340px;font-size:10px;line-height:1.6;color:#587167;background:#fffaf0db;border-radius:8px;padding:4px 7px;pointer-events:none;box-shadow:0 1px 4px #36554512}#mapLegend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 2px 0 5px;border:1px solid #aebbad;vertical-align:middle}#mapLegend .legend-red{border:2px solid #e34f59;background:#fff}
+#moveTray{position:fixed;bottom:77px;left:50%;transform:translateX(-50%);z-index:7;width:min(760px,96vw);background:#fffaf0f5;border:1px solid #c9d8c7;border-radius:16px;padding:9px 11px;box-shadow:0 5px 25px #2e514735}#moveTray[hidden]{display:none}#moveHead{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}#moveHint{margin:3px 0 5px;font-size:11px;color:#6c8376}#moveList{display:flex;gap:8px;overflow-x:auto;min-height:100px;scrollbar-width:thin}#moveList .move-member{position:relative;flex:0 0 88px;width:88px;height:110px;padding:3px;background:#f1f2e9;border:2px solid transparent;border-radius:12px;touch-action:none;color:#405e54}#moveList .move-member.selected{border-color:#42896c;background:#e2f0df}#moveList img.pose{display:block;width:100%;height:65px;object-fit:contain;pointer-events:none}#moveList strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}#moveList small{font-size:10px;color:#718474}#moveClose{font-size:20px;background:#e7eada;border-radius:8px;width:28px;height:28px}.chip.chosen{box-shadow:inset 0 0 0 2px #508878}.candidates-open #scene{padding-bottom:190px}
 .person .zz{position:absolute;left:2%;top:10%;font-size:18px;display:none;pointer-events:none;animation:zz 1s infinite alternate}
 @keyframes zz{to{transform:translateY(-4px)}}
 .person .heart{position:absolute;pointer-events:none;color:#ff5c93;font-size:16px;animation:rise 1.6s forwards;text-shadow:0 0 3px #fff}
 @keyframes rise{from{opacity:1;transform:translateY(0) scale(.6)}to{opacity:0;transform:translateY(-55px) scale(1.1)}}
 #ghost{position:fixed;z-index:100;pointer-events:none;height:110px;transform:translate(-50%,-80%);filter:drop-shadow(0 6px 8px #0005)}
-footer{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:6;background:#fffcf2ed;padding:7px;border-radius:18px;display:flex;gap:4px;box-shadow:0 5px 30px #304a4c25}
+footer{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:6;background:#fffcf2ed;padding:7px;border-radius:18px;display:flex;gap:4px;box-shadow:0 5px 30px #304a4c25;max-width:calc(100vw - 16px);overflow-x:auto}
 footer button{background:transparent;padding:9px 14px;color:#42685e;white-space:nowrap;border-radius:12px}
 footer button.on{background:var(--leaf);color:#fff}
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#304a4cee;color:#fff;border-radius:12px;padding:10px 18px;font-size:14px;z-index:30;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
@@ -232,6 +241,8 @@ dialog::backdrop{background:#203e4966}
     <div class="ground"></div>
   </div>
 </main>
+<div id="mapLegend" aria-label="회원 상태 색상"><i style="background:#f7f7f2"></i>낮음 <i style="background:#569ce2"></i>성장 <i style="background:#54b87d"></i>입사권 <i style="background:#a778ce"></i>집 이동권 <i style="background:#e6b800"></i>졸업 임박 · 💤 피곤 · <i class="legend-red"></i>재교육</div>
+<section id="moveTray" aria-label="이동할 회원" hidden><div id="moveHead"><strong id="moveTitle"></strong><button id="moveClose" aria-label="회원 목록 닫기">×</button></div><p id="moveHint">회원을 끌거나, 회원을 누른 뒤 목적지 방을 누르세요.</p><div id="moveList"></div></section>
 
 <footer>
   <button id="btnEditor">편집기</button>
@@ -280,6 +291,7 @@ const K = {
   lobbyRegen:6, shopBonus:3, homeRegen:20,
   visitBase:0.3, visitPerRep:0.003, visitMax:1.2,
   workRepPerDay:0.35, returnMargin:5,
+  workCapCost:100,
   floorCost:200, slotCost:300, maxSlots:3
 };
 /* 방 정의. train: 하루 기준 성장량, cost: 하루 체력 소모, cap: 기본 정원, max: 확장 한계, eff: 1인당 효율 */
@@ -396,7 +408,10 @@ const tierOf = m => { const a=avg(m); return a<35?0:a<55?1:a<80?2:3; };
 const lobbyIndex = S => S.center.indexOf('lobby');
 const inRoom = (S,b,i) => S.members.filter(m=>m.loc.b===b && m.loc.i===i);
 function roomCap(S,i){ const R=ROOMS[S.center[i]]; return R ? Math.min(R.max, R.cap+(S.extra[i]||0)) : 0; }
-const slotCap = b => 1;
+function slotCap(S,b,i){const sl=S[b][i];return !sl?0:b==='office'&&sl.img==='개인사무실.png'?1:2+Math.max(0,Math.floor(Number(sl.extra)||0));}
+function workCapCost(S,b,i){return K.workCapCost*(Math.max(0,Math.floor(Number(S[b][i]?.extra)||0))+1);}
+function upgradeWorkCap(S,b,i){if(!S[b]?.[i]||b==='office'&&S[b][i].img==='개인사무실.png')return {ok:false,msg:'개인사무실은 1명 전용입니다.'};const cost=workCapCost(S,b,i);if(S.gold<cost)return {ok:false,msg:`골드가 부족합니다. (${cost})`};S.gold-=cost;S[b][i].extra=slotCap(S,b,i)-1;return {ok:true};}
+function needsRetrain(S,m){if(m.loc.b==='center')return false;const need=m.loc.b==='office'?S.cfg.join:S.cfg.marry;return avg(m)<need||STATS.some(k=>m.st[k]<need-K.returnMargin);}
 
 function genName(S){
   for(let n=0;n<8;n++){ const nm=pick(SUR)+pick(G1)+pick(G2); if(!S.members.some(m=>m.name===nm)) return nm; }
@@ -435,7 +450,7 @@ function canPlace(S,m,b,i){
   if(!S[b][i]) return {ok:false,msg:'빈 칸입니다.'};
   if(a<need) return {ok:false,msg:`${b==='office'?'회사는':'집은'} 평균 ${need} 이상만 갈 수 있습니다.`};
   if(b==='home' && m.loc.b==='center') return {ok:false,msg:'집은 회사를 거친 회원만 갈 수 있습니다.'};
-  if(inRoom(S,b,i).some(x=>x!==m)) return {ok:false,msg:'이미 누가 있습니다.'};
+  if(inRoom(S,b,i).filter(x=>x!==m).length>=slotCap(S,b,i)) return {ok:false,msg:'정원이 찼습니다. 방에서 정원을 늘려 주세요.'};
   return {ok:true};
 }
 function place(S,m,b,i){
@@ -472,7 +487,7 @@ function advance(S, dt){
     S.gold=Math.max(0,S.gold-K.injuryFee); S.rep=Math.max(0,S.rep-1); S.injuries++; removeMember(S,m);
     S.ev.push(`${nameOf(m)}님이 무리한 훈련으로 부상을 입고 센터를 떠났습니다. 위약금 ${K.injuryFee}골드`);
   }
-  for(const m of [...S.members]) if(STATS.every(k=>m.st[k]>=99.5)){
+  for(const m of [...S.members]) if(m.loc.b==='home'&&STATS.every(k=>m.st[k]>=99.5)){
     S.gold+=K.thanks; S.rep+=K.thanksRep; S.grads++; removeMember(S,m);
     S.ev.push(`🎉 ${nameOf(m)}님이 모든 점수 100 달성! "안녕~" 사례비 ${K.thanks}골드`);
   }
@@ -493,7 +508,7 @@ function endDay(S){
     }else{
       S.rep+=avg(m)/100*K.workRepPerDay;
       const need=(m.loc.b==='office'?C.join:C.marry)-K.returnMargin;
-      if(avg(m)<need){ returnToLobby(S,m); S.ev.push(`${nameOf(m)}님이 ${m.loc.b==='office'?'회사':'집'}에서 점수가 깎여 재입소했습니다.`); }
+      if(avg(m)<need){ const from=m.loc.b;returnToLobby(S,m); S.ev.push(`${nameOf(m)}님이 ${from==='office'?'회사':'집'}에서 점수가 깎여 재입소했습니다.`); }
     }
   }
   if(S.day%C.monthDays===0){
@@ -529,7 +544,7 @@ function addFloor(S){
 }
 const sendable = (S,b) => S.members.filter(m=>m.loc.b===(b==='office'?'center':'office') && avg(m)>=(b==='office'?S.cfg.join:S.cfg.marry));
 function expandInfo(S,b){
-  const free=S[b].filter((_,i)=>!inRoom(S,b,i).length).length;
+  const free=S[b].reduce((n,_,i)=>n+Math.max(0,slotCap(S,b,i)-inRoom(S,b,i).length),0);
   const can=S[b].length<K.maxSlots && sendable(S,b).length>free;
   return {can, cost:K.slotCost*S[b].length, full:S[b].length>=K.maxSlots};
 }
@@ -599,14 +614,41 @@ const SNDS = [['','없음'],['thud','퍽'],['slap','짝'],['ding','딩'],['whoos
 const IMAGES = {office:['개인사무실.png','공용사무실.png','파티션사무실.png','로비.png','탕비실.png','휴게실.png','사내화장실.png','샤워실.png','화장실.png'], home:['거실.png','침실.png','화장실.png','지하실.png','빈방.png','서재.png']};
 const FOLDER = {office:'사무실', center:'센터', home:'집'};
 const TITLE  = {office:'회사', center:'WELLNESS CENTER', home:'집'};
-const WORKPOSE = {office:['사무실/요가_기본/02.png','사무실/준비운동_상체/02.png'], home:['집/1000040212/01.png','집/1000040211/02.png']};
+// Each sequence stays in one pose family. Return through the middle frame instead of snapping.
+const WORKPOSE = {
+ office:{
+  kneel:['사무실/요가_바닥운동/04.png','사무실/요가_바닥운동/05.png','사무실/요가_바닥운동/06.png'],
+  arch:['사무실/요가_바닥운동/07.png','사무실/요가_바닥운동/08.png','사무실/요가_바닥운동/09.png'],
+  plank:['사무실/요가_바닥운동/10.png','사무실/요가_바닥운동/11.png','사무실/요가_바닥운동/12.png'],
+  fold:['사무실/요가_스트레칭/01.png','사무실/요가_스트레칭/02.png','사무실/요가_스트레칭/03.png'],
+  side:['사무실/요가_스트레칭/04.png','사무실/요가_스트레칭/05.png','사무실/요가_스트레칭/06.png'],
+  lie:['사무실/요가_스트레칭/07a.png'],
+  curl:['사무실/요가_스트레칭/08.png','사무실/요가_스트레칭/09.png','사무실/요가_스트레칭/10.png']
+ },
+ home:{
+  kneel:['집/1000040214/01a.png','집/1000040214/02.png','집/1000040214/03.png'],
+  arch:['집/1000040214/01b.png','집/1000040214/04.png','집/1000040214/01c.png'],
+  plank:['집/1000040214/07.png','집/1000040214/08.png'],
+  fold:['집/1000040217/05.png','집/1000040217/06.png'],
+  side:['집/1000040216/07.png','집/1000040216/08.png','집/1000040216/09.png'],
+  lie:['집/1000040216/05.png','집/1000040216/06a.png','집/1000040216/06b.png'],
+  curl:['집/1000040216/07.png','집/1000040216/08.png','집/1000040216/09.png'],
+  prone:['집/1000040217/07.png','집/1000040217/08.png'],
+  rest:['집/1000040217/10.png','집/1000040217/11.png']
+ }
+};
+const WORKROOM = {
+ office:{'개인사무실.png':['arch','kneel','fold'],'공용사무실.png':['plank','arch','side'],'파티션사무실.png':['fold','kneel','arch'],'로비.png':['kneel','side','arch'],'탕비실.png':['side','fold','kneel'],'휴게실.png':['lie','curl','kneel'],'사내화장실.png':['fold','kneel','arch'],'샤워실.png':['arch','side','fold'],'화장실.png':['fold','arch','kneel']},
+ home:{'거실.png':['arch','kneel','prone'],'침실.png':['lie','rest','curl'],'화장실.png':['fold','kneel','side'],'지하실.png':['plank','fold','arch'],'빈방.png':['side','prone','arch'],'서재.png':['kneel','curl','rest']}
+};
+function workPoses(m){const b=m.loc.b,slot=m.loc.i,pool=WORKROOM[b][S[b][slot].img]||['kneel','arch','fold'];const key=pool[(m.id+slot)%pool.length],frames=WORKPOSE[b][key];return frames.length===3?[...frames,frames[1]]:frames;}
 const HAIR = {"센터/푸시업": 70.1, "센터/아기자세": 68.4, "센터/네발자세": 50.8, "사무실/근력운동_덤벨바벨": 92.9, "사무실/근력운동_머신": 91.6, "사무실/근력운동_하체": 101.8, "사무실/요가_기본": 105.0, "사무실/요가_바닥운동": 124.2, "사무실/요가_스트레칭": 112.1, "사무실/운동후표정": 201.1, "사무실/준비운동_상체": 132.1, "센터/근력운동_덤벨바벨": 84.5, "센터/근력운동_머신": 86.1, "센터/근력운동_하체": 93.2, "센터/사과포즈": 344.3, "센터/요가_기본": 77.6, "센터/요가_동작변화": 102.6, "센터/요가_응용": 81.0, "센터/운동후표정": 172.1, "센터/준비운동_상체": 124.9, "센터/준비운동_하체": 129.3, "센터/특수훈련실": 153.1, "센터/판타지구속포즈": 159.5, "집/1000040211": 122.0, "집/1000040212": 139.2, "집/1000040213": 111.6, "집/1000040214": 139.1, "집/1000040215": 131.7, "집/1000040216": 111.2, "집/1000040217": 115.1};
 const poseScale = rel => { const f=rel.split('/').slice(0,2).join('/'); const m=HAIR[f]||100; return 0.174*Math.pow(77.6/m,0.6); };   // 머리 크기 기준 배율
 function fitPose(img){
   const nh=img.naturalHeight, nw=img.naturalWidth; if(!nh||!img.dataset.rel) return;
   const wrap=img.closest('.stage-people'); const n=wrap?(parseFloat(wrap.style.getPropertyValue('--n'))||1):1;
   const s=poseScale(img.dataset.rel); let h=nh*s;
-  const wMax=(90/n)/(9/16), hMax=94;
+  const wMax=wrap?.classList.contains('community')?160*(+wrap.style.getPropertyValue('--rows')||1)/(+wrap.style.getPropertyValue('--cols')||1):(90/n)/(9/16), hMax=94;
   if(nw*s>wMax) h*=wMax/(nw*s);
   const X=Math.min(h,hMax)/0.94, p=img.parentElement; p.style.height=(p.classList.contains('free')?X*0.965:X)+'%'; img.style.height='100%';
 }
@@ -669,25 +711,31 @@ function sound(kind){
 addEventListener('pointerdown',()=>{ try{ if(S.cfg.sound){ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); } }catch{} },{once:true});
 
 /* 그리기 */
-let focus='center', editing=false, dragging=false, pendingRender=false;
+let focus='all', editing=false, dragging=false, pendingRender=false,pointerBusy=false;
+const moveState={filter:null,id:null,key:''};let alertKey='';
 let anim=[], actors=[], wand=[]; const WANDER=new Map();
 const row=$('#row');
 
-function personEl(m, big){
+function memberPoses(m){
   const R=ROOMS[S.center[m.loc.i]];
   let poses;
-  if(m.loc.b!=='center') poses=WORKPOSE[m.loc.b];
+  if(m.loc.b!=='center') poses=workPoses(m);
   else if(R&&R.dev) poses=['센터/특수훈련실/'+GEAR[m.pose%GEAR.length]+'.png'];
   else if(R&&R.sets) poses=R.sets[m.pose%R.sets.length];
   else poses=(R&&R.poses.length)?R.poses:ROOMS.lobby.poses;
+  return poses;
+}
+function personEl(m, big){
+  const R=ROOMS[S.center[m.loc.i]],poses=memberPoses(m);
   const p=document.createElement('div'); p.className='person'; p.dataset.id=m.id;
+  if(m.loc.b!=='center'){p.classList.add('work-actor');p.style.setProperty('--work-delay',(-m.id*.47)+'s');}
   const img=document.createElement('img'); img.className='pose'; img.alt=nameOf(m); img.draggable=false; img.dataset.rel=poses[0]; img.onload=()=>fitPose(img); img.src=poseUrl(poses[0]); p.append(img);
   const bl=document.createElement('div'); bl.className='blush'; p.append(bl);
   const fc=document.createElement('img'); fc.className='face'; fc.alt=''; p.append(fc);
   const hp=document.createElement('div'); hp.className='hp'; hp.innerHTML='<i></i>'; p.append(hp);
   const dot=document.createElement('span'); dot.className='dot'; p.append(dot);
   const zz=document.createElement('span'); zz.className='zz'; zz.textContent='💤'; p.append(zz);
-  if(poses.length>1) anim.push({img,poses,off:Math.floor(Math.random()*poses.length)});
+  if(poses.length>1) anim.push({img,poses,off:m.loc.b==='center'?Math.floor(Math.random()*poses.length):m.id%poses.length});
   if(m.loc.b==='center' && S.center[m.loc.i]!=='shop'){
     actors.push({m, el:p, face:fc, key:scriptKey(S,m), idx:0, rem:200+Math.random()*900, primary:false, big:!!big});
   }
@@ -711,7 +759,9 @@ function statusOf(m){
 function paintPerson(p,m){
   $('.hp i',p).style.width=clamp(m.hp,0,100)+'%';
   $('.hp i',p).style.background = m.hp<K.tiredHp?'#e0584f':m.hp<K.lowHp?'#f2c230':'#5cc27e';
-  $('.dot',p).className='dot '+statusOf(m);
+  const grade=STATS.every(k=>m.st[k]>=95)?'grad':avg(m)>=S.cfg.marry?'home':avg(m)>=S.cfg.join?'join':avg(m)>=S.cfg.join/2?'grow':'low';
+  $('.dot',p).className='dot grade-'+grade+(needsRetrain(S,m)||statusOf(m)==='warn'?' retrain':'');
+  $('.dot',p).title=`평균 ${avg(m).toFixed(1)}`+(needsRetrain(S,m)?' · 재교육 필요':'');
   $('.zz',p).style.display = m.hp<K.tiredHp ? 'block':'none';
   $('.blush',p).style.opacity = [0,.25,.45,.65][tierOf(m)];
 }
@@ -721,6 +771,7 @@ function fillStage(stage, b, slot, big){
   const people=inRoom(S,b,slot);
   const free=b==='center'&&ROOMS[S.center[slot]]&&ROOMS[S.center[slot]].wander;
   const wrap=document.createElement('div'); wrap.className='stage-people'+(free?' free':''); wrap.style.setProperty('--n',free?1:Math.max(1,people.length));
+  if(b!=='center'){const cols=Math.min(4,Math.max(1,people.length),Math.max(1,Math.ceil(Math.sqrt(people.length*1.6))));const rows=Math.max(1,Math.ceil(people.length/cols));wrap.classList.add('community');wrap.style.setProperty('--cols',cols);wrap.style.setProperty('--rows',rows);}
   people.forEach(m=>wrap.append(personEl(m,big)));
   stage.append(wrap);
 }
@@ -740,12 +791,12 @@ function roomEl(k,i){
     const sl=S[k][i]; name=stem(sl.img);
     const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER[k],sl.img); bg.alt=''; r.append(bg);
     fillStage(r,k,i,false);
-    const label=document.createElement('span'); label.className='label'; label.textContent=`${TITLE[k]} ${name}`; r.append(label);
+    const label=document.createElement('span'); label.className='label'; label.textContent=`${TITLE[k]} ${name} ${inRoom(S,k,i).length}/${slotCap(S,k,i)}`; r.append(label);
   }
   const badge=document.createElement('span'); badge.className='badge'; badge.textContent='✎'; r.append(badge);
   r.setAttribute('aria-label',`${FOLDER[k]} ${name}`);
-  r.onclick=()=>{ if(suppressClick) return; openRoom(k,i); };
-  r.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openRoom(k,i); } };
+  r.onclick=()=>{ if(suppressClick) return; if(moveState.id!==null&&!editing){moveMemberTo(moveState.id,k,i);return;}openRoom(k,i); };
+  r.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault();r.click(); } };
   return r;
 }
 function render(){
@@ -776,21 +827,24 @@ function render(){
     }
     b.append(base); row.append(b);
   }
-  applyFocus(); updateHud();
+  applyFocus(); updateHud();refreshMoveTargets();
 }
 function applyFocus(){
   $$('.building').forEach(b=>{ b.style.display=(focus==='all'||b.dataset.kind===focus)?'':'none'; });
   $$('[data-focus]').forEach(b=>b.classList.toggle('active',b.dataset.focus===focus));
+  $('#mapLegend').hidden=focus!=='all';
   fit();
 }
 function fit(){
   const view=$('#view'), scene=$('#scene');
+  const tray=$('#moveTray');view.style.height=moveState.filter&&!tray.hidden?Math.max(140,tray.getBoundingClientRect().top-view.getBoundingClientRect().top-8)+'px':'';
   scene.style.zoom=1; scene.style.width='auto'; scene.style.minHeight='0';
   const vis=$$('.building').filter(b=>b.style.display!=='none');
   const natural=vis.reduce((s,b)=>s+b.offsetWidth+16,0)+(vis.length-1)*38+80;
   const zW=view.clientWidth/natural;
   const z=Math.max(.35,Math.min(1.5,zW));   // 가로 폭에만 맞추고, 세로는 스크롤
-  scene.style.zoom=z; scene.style.width=(view.clientWidth/z)+'px'; scene.style.minHeight=(view.clientHeight/z)+'px';
+  scene.style.zoom=z; scene.style.width=Math.max(natural,view.clientWidth/z)+'px'; scene.style.minHeight=moveState.filter?'0':(view.clientHeight/z)+'px';
+  $('#mapLegend').style.top=($('#bar').getBoundingClientRect().bottom+6)+'px';
 }
 addEventListener('resize',fit);
 
@@ -799,25 +853,30 @@ function updateHud(){
   $('#hGold').textContent=Math.floor(S.gold); $('#hRep').textContent=Math.floor(S.rep);
   const hh=Math.floor((S.t-S.day)*24);
   $('#hDay').textContent=`D${S.day+1} · ${String(hh).padStart(2,'0')}시`;
-  const mm=S.members;
-  const tired=mm.filter(m=>m.loc.b==='center'&&m.hp<K.tiredHp), warn=mm.filter(m=>m.loc.b==='center'&&statusOf(m)==='warn');
-  const join=mm.filter(m=>m.loc.b==='center'&&avg(m)>=S.cfg.join&&avg(m)<S.cfg.marry), marry=mm.filter(m=>m.loc.b!=='home'&&avg(m)>=S.cfg.marry&&STATS.some(k=>m.st[k]<95)), grad=mm.filter(m=>STATS.every(k=>m.st[k]>=95));
-  const box=$('#alerts'); box.replaceChildren();
-  const add=(txt,cls,list)=>{ if(!list.length) return; const c=document.createElement('button'); c.className='chip '+cls; c.textContent=`${txt} ${list.length}`; c.onclick=()=>locate(list[0].id); box.append(c); };
-  add('💤 피곤','hot',tired); add('⚠ 이탈 위험','',warn); add('입사 가능','blue',join); add('결혼 가능','pink',marry); add('졸업 임박','gold',grad);
+  const mm=S.members,groups=candidateGroups();
   const lob=inRoom(S,'center',lobbyIndex(S)).length;
-  const c=document.createElement('span'); c.className='chip'; c.textContent=`회원 ${mm.length}명 · 로비 ${lob}/${ROOMS.lobby.cap}`; box.append(c);
+  const sig=Object.entries(groups).map(([key,list])=>key+':'+list.map(m=>m.id).join(',')).join('|')+`/${lob}/${mm.length}/${moveState.filter}`;
+  if(sig!==alertKey){alertKey=sig;const box=$('#alerts');box.replaceChildren();for(const [key,txt,cls] of [['tired','💤 피곤','hot'],['warn','⚠ 이탈 위험',''],['join','입사 가능','blue'],['marry','집 이동 가능','pink'],['retrain','재교육 필요','hot'],['grad','졸업 임박','gold']]){const list=groups[key];if(!list.length)continue;const c=document.createElement('button');c.className='chip '+cls+(moveState.filter===key?' chosen':'');c.textContent=`${txt} ${list.length}`;c.dataset.candidates=key;c.onclick=()=>openCandidates(key);box.append(c);}const c=document.createElement('button');c.className='chip'+(moveState.filter==='all'?' chosen':'');c.textContent=`회원 ${mm.length}명 · 로비 ${lob}/${ROOMS.lobby.cap}`;c.dataset.candidates='all';c.onclick=()=>openCandidates('all');box.append(c);}
+  renderMoveTray();
 }
+function candidateGroups(){const mm=S.members;return {all:mm,tired:mm.filter(m=>m.loc.b==='center'&&m.hp<K.lowHp),warn:mm.filter(m=>m.loc.b==='center'&&statusOf(m)==='warn'),join:mm.filter(m=>m.loc.b==='center'&&avg(m)>=S.cfg.join),marry:mm.filter(m=>m.loc.b==='office'&&avg(m)>=S.cfg.marry),retrain:mm.filter(m=>needsRetrain(S,m)),grad:mm.filter(m=>m.loc.b==='home'&&STATS.every(k=>m.st[k]>=95))};}
+function openCandidates(key){hideCard();moveState.filter=key;moveState.id=null;moveState.key='';focus='all';$('#view').classList.add('candidates-open');updateHud();applyFocus();refreshMoveTargets();}
+function closeCandidates(){moveState.filter=null;moveState.id=null;moveState.key='';$('#moveTray').hidden=true;$('#view').classList.remove('candidates-open');refreshMoveTargets();updateHud();fit();}
+$('#moveClose').onclick=closeCandidates;
+function selectMove(id){moveState.id=moveState.id===id?null:id;moveState.key='';renderMoveTray();refreshMoveTargets();}
+function refreshMoveTargets(id=moveState.id){const m=mById(id);$$('.room').forEach(r=>{const same=m&&m.loc.b===r.dataset.kind&&m.loc.i===+r.dataset.slot;const ok=m&&!same&&canPlace(S,m,r.dataset.kind,+r.dataset.slot).ok;r.classList.toggle('move-ok',!!ok);r.classList.toggle('move-no',!!m&&!ok);});}
+function moveMemberTo(id,b,i){const m=mById(id);if(!m)return false;const check=canPlace(S,m,b,i);if(!check.ok){toast(check.msg);return false;}place(S,m,b,i);moveState.id=null;moveState.key='';save();render();return true;}
+function renderMoveTray(){if(!moveState.filter||dragging||pointerBusy)return;const list=candidateGroups()[moveState.filter]||[],tray=$('#moveTray'),box=$('#moveList');tray.hidden=false;if(moveState.id!==null&&!list.some(m=>m.id===moveState.id)){moveState.id=null;refreshMoveTargets();}const labels={all:'전체 회원',tired:'피곤한 회원',warn:'이탈 위험 회원',join:'입사 가능한 회원',marry:'집으로 이동할 회원',retrain:'재교육이 필요한 회원',grad:'졸업을 앞둔 회원'};$('#moveTitle').textContent=`${labels[moveState.filter]} · ${list.length}명`;const selected=mById(moveState.id);$('#moveHint').textContent=selected?`${nameOf(selected)} 선택 · 밝게 표시된 방을 눌러 주세요.`:list.length?'회원을 끌거나, 회원을 누른 뒤 목적지 방을 누르세요.':'해당하는 회원이 없습니다.';const key=moveState.filter+'/'+moveState.id+'/'+list.map(m=>`${m.id}:${m.loc.b}:${m.loc.i}:${Math.floor(avg(m))}:${Math.floor(m.hp)}:${memberPoses(m)[0]}`).join('|');if(key===moveState.key)return;moveState.key=key;const scroll=box.scrollLeft;box.replaceChildren();for(const m of list){const btn=document.createElement('button');btn.className='move-member'+(moveState.id===m.id?' selected':'');btn.dataset.id=m.id;btn.setAttribute('aria-label',`${nameOf(m)} 선택`);const im=document.createElement('img');im.className='pose';im.alt='';im.src=poseUrl(memberPoses(m)[0]);const name=document.createElement('strong');name.textContent=nameOf(m);const sub=document.createElement('small');sub.textContent=`${m.loc.b==='center'?'센터':TITLE[m.loc.b]} · ${Math.round(avg(m))}점`;btn.append(im,name,sub);bindDrag(btn,m.id,true);btn.onclick=e=>{if(e.detail===0)selectMove(m.id);};box.append(btn);}box.scrollLeft=scroll;}
 function locate(id){
   const m=mById(id); if(!m) return;
-  focus=m.loc.b; applyFocus();
+  if(focus!=='all')focus=m.loc.b; applyFocus();
   const p=$(`.person[data-id="${id}"]`); if(p){ p.scrollIntoView({block:'center',inline:'center',behavior:'smooth'}); p.classList.add('pulse'); setTimeout(()=>p.classList.remove('pulse'),2500); }
 }
 
 /* 포즈 번갈아·표정 말풍선·하트 */
 let tick=0;
 setInterval(()=>{ tick++; anim.forEach(a=>{ if(a.img.isConnected){ const rel=a.poses[(tick+a.off)%a.poses.length]; a.img.dataset.rel=rel; a.img.src=poseUrl(rel); } }); },900);
-function preload(){ const seen=new Set(); Object.values(ROOMS).forEach(t=>[...t.poses,...(t.sets||[]).flat()].forEach(p=>{ if(!seen.has(p)){ seen.add(p); new Image().src=poseUrl(p);} })); DEV.forEach(n=>new Image().src=poseUrl('센터/특수훈련실/'+n+'.png')); FACES.forEach(f=>new Image().src=faceUrl(f)); }
+function preload(){ const seen=new Set(); const warm=p=>{if(!seen.has(p)){seen.add(p);new Image().src=poseUrl(p);}};Object.values(ROOMS).forEach(t=>[...t.poses,...(t.sets||[]).flat()].forEach(warm));Object.values(WORKPOSE).forEach(building=>Object.values(building).flat().forEach(warm)); DEV.forEach(n=>new Image().src=poseUrl('센터/특수훈련실/'+n+'.png')); FACES.forEach(f=>new Image().src=faceUrl(f)); }
 
 function stageOf(a){ return a.el.closest('.stage-big'); }
 function runActors(){
@@ -866,7 +925,7 @@ setInterval(()=>{
 let last=Date.now(), saveAt=0;
 setInterval(()=>{
   const now=Date.now(); let dt=(now-last)/1000; last=now;
-  if(document.hidden || document.querySelector("#mgDialog[open]")) return;
+  if(document.hidden || dragging || pointerBusy || document.querySelector("#mgDialog[open]")) return;
   dt=Math.min(dt,1.5);
   const before=S.members.length;
   advance(S, dt*S.cfg.speed/(S.cfg.dayMin*60));
@@ -879,35 +938,37 @@ document.addEventListener('visibilitychange',()=>{ last=Date.now(); if(document.
 /* 드래그 앤 드롭 */
 let suppressClick=false;
 function roomAt(x,y){ const el=document.elementFromPoint(x,y); const r=el&&el.closest?el.closest('.room'):null; return r&&r.dataset.slot!==undefined&&!r.closest('dialog')?r:null; }
-function bindDrag(el,id){
+function bindDrag(el,id,fromTray=false){
   el.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button!==0) return;
     const m=mById(id); if(!m) return;
-    const sx=e.clientX, sy=e.clientY; let started=false, hot=null; const ghost=$('#ghost');
+    const sx=e.clientX, sy=e.clientY; let started=false, hot=null,scrollRaf=0,px=sx,py=sy; const ghost=$('#ghost');pointerBusy=true;
     try{ el.setPointerCapture(e.pointerId); }catch{}
     const clear=()=>{ if(hot){ hot.classList.remove('drop-ok','drop-no'); hot=null; } };
+    const updateHot=()=>{const r=roomAt(px,py);if(r!==hot){clear();hot=r;}if(hot){const ok=dropOk(m,hot);hot.classList.toggle('drop-ok',ok);hot.classList.toggle('drop-no',!ok);}};
+    const scrollFrame=()=>{if(!started)return;const view=$('#view'),r=view.getBoundingClientRect(),tray=$('#moveTray'),bottom=tray.hidden?r.bottom:Math.min(r.bottom,tray.getBoundingClientRect().top),edge=48;const dx=px<r.left+edge?-12:px>r.right-edge?12:0,dy=py<r.top+edge?-14:py>bottom-edge?14:0;if(dx||dy){view.scrollBy(dx,dy);updateHot();}scrollRaf=requestAnimationFrame(scrollFrame);};
     const onMove=ev=>{
-      if(!started){ if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<8) return; started=true; dragging=true; el.classList.add('dragging'); ghost.src=$('img.pose',el).src; ghost.hidden=false; hideCard(); }
+      px=ev.clientX;py=ev.clientY;
+      if(!started){ if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<8) return; started=true; dragging=true; el.classList.add('dragging'); ghost.src=$('img.pose',el).src; ghost.hidden=false; hideCard();refreshMoveTargets(id);scrollRaf=requestAnimationFrame(scrollFrame); }
       ev.preventDefault(); ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px';
-      const r=roomAt(ev.clientX,ev.clientY); if(r!==hot){ clear(); hot=r; }
-      if(hot){ const ok=dropOk(m,hot); hot.classList.toggle('drop-ok',ok); hot.classList.toggle('drop-no',!ok); }
+      updateHot();
     };
-    const finish=()=>{ el.removeEventListener('pointermove',onMove); el.removeEventListener('pointerup',onUp); el.removeEventListener('pointercancel',onCancel); try{ el.releasePointerCapture(e.pointerId); }catch{} };
+    const finish=()=>{pointerBusy=false;cancelAnimationFrame(scrollRaf);el.removeEventListener('pointermove',onMove); el.removeEventListener('pointerup',onUp); el.removeEventListener('pointercancel',onCancel); try{ el.releasePointerCapture(e.pointerId); }catch{} };
     const onUp=ev=>{
       finish();
-      if(!started){ suppressClick=true; setTimeout(()=>suppressClick=false,0); showCard(m,ev.clientX,ev.clientY); return; }
+      if(!started){ suppressClick=true; setTimeout(()=>suppressClick=false,0);if(fromTray)selectMove(id);else showCard(m,ev.clientX,ev.clientY); return; }
       ghost.hidden=true; clear(); dragging=false; suppressClick=true; setTimeout(()=>suppressClick=false,0);
       const r=roomAt(ev.clientX,ev.clientY);
       if(r){
         const b=r.dataset.kind, i=+r.dataset.slot;
         if(!(b===m.loc.b&&i===m.loc.i)){
           const c=canPlace(S,m,b,i);
-          if(c.ok){ place(S,m,b,i); save(); } else toast(c.msg);
+          if(c.ok){ place(S,m,b,i);moveState.id=null;moveState.key=''; save(); } else toast(c.msg);
         }
       }
       pendingRender=false; render();
     };
-    const onCancel=()=>{ finish(); ghost.hidden=true; clear(); dragging=false; el.classList.remove('dragging'); if(pendingRender){ pendingRender=false; render(); } };
+    const onCancel=()=>{ finish(); ghost.hidden=true; clear(); dragging=false; el.classList.remove('dragging');refreshMoveTargets(); if(pendingRender){ pendingRender=false; render(); } };
     el.addEventListener('pointermove',onMove); el.addEventListener('pointerup',onUp); el.addEventListener('pointercancel',onCancel);
   });
 }
@@ -1184,9 +1245,10 @@ function openRoom(k,i,refresh){
     $('#dTitle').textContent=`센터 · ${Math.floor(i/2)+1}층 ${i%2+1}번 (빈 칸)`; info.textContent='만들 방을 고르세요.'; info.style.whiteSpace='';
   }else{
     const sl=S[k][i];
-    $('#dTitle').textContent=`${TITLE[k]} · ${i+1}번 · ${stem(sl.img)}`;
+    $('#dTitle').textContent=`${TITLE[k]} · ${i+1}번 · ${stem(sl.img)} · ${inRoom(S,k,i).length}/${slotCap(S,k,i)}명`;
     const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER[k],sl.img); bg.alt=''; stage.append(bg);
     fillStage(stage,k,i,true);
+    if(!(k==='office'&&sl.img==='개인사무실.png')){const add=document.createElement('button');add.className='pill';add.textContent=`정원 +1 (${workCapCost(S,k,i)}💰)`;add.onclick=()=>{const r=upgradeWorkCap(S,k,i);if(!r.ok)return toast(r.msg);save();render();openRoom(k,i,true);};actions.append(add);}
     info.textContent=(k==='office'?`평균 ${S.cfg.join} 이상 회원이 갈 수 있습니다. 여기서 평균 ${S.cfg.marry}까지 올리면 집으로 보낼 수 있습니다.`:`회사를 거쳐 평균 ${S.cfg.marry} 이상이 된 회원이 갈 수 있습니다. 점수가 떨어지면 센터로 돌아옵니다.`)+`\n${fxText(S[k][i].img,k)}`; info.style.whiteSpace='pre-line';
   }
   stage.hidden=(k==='center'&&!id); stage.classList.toggle('compact',showChooser);
@@ -1219,7 +1281,7 @@ function buildChooser(k,i,box){
     IMAGES[k].forEach(f=>{
       const btn=document.createElement('button'); const img=document.createElement('img'); img.src=bgUrl(FOLDER[k],f); img.alt='';
       btn.append(img,document.createTextNode(stem(f))); { const F=(WFX[k]||{})[f]; if(F){ const sm=document.createElement('small'); sm.textContent='▲'+Object.keys(F.up).map(a=>SN[a]).join('·')+' ▼'+Object.keys(F.dn).map(a=>SN[a]).join('·'); btn.append(sm); } } btn.disabled=S[k][i].img===f;
-      btn.onclick=()=>{ S[k][i].img=f; save(); render(); openRoom(k,i); }; box.append(btn);
+      btn.onclick=()=>{if(k==='office'&&f==='개인사무실.png'&&inRoom(S,k,i).length>1)return toast('개인사무실로 바꾸려면 회원을 1명만 남겨 주세요.');S[k][i].img=f; save(); render(); openRoom(k,i); }; box.append(btn);
     });
   }
 }
@@ -1248,7 +1310,7 @@ function openSettings(){
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
   rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
-  const vb=document.createElement('span'); vb.textContent='빌드 1015-G · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  const vb=document.createElement('span'); vb.textContent='빌드 1015-H · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
   dlg2.showModal();
 }
 function openEditor(){
