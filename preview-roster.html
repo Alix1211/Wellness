@@ -1,0 +1,1464 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>가이아 웰니스 센터</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--ink:#304a4c;--ink-soft:#59776c;--leaf:#3e7969;--leaf-soft:#e1ede4;--cream:#fffcf3;--sand:#f4e7ce;--sand-dark:#d3bea0;--sky1:#a6dded;--sky2:#e5f5f0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;color:var(--ink);background:#cef0f4;overflow:hidden}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0}
+header{height:60px;padding:8px 22px;display:flex;align-items:center;justify-content:space-between;background:#fffcf3ec;position:relative;z-index:5;box-shadow:0 3px 15px #405f6415}
+header small{font-size:11px;letter-spacing:3px;color:#719b92;display:block}
+header h1{font-size:20px;margin:0}
+nav{display:flex;gap:8px}
+nav button{background:var(--leaf-soft);border-radius:12px;padding:9px 16px;color:#31594f}
+nav button.active{background:var(--leaf);color:#fff}
+#bar{height:40px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 16px;background:#fffcf3cc;position:relative;z-index:4;font-size:14px}
+#hud{display:flex;gap:14px;align-items:center;white-space:nowrap}
+#hud b{font-weight:700}
+#alerts{display:flex;gap:6px;overflow:auto;min-width:0}
+.chip{background:#fff;border:1px solid #cfe0d4;border-radius:999px;padding:4px 10px;font-size:13px;white-space:nowrap}
+.chip.hot{background:#ffe9ec;border-color:#f3b6c0}
+.chip.blue{background:#e4f0ff;border-color:#a9c9f3}
+.chip.pink{background:#ffe6f2;border-color:#f3b0d3}
+.chip.gold{background:#fff3c8;border-color:#e6cb6c}
+#view{height:calc(100dvh - 100px);overflow:auto;background:linear-gradient(var(--sky1),var(--sky2) 75%);position:relative}
+#scene{display:flex;flex-direction:column;position:relative;transform-origin:top left}
+#row{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:38px;padding:100px 40px 0;position:relative;z-index:1}
+.sun{position:absolute;top:34px;right:9%;width:64px;height:64px;border-radius:50%;background:#fff6cc;box-shadow:0 0 60px #fff4c9}
+.cloud{position:absolute;top:60px;left:10%;width:180px;height:28px;border-radius:50%;background:#ffffff95}
+.ground{height:120px;flex:none;background:linear-gradient(#acd3a2 0 20px,#e9dfc8 20px 75px,#cbbda4 75px 80px,#e7d7bc 80px);border-top:5px solid #91bd8c;position:relative;z-index:0}
+.building{position:relative;width:290px;flex:none;background:var(--sand);border:8px solid var(--sand);border-bottom:14px solid var(--sand-dark);box-shadow:8px 8px 0 #638b841c;border-radius:8px 8px 0 0}
+.building.center{width:540px;background:#e5eee3;border-color:#e5eee3;border-bottom-color:#b8c9b9}
+.roof{position:absolute;top:-51px;left:-15px;right:-15px;height:43px;border-radius:9px 9px 3px 3px;background:#4a7d72;color:#fff;text-align:center;padding:10px;font-weight:700;letter-spacing:3px;box-shadow:0 5px #c0d5c7;font-size:15px}
+.building.home .roof{background:#ba826d;box-shadow:0 5px #e0cbb8}
+.building.center .roof{background:#60978b}
+.floor{display:flex;gap:8px;border-bottom:8px solid var(--sand);position:relative}
+.center .floor{border-color:#e5eee3}
+.floor:last-of-type{border-bottom:0}
+.floor em{position:absolute;left:-30px;top:45%;font-size:11px;font-style:normal;color:#47726c}
+.foundation{padding:12px;text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.pill{background:var(--leaf-soft);border-radius:12px;padding:9px 14px;color:#31594f;font-size:14px}
+.pill[disabled]{opacity:.4;cursor:default}
+.room{position:relative;flex:1 1 0;min-width:0;aspect-ratio:16/9;background:#dde2d5;overflow:hidden;outline-offset:-4px;border-radius:2px;user-select:none;-webkit-user-select:none}
+.room>img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.room:focus-visible{outline:4px solid #468c7b}
+.room.empty{background:repeating-linear-gradient(135deg,#eef3ea 0 10px,#e3ebdf 10px 20px);display:grid;place-items:center;color:#7a978c;font-size:13px;border:2px dashed #b4cabb}
+.room .label{position:absolute;bottom:5px;left:6px;background:#fff9eada;border-radius:5px;padding:2px 7px;font-size:11px;pointer-events:none;z-index:3}
+.room .badge{position:absolute;top:5px;right:6px;background:#3e7969;color:#fff;border-radius:50%;width:20px;height:20px;display:none;place-items:center;font-size:11px;z-index:3}
+body.editing .room .badge{display:grid}
+body.editing .room:not(.empty){outline:3px dashed #3e7969aa;outline-offset:-3px}
+.room.drop-ok{outline:4px solid #4aa37f;outline-offset:-4px}
+.room.drop-no{outline:4px solid #d46a6a;outline-offset:-4px}
+.stage-people{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;gap:2%;padding:0 3% 3.5%;z-index:2;pointer-events:none}
+.person{height:100%;display:flex;align-items:flex-end;justify-content:center;max-width:calc(94% / var(--n,1));pointer-events:auto;touch-action:none;cursor:grab;position:relative}
+.person img.pose{height:100%;width:auto;max-width:100%;object-fit:contain;object-position:bottom;display:block;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none;filter:drop-shadow(0 2px 2px #0003)}
+.person.work-actor img.pose{transform-origin:50% 95%;animation:workSway 3.2s ease-in-out infinite;animation-delay:var(--work-delay,0s)}
+.person.work-actor.dragging img.pose{animation-play-state:paused}
+@keyframes workSway{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-2px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.person.work-actor img.pose{animation:none}}
+.stage-people.free{display:block;padding:0}
+.person.free{position:absolute;bottom:3.5%;height:96.5%;max-width:none}
+.person.dragging{opacity:.3}
+.person.pulse{animation:pulse .6s 4}
+@keyframes pulse{50%{transform:scale(1.15)}}
+.person .blush{position:absolute;left:50%;top:6%;width:56%;aspect-ratio:1.4;transform:translateX(-50%);background:radial-gradient(#ff6f9a 0,#ff6f9a00 68%);opacity:0;pointer-events:none;mix-blend-mode:multiply}
+.person .face{position:absolute;left:50%;top:-12%;transform:translateX(-50%);height:26%;aspect-ratio:1;object-fit:contain;display:none;pointer-events:none;filter:drop-shadow(0 1px 2px #0005);background:#fffdf5e6;border-radius:50%;padding:1px}
+.person.act .face{display:block}
+.stage-big .person.prim .face{display:none}
+.person .hp{position:absolute;left:14%;right:14%;bottom:-4px;height:5px;background:#0003;border-radius:3px;pointer-events:none}
+.person .hp i{display:block;height:100%;border-radius:3px;background:#5cc27e;width:100%}
+.person .dot{position:absolute;right:4%;top:14%;width:11px;height:11px;border-radius:50%;border:2px solid #fff;background:#5cc27e;pointer-events:none;box-shadow:0 1px 2px #0004}
+.person .dot.warn{background:#f2c230}.person .dot.join{background:#4a90e2}.person .dot.marry{background:#f06aa8}.person .dot.grad{background:#e6b800}
+.person .dot.grade-low{background:#f7f7f2}.person .dot.grade-grow{background:#569ce2}.person .dot.grade-join{background:#54b87d}.person .dot.grade-home{background:#a778ce}.person .dot.grade-grad{background:#e6b800}.person .dot.retrain{border-color:#e34f59;box-shadow:0 0 0 1px #fff,0 0 5px #e34f59}
+.stage-people.community{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));grid-template-rows:repeat(var(--rows),minmax(0,1fr));align-items:end;justify-items:center;gap:2px}.stage-people.community .person{max-width:100%;min-width:0}
+.room.move-ok{box-shadow:inset 0 0 0 3px #459e78;cursor:pointer}.room.move-no{opacity:.48}.room.drop-ok{box-shadow:inset 0 0 0 5px #3dad7f}.room.drop-no{box-shadow:inset 0 0 0 5px #d46a6a}.candidates-open #row{padding-top:160px}
+#mapLegend{position:fixed;right:10px;top:106px;z-index:4;max-width:340px;font-size:10px;line-height:1.6;color:#587167;background:#fffaf0db;border-radius:8px;padding:4px 7px;pointer-events:none;box-shadow:0 1px 4px #36554512}#mapLegend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 2px 0 5px;border:1px solid #aebbad;vertical-align:middle}#mapLegend .legend-red{border:2px solid #e34f59;background:#fff}
+#moveTray{position:fixed;bottom:77px;left:50%;transform:translateX(-50%);z-index:7;width:min(760px,96vw);background:#fffaf0f5;border:1px solid #c9d8c7;border-radius:16px;padding:9px 11px;box-shadow:0 5px 25px #2e514735}#moveTray[hidden]{display:none}#moveHead{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}#moveHint{margin:3px 0 5px;font-size:11px;color:#6c8376}#moveList{display:flex;gap:8px;overflow-x:auto;min-height:100px;scrollbar-width:thin}#moveList .move-member{position:relative;flex:0 0 88px;width:88px;height:110px;padding:3px;background:#f1f2e9;border:2px solid transparent;border-radius:12px;touch-action:none;color:#405e54}#moveList .move-member.selected{border-color:#42896c;background:#e2f0df}#moveList img.pose{display:block;width:100%;height:65px;object-fit:contain;pointer-events:none}#moveList strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}#moveList small{font-size:10px;color:#718474}#moveClose{font-size:20px;background:#e7eada;border-radius:8px;width:28px;height:28px}.chip.chosen{box-shadow:inset 0 0 0 2px #508878}.candidates-open #scene{padding-bottom:190px}
+.person .zz{position:absolute;left:2%;top:10%;font-size:18px;display:none;pointer-events:none;animation:zz 1s infinite alternate}
+@keyframes zz{to{transform:translateY(-4px)}}
+.person .heart{position:absolute;pointer-events:none;color:#ff5c93;font-size:16px;animation:rise 1.6s forwards;text-shadow:0 0 3px #fff}
+@keyframes rise{from{opacity:1;transform:translateY(0) scale(.6)}to{opacity:0;transform:translateY(-55px) scale(1.1)}}
+#ghost{position:fixed;z-index:100;pointer-events:none;height:110px;transform:translate(-50%,-80%);filter:drop-shadow(0 6px 8px #0005)}
+footer{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:6;background:#fffcf2ed;padding:7px;border-radius:18px;display:flex;gap:4px;box-shadow:0 5px 30px #304a4c25;max-width:calc(100vw - 16px);overflow-x:auto}
+footer button{background:transparent;padding:9px 14px;color:#42685e;white-space:nowrap;border-radius:12px}
+footer button.on{background:var(--leaf);color:#fff}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#304a4cee;color:#fff;border-radius:12px;padding:10px 18px;font-size:14px;z-index:30;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+#card{position:fixed;z-index:50;width:250px;background:#fffdf5;border-radius:14px;padding:12px 14px;box-shadow:0 10px 40px #284f4655;font-size:13px;display:none}
+#card h3{margin:0 0 2px;font-size:16px}
+#card .tags{color:#7a978c;margin-bottom:6px}
+.bar{display:grid;grid-template-columns:52px 1fr 28px;align-items:center;gap:6px;margin:3px 0}
+.bar div{height:8px;background:#e3e9dc;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:#6bb59a}
+.bar.hpb i{background:#5cc27e}
+#card .meta{margin-top:6px;color:#59776c;line-height:1.5}
+#card button{margin-top:8px}
+dialog{border:0;border-radius:20px;padding:18px;background:#fffdf5;color:var(--ink);width:min(860px,94vw);max-height:92dvh;box-shadow:0 20px 80px #284f4666;overflow:auto}
+dialog::backdrop{background:#203e4966}
+.dhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.dhead h2{margin:0;font-size:20px}
+.dhead .close{font-size:26px;background:transparent;padding:4px 14px}
+.stage-big{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#e4e9df}
+.stage-big>img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stage-big[hidden]{display:none}
+.stage-big.compact{width:min(400px,100%)}
+.stage-big.shake{animation:shake .18s}
+.stage-big .cap{display:none!important}
+.scene{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden;container-type:inline-size}
+.scene .bust{position:absolute;bottom:-3%;height:76%;width:auto;opacity:0;transition:transform .5s cubic-bezier(.2,1.5,.4,1),opacity .25s;filter:drop-shadow(0 3px 5px #0004)}
+.scene .bust.L{left:1%;transform:translateX(-130%)}
+.scene .bust.R{right:1%;transform:translateX(130%) scaleX(-1)}
+.scene .bust.on{opacity:1}.scene .bust.on.L{transform:none}.scene .bust.on.R{transform:scaleX(-1)}
+.scene .sil{position:absolute;width:auto;opacity:0;transform:translateX(var(--tx,0)) scaleX(var(--f,1));transition:transform .5s ease,opacity .4s}
+.scene .sil.full{height:80%;bottom:2%}.scene .sil.half{height:74%;bottom:-1%}
+.scene .sil.L{left:4%;--tx:-130%}.scene .sil.R{right:4%;--tx:130%}
+.scene .sil.flip{--f:-1}
+.scene .sil.on{opacity:.4;--tx:0}
+.scene .bub{position:absolute;top:5%;max-width:58%;min-width:30%;background:#fffdf5f4;color:#2f3a40;border-radius:14px;padding:.55em .9em;font-size:clamp(11px,3.5cqw,17px);line-height:1.45;box-shadow:0 2px 6px #0003;opacity:0;transition:opacity .2s;pointer-events:auto;cursor:pointer}
+.scene .bub b{display:block;font-size:.72em;color:#719b92;margin-bottom:.1em}
+.scene .bub.L{left:27%}.scene .bub.R{right:27%}
+.scene .bub.male{background:#2f3a4af4;color:#f5f7fa}.scene .bub.male b{color:#9fb1c6}
+@keyframes shake{25%{transform:translate(-6px,3px)}50%{transform:translate(6px,-3px)}75%{transform:translate(-3px,2px)}}
+.tbust{position:absolute;left:50%;bottom:-2%;height:94%;width:auto;transform:translateX(-50%);filter:drop-shadow(0 4px 8px #0005);z-index:3;transition:opacity .2s}
+#tBars{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:2px 18px}
+#tTools{gap:6px}
+.itembar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:4px;padding-left:10px;border-left:2px solid #c9d8cf}
+.ibtn{display:flex;align-items:center;gap:5px;background:#f4e6ef;border-radius:999px;padding:5px 11px 5px 8px;font-size:13px;position:relative}
+.ibtn img{width:20px;height:20px;object-fit:contain;filter:invert(.25) sepia(1) hue-rotate(290deg) saturate(3)}
+.ibtn i{font-style:normal;font-size:11px;color:#8a5b78;background:#fff;border-radius:99px;padding:0 6px}
+.ibtn.none{opacity:.45}.ibtn.cool{filter:grayscale(.7)}
+.shopcard{background:#e7eee3;border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.choices .shopcard img{width:100%;height:92px;object-fit:contain;aspect-ratio:auto;margin:0;background:#f7faf5;border-radius:8px}
+.shopcard em{font-style:normal;color:#8a5b78;font-size:11px;float:right}
+.shopcard small{line-height:1.35}
+.shopcard .buy{display:flex;gap:6px;margin-top:2px}.shopcard .buy button{flex:1;padding:6px 4px;text-align:center;background:#fff;font-size:12px}
+.ifx{position:absolute;inset:0;z-index:12;overflow:hidden;container-type:inline-size;cursor:pointer}
+.ifx .veil{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fff8dccc,#ffd2ea99 55%,#5c3f7e66);animation:veil .3s both}
+@keyframes veil{from{opacity:0}to{opacity:1}}
+.ifx .prod{position:absolute;top:62%;width:30%;max-height:50%;object-fit:contain;transform:translate(-50%,-50%) scale(.1);opacity:0;filter:drop-shadow(0 6px 10px #0006);animation:prodpop 1s .05s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes prodpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.1) rotate(-40deg)}45%{opacity:1;transform:translate(-50%,-50%) scale(1.3) rotate(8deg)}70%{transform:translate(-50%,-50%) scale(.95) rotate(-4deg)}100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}}
+.ifx .ibust{position:absolute;bottom:-3%;height:76%;width:auto;opacity:0;transition:transform .45s cubic-bezier(.2,1.5,.4,1),opacity .25s;filter:drop-shadow(0 3px 5px #0004)}
+.ifx .ibust.L{left:1%;transform:translateX(-130%)}.ifx .ibust.R{right:1%;transform:translateX(130%) scaleX(-1)}
+.ifx .ibust.on{opacity:1}.ifx .ibust.on.L{transform:none}.ifx .ibust.on.R{transform:scaleX(-1)}
+.ifx .ibub{position:absolute;top:5%;max-width:58%;min-width:30%;background:#fffdf5f4;color:#2f3a40;border-radius:14px;padding:.55em .9em;font-size:clamp(11px,3.5cqw,17px);line-height:1.45;box-shadow:0 2px 8px #0003;opacity:0;transform:translateY(-8px);transition:.25s}
+.ifx .ibub.show{opacity:1;transform:none}
+.ifx .ibub b{display:block;font-size:.72em;color:#719b92;margin-bottom:.1em}
+.ifx .ibub.L{left:27%}.ifx .ibub.R{right:27%}
+.ifx .ibub.male{background:#2f3a4af4;color:#f5f7fa}.ifx .ibub.male b{color:#9fb1c6}
+.ifx .gain{position:absolute;bottom:3%;left:50%;transform:translateX(-50%);background:#2f3a40ee;color:#fff;border-radius:99px;padding:.3em 1em;font-size:clamp(10px,3cqw,15px);white-space:nowrap;opacity:0;transition:.3s}
+.ifx .gain.show{opacity:1}
+.ifx .ptc,.ifx .onom{position:absolute;pointer-events:none}
+.ifx .ptc{transform:translate(-50%,-50%);z-index:14;opacity:0;animation:ptcFly 1.1s ease-out forwards}
+@keyframes ptcFly{0%{opacity:1;transform:translate(-50%,-50%) scale(.3) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.4) rotate(var(--r))}}
+.ifx .onom{z-index:15;transform:translate(-50%,-50%) rotate(var(--rot)) scale(0);font-weight:900;font-family:'Arial Black','Apple SD Gothic Neo','Malgun Gothic',sans-serif;white-space:nowrap;-webkit-text-stroke:.1em #3a1f5a;paint-order:stroke fill;text-shadow:.05em .06em 0 #ff5fa2;animation:onomPop var(--life,1.1s) cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes onomPop{0%{transform:translate(-50%,-50%) rotate(var(--rot)) scale(0)}18%{transform:translate(-50%,-50%) rotate(var(--rot)) scale(1.5)}32%{transform:translate(-50%,-50%) rotate(var(--rot)) scale(.9)}45%{transform:translate(-50%,-50%) rotate(var(--rot)) scale(1.12)}80%{opacity:1;transform:translate(-50%,-50%) rotate(var(--rot)) scale(1.05)}100%{opacity:0;transform:translate(-50%,-56%) rotate(var(--rot)) scale(1.2)}}
+.ifx .slash{position:absolute;left:-10%;width:120%;height:.7cqw;min-height:5px;background:linear-gradient(90deg,transparent,#fff 30%,#ffe3ec 70%,transparent);box-shadow:0 0 14px 4px #ff4d6d;z-index:13;transform-origin:left center;transform:rotate(var(--a)) scaleX(0);opacity:0;animation:slashIn .45s ease-out forwards;pointer-events:none}
+@keyframes slashIn{0%{transform:rotate(var(--a)) scaleX(0);opacity:1}35%{transform:rotate(var(--a)) scaleX(1);opacity:1}100%{transform:rotate(var(--a)) scaleX(1);opacity:0}}
+.ifx .cryimg{position:absolute;z-index:13;width:auto;transform:rotate(var(--r)) scale(0);animation:cryPop .35s cubic-bezier(.2,1.6,.4,1) forwards;filter:drop-shadow(0 2px 4px #0004);pointer-events:none}
+@keyframes cryPop{to{transform:rotate(var(--r)) scale(1)}}
+.ifx .dark{position:absolute;inset:0;background:#0a0612;opacity:0;z-index:13;pointer-events:none;animation:darkIn 1.5s ease-in-out forwards}
+@keyframes darkIn{0%{opacity:0}30%{opacity:.96}65%{opacity:.96}100%{opacity:0}}
+.ifx .fog{position:absolute;inset:-10%;z-index:13;pointer-events:none;opacity:0;background:radial-gradient(circle at 25% 40%,#ff8fc8dd,transparent 60%),radial-gradient(circle at 78% 60%,#ffaedcdd,transparent 62%),radial-gradient(circle at 50% 20%,#ffc9e8cc,transparent 55%),linear-gradient(#ffc2e6aa,#ff9fd2cc);backdrop-filter:blur(5px);animation:fogRun 3.4s ease-in-out forwards}
+@keyframes fogRun{0%{opacity:0;transform:scale(1.2)}45%{opacity:.97;transform:scale(1)}62%{opacity:.97}100%{opacity:0;transform:scale(1.15)}}
+.ifx .ring{position:absolute;left:50%;top:55%;width:10%;aspect-ratio:1;border-radius:50%;border:.8cqw solid #fff;box-shadow:0 0 18px 6px #ff7fb8;transform:translate(-50%,-50%) scale(.2);opacity:0;z-index:13;animation:ringGo .6s ease-out forwards;pointer-events:none}
+@keyframes ringGo{0%{opacity:1;transform:translate(-50%,-50%) scale(.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(7)}}
+.ifx .cf{position:absolute;top:58%;width:22%;z-index:6;filter:drop-shadow(0 5px 8px #0005);opacity:0}
+.ifx .cf.l{left:-25%;animation:cfL .55s .1s cubic-bezier(.3,1.2,.5,1) forwards}.ifx .cf.r{right:-25%;animation:cfR .55s .1s cubic-bezier(.3,1.2,.5,1) forwards}
+@keyframes cfL{0%{opacity:1;transform:translateY(-50%) rotate(-40deg)}100%{opacity:1;left:30%;transform:translateY(-50%) rotate(0)}}
+@keyframes cfR{0%{opacity:1;transform:translateY(-50%) rotate(40deg)}100%{opacity:1;right:30%;transform:translateY(-50%) rotate(0)}}
+.ifx .ibust.zoom{left:50%!important;right:auto!important;height:128%!important;bottom:-34%!important;transform:translateX(-50%)!important;opacity:1}
+.ifx .ibust.hop{animation:hopb .38s ease-out 3}
+@keyframes hopb{50%{bottom:7%}}
+.ifx .ibust.fling{transition:transform .26s cubic-bezier(.5,0,1,.6)!important}
+.ifx .ibust.fling.L{transform:translateX(-300%) rotate(-540deg)!important}.ifx .ibust.fling.R{transform:translateX(300%) scaleX(-1) rotate(540deg)!important}
+.ifx .ibub,.ifx .gain{z-index:16}.ifx .prod{z-index:5}
+@keyframes shake2{10%{transform:translate(-16px,7px) rotate(-1.2deg)}25%{transform:translate(14px,-9px) rotate(1deg) scale(1.02)}40%{transform:translate(-10px,6px) rotate(-.8deg)}55%{transform:translate(9px,-5px)}70%{transform:translate(-5px,3px)}100%{transform:none}}
+.stage-big.shake2{animation:shake2 .45s}
+.badge{display:inline-block;font-size:10px;padding:0 6px;border-radius:99px;margin-left:4px;vertical-align:1px}
+.badge.perm{background:#d9efe3;color:#2f7d5b}.badge.once{background:#f8dcea;color:#b2457f}
+.shopcard.flashc{animation:cardFlash .7s}
+@keyframes cardFlash{0%{box-shadow:0 0 0 0 #ff7fb8;background:#fff3b0}100%{box-shadow:0 0 0 14px #ff7fb800}}
+.shopcard em.jump{display:inline-block;animation:numJump .6s}
+@keyframes numJump{0%{transform:scale(1)}30%{transform:scale(2.2) rotate(-8deg);color:#ff3c8a}100%{transform:scale(1)}}
+.buyfx{position:fixed;z-index:99999;pointer-events:none;width:0;height:0}
+.buyfx img{position:absolute;width:96px;transform:translate(-50%,-50%);filter:drop-shadow(0 6px 8px #0006);animation:buyUp 1.2s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes buyUp{0%{opacity:0;transform:translate(-50%,-20%) scale(.3)}30%{opacity:1;transform:translate(-50%,-130%) scale(1.35) rotate(-10deg)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-280%) scale(.8) rotate(10deg)}}
+.buyfx b{position:absolute;left:0;top:-60px;transform:translate(-50%,-50%);font-size:38px;font-weight:900;color:#ff3c8a;-webkit-text-stroke:3px #fff;paint-order:stroke fill;animation:buyPlus 1.1s .2s forwards;opacity:0}
+@keyframes buyPlus{0%{opacity:0;transform:translate(-50%,0) scale(.3)}25%{opacity:1;transform:translate(-50%,-90%) scale(1.4)}100%{opacity:0;transform:translate(-50%,-260%) scale(1)}}
+.buyfx .bp{position:absolute;font-size:22px;opacity:0;animation:bpFly 1s ease-out forwards}
+@keyframes bpFly{0%{opacity:1;transform:translate(0,0) scale(.4)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.3) rotate(var(--r))}}
+.flash{position:absolute;inset:0;background:#fffbe0;opacity:0;pointer-events:none;z-index:6}
+.flash.go{animation:fl .25s}
+@keyframes fl{from{opacity:.85}to{opacity:0}}
+.cap{position:absolute;left:2%;right:2%;top:3%;z-index:7;display:flex;gap:10px;align-items:center;background:#fffdf5ee;border-radius:14px;padding:8px 12px;min-height:60px}
+.cap img{height:56px;width:56px;object-fit:contain;flex:none}
+.cap b{display:block;font-size:12px;color:#719b92}
+.cap span{font-size:16px}
+.info{margin:12px 2px 0;font-size:14px;color:var(--ink-soft);line-height:1.6}
+.dactions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:14px}
+.choices button{background:#e7eee3;padding:8px;border-radius:10px;text-align:left;font-size:13px}
+.choices img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;margin-bottom:5px;border-radius:6px}
+.choices small{display:block;color:#6b867c;font-size:11px;margin-top:2px}
+.choices button[disabled]{opacity:.4;cursor:default}
+.choices h3{grid-column:1/-1;margin:6px 0 0;font-size:14px}
+.ed select,.ed input,.ed textarea{background:#fff;border:1px solid #cfe0d4;border-radius:8px;padding:6px 8px}
+.ed .tabs{display:flex;gap:6px;margin-bottom:10px}
+.ed .tabs button{background:var(--leaf-soft);border-radius:10px;padding:8px 14px}
+.ed .tabs button.on{background:var(--leaf);color:#fff}
+.ed table{width:100%;border-collapse:collapse}
+.ed td{padding:3px}
+.ed td input.line{width:100%}
+.ed td input.ms{width:70px}
+.ed textarea{width:100%;min-height:90px}
+.ed h4{margin:12px 0 4px}
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #e6eee2}
+@media(max-width:650px){header{height:auto;flex-direction:column;align-items:flex-start;gap:6px}#view{height:calc(100dvh - 140px)}}
+
+/* 고정 회원 도크: 카드에는 이름, 표정, 현위치만 표시 */
+body{display:flex;flex-direction:column;height:100dvh}
+header,#bar{flex:none}
+#view{height:auto;flex:1 1 0;min-height:0}
+.ground{height:148px}
+.center .foundation{padding:4px 8px;gap:4px;flex-wrap:nowrap}
+.center .foundation .pill{padding:3px 9px;border-radius:8px;font-size:12px;line-height:1.2;white-space:nowrap}
+#rosterDock{height:130px;flex:none;display:flex;align-items:center;gap:7px;padding:8px 8px max(8px,env(safe-area-inset-bottom));position:relative;z-index:8;background:#fffaf0f2;border-top:4px solid #92bc93;box-shadow:0 -4px 14px #466c6330}
+#rosterList{flex:1;min-width:0;display:flex;align-items:center;gap:8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x;padding:3px 2px 5px}
+.roster-card{--grade:#e9e9e4;position:relative;flex:0 0 91px;height:107px;padding:3px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;background:#fffdfa;border:4px solid var(--grade);border-radius:16px;color:#344d4d;touch-action:pan-x;user-select:none;-webkit-user-select:none;cursor:grab}
+.roster-card strong{display:block;width:100%;font-size:12px;line-height:17px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.roster-card img.pose{width:100%;height:59px;min-height:0;flex:1;object-fit:contain;pointer-events:none}
+.roster-card small{display:block;width:100%;font-size:11px;line-height:15px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.roster-card.selected{outline:2px solid #fff;box-shadow:0 0 0 3px #528f7c,0 0 13px #badcd5}
+.roster-card.dragging{opacity:.45}
+#btnTools{flex:0 0 40px;width:40px;height:40px;background:#e2ece4;border:1px solid #b7d1c1;border-radius:50%;font-size:24px;line-height:1;color:#416c5c}
+#toolsPopup{position:fixed;bottom:calc(130px + 7px);left:auto;right:8px;transform:none;z-index:12;display:flex;flex-direction:column;align-items:stretch;gap:2px;max-width:min(220px,90vw);padding:6px;border-radius:12px}
+#toolsPopup[hidden]{display:none}
+#toolsPopup button{text-align:left}
+#moveTray{bottom:139px}
+#toast{bottom:143px}
+@media(max-width:650px){#view{height:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div><small>GAIA CITY</small><h1>웰니스 센터</h1></div>
+  <nav aria-label="건물 선택">
+    <button data-focus="all">전체</button>
+    <button data-focus="office">사무실</button>
+    <button class="active" data-focus="center">센터</button>
+    <button data-focus="home">집</button>
+  </nav>
+</header>
+<div id="bar"><div id="alerts"></div><div id="hud"><span>💰 <b id="hGold">0</b></span><span>⭐ <b id="hRep">0</b></span><span id="hDay"></span></div></div>
+
+<main id="view">
+  <div id="scene">
+    <div class="sun"></div><div class="cloud"></div>
+    <div id="row"></div>
+    <div class="ground"></div>
+  </div>
+</main>
+<section id="rosterDock" aria-label="회원 목록"><div id="rosterList" aria-label="회원 가로 스크롤"></div><button id="btnTools" type="button" aria-label="설정과 도구" aria-expanded="false">⚙</button></section>
+<div id="mapLegend" aria-label="회원 상태 색상"><i style="background:#f7f7f2"></i>낮음 <i style="background:#569ce2"></i>성장 <i style="background:#54b87d"></i>입사권 <i style="background:#a778ce"></i>집 이동권 <i style="background:#e6b800"></i>졸업 임박 · 💤 피곤 · <i class="legend-red"></i>재교육</div>
+<section id="moveTray" aria-label="이동할 회원" hidden><div id="moveHead"><strong id="moveTitle"></strong><button id="moveClose" aria-label="회원 목록 닫기">×</button></div><p id="moveHint">회원을 끌거나, 회원을 누른 뒤 목적지 방을 누르세요.</p><div id="moveList"></div></section>
+
+<footer id="toolsPopup" hidden>
+  <button id="btnEditor">편집기</button>
+  <button id="btnEdit">방 변경</button>
+  <button id="btnSet">설정</button>
+  <button id="btnFull">전체 화면</button>
+</footer>
+<div id="toast"></div>
+<div id="card"></div>
+<img id="ghost" hidden alt="">
+
+<dialog id="dlg">
+  <div class="dhead"><h2 id="dTitle"></h2><button class="close" aria-label="닫기">×</button></div>
+  <div class="stage-big" id="dStage"></div>
+  <p class="info" id="dInfo"></p>
+  <div class="dactions" id="dActions"></div>
+  <div class="choices" id="dChoices"></div>
+</dialog>
+<dialog id="tdlg"><div class="dhead"><h2 id="tTitle"></h2><button class="close" aria-label="닫기">×</button></div><div class="stage-big" id="tStage"></div><div id="tBars"></div><p class="info" id="tInfo"></p><div class="dactions" id="tTools"></div></dialog>
+<dialog id="dlg2"><div class="dhead"><h2 id="d2Title"></h2><button class="close" aria-label="닫기">×</button></div><div id="d2Body"></div></dialog>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════════════
+   CORE : 화면과 무관한 게임 규칙 (시뮬레이션에서도 그대로 사용)
+   ═══════════════════════════════════════════════════════════ */
+/*CORE_START*/
+let rnd = Math.random;
+const setRnd = f => { rnd = f; };
+const pick = a => a[Math.floor(rnd()*a.length)];
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const STATS = ['ki','um','bo','ge'];
+const SN = {ki:'색기', um:'음란도', bo:'복종도', ge:'개방성'};
+
+/* 조정 가능한 수치는 모두 여기 (기본값). 사용자 변경분은 S.cfg 에 저장 */
+const CFG0 = {dayMin:3, speed:1, monthDays:10, join:50, marry:80, sound:true};
+const K = {
+  startGold:300, startRep:0,
+  testGrant:false,     // 시험용: 처음 한 번 골드 +99,999 / 명성 999 지급. 정식 때는 false
+  visitFee:80, monthFee:25, injuryFee:30, thanks:600, thanksRep:10,
+  decay:3,          // 하루 동안 훈련을 못 받으면 점수 하나당 깎이는 양
+  leaveMargin:3,      // 가입 때 평균보다 이만큼 이상 떨어지면 이탈
+  grace:1,            // 가입 후 이 일수 동안은 이탈 검사 안 함
+  repPerPt:0.0047,      // 점수 1점 오를 때 명성치
+  tiredHp:10, lowHp:30, lowEff:0.5,
+  lobbyRegen:6, shopBonus:3, homeRegen:20,
+  visitBase:0.3, visitPerRep:0.003, visitMax:1.2,
+  workRepPerDay:0.35, returnMargin:5,
+  workCapCost:100,
+  floorCost:200, slotCost:300, maxSlots:3
+};
+/* 방 정의. train: 하루 기준 성장량, cost: 하루 체력 소모, cap: 기본 정원, max: 확장 한계, eff: 1인당 효율 */
+const ROOMS = {
+  lobby:   {name:'로비',        bg:'휴게실.png',    cap:6, max:6, place:true, unique:true, cost:0,    unlock:0,   desc:'회원이 도착해서 대기하는 곳입니다. 체력이 천천히 돌아옵니다.', poses:['센터/요가_기본/02.png']},
+  basic:   {name:'기초방',      bg:'요가실.png',    cap:3, max:6, place:true, cost:150,  unlock:0,   train:{ge:38,bo:21},      hp:28, eff:1,   up:100, desc:'신규 회원의 첫 훈련 방입니다.', poses:['센터/푸시업/01.png','센터/푸시업/02.png','센터/푸시업/03.png'], sets:[['센터/푸시업/01.png','센터/푸시업/02.png','센터/푸시업/03.png'],['센터/아기자세/01.png','센터/아기자세/02.png','센터/아기자세/03.png'],['센터/요가_기본/04.png']]},
+  gear:    {name:'기구방',      bg:'트레이닝실.png', cap:2, max:4, place:true, cost:250,  unlock:0,   train:{ki:34,um:21},      hp:37, eff:1,   up:150, dev:true, desc:'형틀·십자대·의자·사슬·밧줄 같은 중세 기구로 훈련하는 방입니다.', poses:[]},
+  group:   {name:'단체방',      bg:'체육관.png',    cap:4, max:8, place:true, cost:300,  unlock:0,   train:{ge:29,bo:25,ki:13},  hp:30, eff:.7,  up:150, desc:'여러 회원이 함께 하는 방입니다. 사람이 많은 대신 1인당 성장이 느립니다.', wander:true, poses:['센터/네발자세/01.png','센터/네발자세/02.png','센터/네발자세/03.png'], sets:[['센터/네발자세/01.png','센터/네발자세/02.png','센터/네발자세/03.png'],['센터/네발자세/04.png','센터/네발자세/05.png','센터/네발자세/06.png']]},
+  recovery:{name:'회복방',      bg:'샤워실.png',    cap:3, max:6, place:true, cost:200,  unlock:0,   regen:70, up:100, desc:'피곤한 회원이 쉬는 방입니다. 체력이 빠르게 돌아옵니다.', poses:['센터/운동후표정/03.png'], sets:[['센터/운동후표정/02.png'],['센터/운동후표정/01a.png','센터/운동후표정/01b.png'],['센터/요가_기본/07.png'],['센터/운동후표정/03.png']]},
+  shop:    {name:'매점',        bg:'매점.png',      cap:0, max:0, place:false, unique:true, cost:150, unlock:10,  desc:'로비 회원의 체력 회복을 조금 돕습니다.', poses:[]},
+  posture: {name:'자세 점검방', bg:'운동실.jpg',    cap:1, max:3, place:true, cost:300,  unlock:25,  train:{ki:42},           hp:37, eff:1,   up:200, desc:'거울 앞에서 자세를 교정하는 방입니다. 1명씩 집중합니다.', poses:['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'], sets:[['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'],['센터/요가_동작변화/07b.png','센터/요가_동작변화/07c.png'],['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/요가_응용/10.png','센터/요가_응용/12.png']]},
+  punish:  {name:'체벌방(?)',   bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:500,  unlock:50,  train:{bo:59,um:29},      hp:60, eff:1,   up:300, desc:'효과가 크지만 체력 소모도 큽니다.', poses:['센터/사과포즈/01.png','센터/사과포즈/02.png'], sets:[['센터/근력운동_하체/04.png','센터/근력운동_하체/05.png','센터/근력운동_하체/06.png'],['센터/근력운동_덤벨바벨/10.png','센터/근력운동_덤벨바벨/11.png','센터/근력운동_덤벨바벨/12.png'],['센터/요가_응용/02.png','센터/요가_응용/03.png'],['센터/준비운동_상체/07.png'],['센터/요가_기본/07.png'],['센터/요가_기본/06.png'],['센터/사과포즈/01.png','센터/사과포즈/02.png']]},
+  special: {name:'별도 훈련방', bg:'개방형화장실.png',    cap:1, max:3, place:true, cost:600,  unlock:90,  train:{um:50,ge:34},      hp:55, eff:1,   up:300, desc:'체벌방과 다른 계열의 훈련 방입니다. (이름 미정)', poses:['센터/준비운동_하체/02.png','센터/준비운동_하체/03.png'], sets:[['센터/준비운동_하체/01.png','센터/준비운동_하체/02.png','센터/준비운동_하체/03.png']]},
+  elite:   {name:'특수훈련실',  bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:1500, unlock:120, minAvg:50, train:{ki:13,um:13,bo:13,ge:13}, hp:40, eff:1, up:500, desc:'입사 기준을 넘은 엘리트 회원만 들어갑니다. 엎드리거나 누운 자세로 훈련하며 효과도 체력 소모도 가장 큽니다.', poses:[], sets:[
+    ['센터/근력운동_하체/04.png','센터/근력운동_하체/05.png','센터/근력운동_하체/06.png'],
+    ['센터/근력운동_덤벨바벨/04.png','센터/근력운동_덤벨바벨/05.png','센터/근력운동_덤벨바벨/06.png'],
+    ['센터/근력운동_머신/10.png','센터/근력운동_머신/11a.png','센터/근력운동_머신/11b.png'],
+    ['센터/요가_기본/06.png'],['센터/요가_기본/07.png'],
+    ['센터/요가_동작변화/07a.png','센터/요가_동작변화/07b.png','센터/요가_동작변화/07c.png'],
+    ['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/운동후표정/02.png'],
+    ['센터/특수훈련실/06발사슬.png'],['센터/특수훈련실/07밧줄_앉기.png'],['센터/특수훈련실/09밧줄_꿇기.png']]}
+};
+/* 회사·가정 방 효과 (하루 기준). up: 오르는 점수(낮을수록 크게 오름) / dn: 깎이는 점수(높을수록 크게 깎임) */
+const WFX = {
+  office:{
+    '개인사무실.png':{up:{bo:60,um:52},dn:{ge:18}},
+    '공용사무실.png':{up:{ge:60,bo:52},dn:{ki:18}},
+    '파티션사무실.png':{up:{bo:60,ki:52},dn:{um:18}},
+    '로비.png':{up:{ki:60,ge:52},dn:{bo:18}},
+    '탕비실.png':{up:{ge:60,um:52},dn:{ki:18}},
+    '휴게실.png':{up:{ki:60,um:52},dn:{bo:18}},
+    '사내화장실.png':{up:{um:60,bo:52},dn:{ki:18}},
+    '샤워실.png':{up:{ki:60,um:52},dn:{ge:18}},
+    '화장실.png':{up:{um:60,ge:52},dn:{bo:18}}
+  },
+  home:{
+    '거실.png':{up:{ge:28,ki:24},dn:{um:21}},
+    '침실.png':{up:{ki:28,um:24},dn:{bo:21}},
+    '화장실.png':{up:{um:28,bo:24},dn:{ge:21}},
+    '지하실.png':{up:{bo:28,um:24},dn:{ki:21}},
+    '빈방.png':{up:{ge:28,bo:24},dn:{ki:21}},
+    '서재.png':{up:{bo:28,ge:24},dn:{um:21}}
+  }
+};
+const wfx = (S,b,i) => (WFX[b]&&S[b][i]&&WFX[b][S[b][i].img])||{up:{},dn:{}};
+/* 매점 도구: 구매(골드 또는 명성치) → 방에서 사용(그 방 회원 전원의 점수가 즉시 오름, 체력 소모, 방별 대기시간) */
+const ITEM_CD = 0.15;   // 같은 방에서 도구를 다시 쓸 수 있을 때까지(일)
+const ITEMS = {
+  whip:  {name:'채찍',          perm:true, gold:600, rep:60, rooms:['punish','elite'],                     up:{bo:10,um:6}, hp:10, face:[5,5,4], snd:['whoosh','slap'], desc:'경쾌한 소리로 정신을 번쩍 들게 합니다.'},
+  paddle:{name:'패들',          perm:true, gold:250, rep:25, rooms:['punish','basic','group'],             up:{bo:9,ge:6},  hp:8,  face:[3,5,4], snd:['slap'],          desc:'박자를 맞추기 좋은 기본 도구입니다.'},
+  blind: {name:'안대',          perm:true, gold:300, rep:30, rooms:['posture','special','basic'],          up:{ki:9,ge:6},  hp:6,  face:[4,7],   snd:['ding'],          desc:'눈을 가리면 감각이 예민해집니다.'},
+  gag:   {name:'재갈',          perm:true, gold:400, rep:40, rooms:['gear','special'],                     up:{um:10,bo:5}, hp:8,  face:[5,4],   snd:['boing'],         desc:'말수는 줄고 표정은 풍부해집니다.'},
+  cuffs: {name:'퍼 수갑',       perm:true, gold:450, rep:45, rooms:['gear','punish','elite','group'],      up:{ki:8,bo:7},  hp:8,  face:[7,4],   snd:['ding'],          desc:'푹신하고 귀여운 분홍색 수갑입니다.'},
+  cat:   {name:'고양이 마스크', perm:true, gold:500, rep:50, rooms:['group','posture','special','basic','gear'], up:{ki:9,ge:8}, hp:7, face:[3,6], snd:['boing'],     desc:'쓰는 순간 분위기가 한결 가벼워집니다.'},
+  massager:{name:'미니 마사지기', gold:70, rep:7, rooms:['gear','special','elite'],                 up:{ki:19,um:12}, hp:9,  face:[4,7], snd:['boing'],  desc:'작지만 존재감이 확실한 1회용 고급품입니다.'},
+  balls: {name:'구슬 세트',     gold:50, rep:5, rooms:['basic','posture'],                        up:{ki:14,ge:12}, hp:8,  face:[4,7], snd:['ding'],   desc:'초보 회원에게도 부담 없는 1회용 입문품입니다.'},
+  beads: {name:'구슬 줄',       gold:60, rep:6, rooms:['gear','special'],                         up:{um:19,ge:10}, hp:10, face:[4,7], snd:['boing'],  desc:'하나씩 세어 가며 집중하게 되는 1회용 고급품입니다.'},
+  plug:  {name:'스틸 플러그',   gold:70, rep:7, rooms:['posture','special','elite'],              up:{um:17,bo:14}, hp:11, face:[4,7], snd:['ding'],   desc:'묵직하고 반짝이는 1회용 고급품입니다.'},
+  tail:  {name:'꼬리 장식',     gold:60, rep:6, rooms:['group','punish','elite'],                 up:{ge:15,ki:10}, hp:9,  face:[4,7], snd:['boing'],  desc:'움직일 때마다 살랑살랑 흔들리는 1회용 고급품입니다.'}
+};
+const hasItem = (S,id) => ITEMS[id].perm ? !!S.own[id] : (S.inv[id]||0)>0;
+function buyItem(S,id,cur){
+  const it=ITEMS[id]; if(!it) return {ok:false,msg:'없는 도구입니다.'};
+  if(it.perm && S.own[id]) return {ok:false,msg:'이미 가지고 있는 도구입니다.'};
+  const price=it[cur];
+  if(cur==='gold'){ if(S.gold<price) return {ok:false,msg:`골드가 부족합니다. (${price})`}; S.gold-=price; }
+  else { if(S.rep<price) return {ok:false,msg:`명성치가 부족합니다. (${price})`}; S.rep-=price; }
+  if(it.perm) S.own[id]=true; else S.inv[id]=(S.inv[id]||0)+1; return {ok:true};
+}
+function useItem(S,i,id){
+  const it=ITEMS[id], rid=S.center[i]; if(!it) return {ok:false,msg:'없는 도구입니다.'};
+  if(!it.rooms.includes(rid)) return {ok:false,msg:'이 방에서는 쓸 수 없는 도구입니다.'};
+  if(!hasItem(S,id)) return {ok:false,msg:'도구가 없습니다. 매점에서 구매하세요.'};
+  const ms=inRoom(S,'center',i); if(!ms.length) return {ok:false,msg:'방에 회원이 없습니다.'};
+  const left=(S.cd[i]||0)-S.t; if(left>0) return {ok:false,msg:`아직 준비 중입니다. (${Math.ceil(left*S.cfg.dayMin*60/S.cfg.speed)}초)`};
+  if(!it.perm) S.inv[id]--; S.cd[i]=S.t+ITEM_CD;
+  let tot=0;
+  for(const m of ms){ for(const k in it.up){ const g=Math.min(100,m.st[k]+it.up[k])-m.st[k]; m.st[k]+=g; tot+=g; } m.hp=Math.max(3,m.hp-it.hp); m.trained=true; }
+  S.rep+=tot*K.repPerPt; return {ok:true,members:ms,it};
+}
+/* 1:1 직접 조교: 한 명에게만 쓰는 대신 효과 ×1.5, 체력 소모 ×2. 체력이 모자라면 못 씀(부상 방지) */
+const SOLO_UP = 1.5, SOLO_HP = 2;
+function useItemSolo(S,m,id){
+  const it=ITEMS[id]; if(!it) return {ok:false,msg:'없는 도구입니다.'};
+  if(!hasItem(S,id)) return {ok:false,msg:'도구가 없습니다. 매점에서 구매하세요.'};
+  const need=Math.round(it.hp*SOLO_HP);
+  if(m.hp<need+5) return {ok:false,msg:'너무 지쳤습니다. 체력이 회복될 때까지 쉬게 해 주세요.'};
+  if(!it.perm) S.inv[id]--; let tot=0;
+  for(const k in it.up){ const add=Math.round(it.up[k]*SOLO_UP), g=Math.min(100,m.st[k]+add)-m.st[k]; m.st[k]+=g; tot+=g; }
+  m.hp-=need; m.trained=true; S.rep+=tot*K.repPerPt; return {ok:true,it};
+}
+const ROOM_ORDER = ['lobby','basic','gear','group','recovery','shop','posture','punish','special','elite'];
+const GEARN = ['01','02','03','04','05','08'];   // 기구방에서 쓰는 자세(나머지 06·07·09는 특수훈련실)
+const DEV = ['01형틀_서기','02형틀_꿇기','03기둥_사슬','04의자','05십자대','06발사슬','07밧줄_앉기','08기둥_묶음','09밧줄_꿇기'];
+const GEAR = DEV.filter(n=>GEARN.includes(n.slice(0,2)));
+
+const SUR=['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','홍'];
+const G1=['하','서','지','민','수','예','유','채','다','소','나','윤','아','은','재','시','연','보','가','도'];
+const G2=['은','연','윤','아','린','영','진','희','솔','빈','나','율','경','현','정','원','혜','인','라','우'];
+const NICK=['콩이','하늘이','별이','보리','달이','몽이','초코','두부','밤이','모모','나비','꿀이','햇살','구름이','밀키','토리'];
+const TAGP={ki:['요염','풋풋'],um:['대담','내숭'],bo:['순종적','고집'],ge:['활발','수줍음']};
+const TAGX=['덜렁','꼼꼼','장난기','진지','엉뚱','먹보','잠꾸러기','씩씩'];
+
+function newState(){
+  return {v:3, cfg:{...CFG0}, t:0, day:0, gold:K.startGold, rep:K.startRep, grads:0, leaves:0, injuries:0,
+    center:['lobby','basic','gear','group','recovery',null], extra:{},
+    office:[{img:'개인사무실.png'}], home:[{img:'거실.png'}],
+    members:[], next:1, ev:[], scripts:null, dlg:{}, titles:[[],[],[],[]], granted:false, inv:{}, cd:{}, own:{}};
+}
+function testGrant(S){ if(K.testGrant && !S.granted){ S.gold+=99999; S.rep=Math.max(S.rep,999); S.granted=true; } }
+function startMembers(S){ for(let i=0;i<5;i++) addMember(S, true); }
+const avg = m => (m.st.ki+m.st.um+m.st.bo+m.st.ge)/4;
+const tierOf = m => { const a=avg(m); return a<35?0:a<55?1:a<80?2:3; };
+const lobbyIndex = S => S.center.indexOf('lobby');
+const inRoom = (S,b,i) => S.members.filter(m=>m.loc.b===b && m.loc.i===i);
+function roomCap(S,i){ const R=ROOMS[S.center[i]]; return R ? Math.min(R.max, R.cap+(S.extra[i]||0)) : 0; }
+function slotCap(S,b,i){const sl=S[b][i];return !sl?0:b==='office'&&sl.img==='개인사무실.png'?1:2+Math.max(0,Math.floor(Number(sl.extra)||0));}
+function workCapCost(S,b,i){return K.workCapCost*(Math.max(0,Math.floor(Number(S[b][i]?.extra)||0))+1);}
+function upgradeWorkCap(S,b,i){if(!S[b]?.[i]||b==='office'&&S[b][i].img==='개인사무실.png')return {ok:false,msg:'개인사무실은 1명 전용입니다.'};const cost=workCapCost(S,b,i);if(S.gold<cost)return {ok:false,msg:`골드가 부족합니다. (${cost})`};S.gold-=cost;S[b][i].extra=slotCap(S,b,i)-1;return {ok:true};}
+function needsRetrain(S,m){if(m.loc.b==='center')return false;const need=m.loc.b==='office'?S.cfg.join:S.cfg.marry;return avg(m)<need||STATS.some(k=>m.st[k]<need-K.returnMargin);}
+
+function genName(S){
+  for(let n=0;n<8;n++){ const nm=pick(SUR)+pick(G1)+pick(G2); if(!S.members.some(m=>m.name===nm)) return nm; }
+  return pick(SUR)+pick(G1)+pick(G2);
+}
+function genTags(st){
+  const ks=[...STATS].sort((a,b)=>st[b]-st[a]);
+  const t=[pick(TAGP[ks[0]].slice(0,1)), TAGP[ks[3]][1]];
+  if(rnd()<.25) t.push(pick(TAGX));
+  return t;
+}
+function addMember(S, free){
+  const L=lobbyIndex(S); if(L<0) return null;
+  const base=14+rnd()*18, st={};
+  STATS.forEach(k=>{ st[k]=Math.round(clamp(base+(rnd()-.5)*16,5,60)); });
+  const m={id:S.next++, name:genName(S), nick:rnd()<.3?pick(NICK):'', tags:genTags(st), st, hp:100, sign:0, born:S.day, loc:{b:'center',i:L}, pose:0, tr:0, trained:false};
+  m.sign=avg(m);
+  S.members.push(m);
+  if(!free){ S.gold+=K.visitFee; }
+  return m;
+}
+const nameOf = m => m.nick || m.name;
+
+function canPlace(S,m,b,i){
+  const a=avg(m);
+  if(b==='center'){
+    const id=S.center[i], R=ROOMS[id];
+    if(!R) return {ok:false,msg:'빈 칸입니다.'};
+    if(!R.place) return {ok:false,msg:`${R.name}에는 회원을 넣을 수 없습니다.`};
+    if(R.minAvg && a<R.minAvg) return {ok:false,msg:`${R.name}은(는) 평균 ${R.minAvg} 이상만 들어갑니다.`};
+    const occ=inRoom(S,'center',i).filter(x=>x!==m).length, cap=roomCap(S,i);
+    if(occ>=cap && !(cap===1 && m.loc.b==='center')) return {ok:false,msg:`${R.name}이(가) 가득 찼습니다.`};
+    return {ok:true};
+  }
+  const need = b==='office' ? S.cfg.join : S.cfg.marry;
+  if(!S[b][i]) return {ok:false,msg:'빈 칸입니다.'};
+  if(a<need) return {ok:false,msg:`${b==='office'?'회사는':'집은'} 평균 ${need} 이상만 갈 수 있습니다.`};
+  if(b==='home' && m.loc.b==='center') return {ok:false,msg:'집은 회사를 거친 회원만 갈 수 있습니다.'};
+  if(inRoom(S,b,i).filter(x=>x!==m).length>=slotCap(S,b,i)) return {ok:false,msg:'정원이 찼습니다. 방에서 정원을 늘려 주세요.'};
+  return {ok:true};
+}
+function place(S,m,b,i){
+  if(b==='center'){
+    const occ=inRoom(S,'center',i).filter(x=>x!==m);
+    if(occ.length>=roomCap(S,i) && occ.length) occ[0].loc={...m.loc};     // 정원 1짜리가 차 있으면 자리 교환
+    const RR=ROOMS[S.center[i]]; if(RR&&(RR.sets||RR.dev)) m.pose=Math.floor(rnd()*(RR.sets?RR.sets.length:GEAR.length));
+  }
+  m.loc={b,i}; m.tr=0;
+}
+function returnToLobby(S,m){ m.loc={b:'center',i:lobbyIndex(S)}; m.tr=0; }
+function removeMember(S,m){ S.members=S.members.filter(x=>x!==m); }
+
+function advance(S, dt){
+  const out=[];
+  for(const m of S.members){
+    if(m.loc.b!=='center'){
+      m.hp=Math.min(100,m.hp+K.homeRegen*dt);
+      const F=wfx(S,m.loc.b,m.loc.i);
+      for(const k in F.up) m.st[k]=Math.min(100,m.st[k]+F.up[k]*dt*(100-m.st[k])/50);
+      for(const k in F.dn) m.st[k]=Math.max(0,m.st[k]-F.dn[k]*dt*m.st[k]/50);
+      continue; }
+    const id=S.center[m.loc.i], R=ROOMS[id]; if(!R) continue;
+    if(R.train){
+      const eff=(m.hp<K.lowHp?K.lowEff:1)*(R.eff||1);
+      let tot=0;
+      for(const k in R.train){ const g=R.train[k]*dt*eff; m.st[k]=Math.min(100,m.st[k]+g); tot+=g; }
+      m.hp-=R.hp*dt; S.rep+=tot*K.repPerPt; m.tr+=dt; if(m.tr>=0.3) m.trained=true;
+      if(m.hp<=0) out.push(m);
+    }else if(id==='recovery'){ m.hp=Math.min(100,m.hp+R.regen*dt); }
+    else{ m.hp=Math.min(100,m.hp+(K.lobbyRegen+(S.center.includes('shop')?K.shopBonus:0))*dt); }
+  }
+  for(const m of out){
+    S.gold=Math.max(0,S.gold-K.injuryFee); S.rep=Math.max(0,S.rep-1); S.injuries++; removeMember(S,m);
+    S.ev.push(`${nameOf(m)}님이 무리한 훈련으로 부상을 입고 센터를 떠났습니다. 위약금 ${K.injuryFee}골드`);
+  }
+  for(const m of [...S.members]) if(m.loc.b==='home'&&STATS.every(k=>m.st[k]>=99.5)){
+    S.gold+=K.thanks; S.rep+=K.thanksRep; S.grads++; removeMember(S,m);
+    S.ev.push(`🎉 ${nameOf(m)}님이 모든 점수 100 달성! "안녕~" 사례비 ${K.thanks}골드`);
+  }
+  S.t+=dt;
+  while(S.t>=S.day+1){ S.day++; endDay(S); }
+}
+
+function endDay(S){
+  const C=S.cfg;
+  for(const m of [...S.members]){
+    if(m.loc.b==='center'){
+      if(!m.trained) STATS.forEach(k=>{ m.st[k]=Math.max(0,m.st[k]-K.decay); });
+      m.trained=false; m.tr=0;
+      if(S.day-m.born>=K.grace && avg(m) < m.sign-K.leaveMargin){
+        S.leaves++; S.rep=Math.max(0,S.rep-0.5); removeMember(S,m);
+        S.ev.push(`${nameOf(m)}님이 점수가 떨어져 센터를 그만뒀습니다.`);
+      }
+    }else{
+      S.rep+=avg(m)/100*K.workRepPerDay;
+      const need=(m.loc.b==='office'?C.join:C.marry)-K.returnMargin;
+      if(avg(m)<need){ const from=m.loc.b;returnToLobby(S,m); S.ev.push(`${nameOf(m)}님이 ${from==='office'?'회사':'집'}에서 점수가 깎여 재입소했습니다.`); }
+    }
+  }
+  if(S.day%C.monthDays===0){
+    const n=S.members.filter(m=>m.loc.b==='center').length;
+    if(n){ S.gold+=n*K.monthFee; S.ev.push(`월 회비 ${n*K.monthFee}골드 (${n}명)`); }
+  }
+  const lam=Math.min(K.visitMax, K.visitBase+S.rep*K.visitPerRep);
+  let k=Math.floor(lam); if(rnd()<lam-k) k++;
+  for(let i=0;i<k;i++){
+    if(inRoom(S,'center',lobbyIndex(S)).length>=ROOMS.lobby.cap) break;
+    const m=addMember(S,false); if(m) S.ev.push(`신규 회원 ${nameOf(m)}님이 도착했습니다. (+${K.visitFee}골드)`);
+  }
+}
+
+/* 건설·확장 */
+function buildRoom(S,i,id){
+  const R=ROOMS[id]; if(!R) return {ok:false,msg:'없는 방입니다.'};
+  if(S.rep<R.unlock) return {ok:false,msg:`명성치 ${R.unlock} 이상이 필요합니다.`};
+  if(R.unique && S.center.includes(id)) return {ok:false,msg:'이미 있는 방입니다.'};
+  if(S.gold<R.cost) return {ok:false,msg:`골드가 부족합니다. (${R.cost})`};
+  S.gold-=R.cost; S.center[i]=id; delete S.extra[i]; return {ok:true};
+}
+function capCost(S,i){ const R=ROOMS[S.center[i]]; return R&&R.up ? R.up*((S.extra[i]||0)+1) : 0; }
+function upgradeCap(S,i){
+  const R=ROOMS[S.center[i]]; if(!R||!R.up||R.cap+(S.extra[i]||0)>=R.max) return {ok:false,msg:'더 늘릴 수 없습니다.'};
+  const c=capCost(S,i); if(S.gold<c) return {ok:false,msg:`골드가 부족합니다. (${c})`};
+  S.gold-=c; S.extra[i]=(S.extra[i]||0)+1; return {ok:true};
+}
+function addFloor(S){
+  if(S.center.length>=12) return {ok:false,msg:'더 높이 지을 수 없습니다.'};
+  if(S.gold<K.floorCost) return {ok:false,msg:`골드가 부족합니다. (${K.floorCost})`};
+  S.gold-=K.floorCost; S.center.push(null,null); return {ok:true};
+}
+const sendable = (S,b) => S.members.filter(m=>m.loc.b===(b==='office'?'center':'office') && avg(m)>=(b==='office'?S.cfg.join:S.cfg.marry));
+function expandInfo(S,b){
+  const free=S[b].reduce((n,_,i)=>n+Math.max(0,slotCap(S,b,i)-inRoom(S,b,i).length),0);
+  const can=S[b].length<K.maxSlots && sendable(S,b).length>free;
+  return {can, cost:K.slotCost*S[b].length, full:S[b].length>=K.maxSlots};
+}
+function expandSlot(S,b){
+  const e=expandInfo(S,b);
+  if(!e.can) return {ok:false,msg: e.full?'최대 칸 수입니다.':'보낼 수 있는 회원이 방보다 많아지면 늘릴 수 있습니다.'};
+  if(S.gold<e.cost) return {ok:false,msg:`골드가 부족합니다. (${e.cost})`};
+  S.gold-=e.cost; S[b].push({img: b==='office'?['공용사무실.png','파티션사무실.png'][S.office.length-1]||'공용사무실.png':['침실.png','화장실.png'][S.home.length-1]||'침실.png'}); return {ok:true};
+}
+
+/* 기본 대사 순서표 (표정·효과음·대사·시간ms). 수위 있는 대사는 편집기에서 직접 */
+const st = (face,ms,line,snd) => ({face,ms,line:line||'',snd:snd||''});
+const SPANK = [st('충격',600,'앗!','thud'),st('당황',900,'…?'),st('충격',600,'앗!!','thud'),st('눈물참기',900,'으으…'),st('충격',600,'으앗!!','thud'),st('엉엉',1100,'흑…'),st('능청',3800,'…(방긋)')];
+const DEF_SCRIPTS = (()=>{
+  const d={
+    lobby:[st('기본',2200,'{호칭}, 오셨어요?'),st('편안',2200)],
+    basic:[st('기본',1500,'시작해 볼까요?'),st('활짝웃음',1500,'하나, 둘!'),st('편안',1500,'후… 괜찮아요.')],
+    gear:[st('기본',1400,'이거… 무겁네요?'),st('당황',1400,'으으, 어깨가!'),st('눈감고웃음',1600,'해냈어요!')],
+    group:[st('활짝웃음',1500,'다 같이요!'),st('윙크',1300,'파이팅!'),st('편안',1500)],
+    posture:[st('기본',1500,'이 자세… 맞나요?'),st('당황',1400,'조금 부끄러운데요…'),st('능청',2200,'…완벽하죠?')],
+    punish:SPANK,
+    special:[st('당황',1400,'…네?'),st('혼란',1500,'잠깐만요…'),st('시무룩',1400,'으으…'),st('능청',2800,'…괜찮아요.')],
+    elite:[st('편안',1300,'시작하나요?'),st('당황',1300,'…?'),st('충격',700,'앗!','thud'),st('눈물참기',1200,'으으…'),st('엉엉',1000,'흑…'),st('능청',3500,'…(방긋)')],
+    recovery:[st('편안',2000,'후우…'),st('눈감고웃음',2000,'좋다…'),st('윙크',1500)]
+  };
+  const A=['기본','당황','충격','눈물참기','능청'], B=['활짝웃음','반짝','충격','엉엉','능청'], C=['편안','뾰로통','시무룩','윙크'];
+  const seq=(faces,hit)=>faces.map((f,i)=>st(f, f==='능청'?3500:1300, f==='충격'?'앗!':f==='능청'?'…(방긋)':'', f==='충격'?hit:''));
+  DEV.forEach((n,i)=>{ const key='dev:'+n.slice(0,2);
+    d[key] = i<2 ? seq(A,'boing') : i===2||i===4 ? seq(B,'boing') : i===3 ? seq(['활짝웃음','당황','충격','시무룩','능청'],'boing') : i===5 ? seq(['놀람','당황','시무룩','눈물참기','능청'],'') : seq(C,''); });
+  return d;
+})();
+function scriptKey(S,m){ const id=S.center[m.loc.i], R=ROOMS[id];
+  if(R&&R.dev) return 'dev:'+GEAR[m.pose%GEAR.length].slice(0,2);
+  if(R&&R.sets){ const f=R.sets[m.pose%R.sets.length][0]; const x=f.match(/특수훈련실\/(\d\d)/); if(x) return 'dev:'+x[1]; }
+  return id; }
+function getScript(S,key){ return (S.scripts&&S.scripts[key]) || DEF_SCRIPTS[key] || DEF_SCRIPTS.basic; }
+function fillLine(S,m,line){
+  const t=tierOf(m); let pool=[]; for(let k=t;k>=0&&!pool.length;k--) pool=S.titles[k]||[];
+  return String(line).replace(/\{이름\}/g,nameOf(m)).replace(/\{호칭\}/g,()=> pool.length?pick(pool):'회원님');
+}
+/*CORE_END*/
+
+/* ═══════════════════════════════════════════════════════════
+   화면
+   ═══════════════════════════════════════════════════════════ */
+const ASSET_BASE = location.protocol === 'file:' ? 'https://raw.githubusercontent.com/Alix1211/Wellness/main/' : './';
+const assetUrl = (...p) => ASSET_BASE + p.map(encodeURIComponent).join('/');
+const bgUrl   = (folder,file) => assetUrl('배경',folder,file);
+const poseUrl = rel => assetUrl('포즈_낱개',...rel.split('/'));
+const faceUrl = f => assetUrl('표정_낱개',f+'.png');
+const silUrl = n => assetUrl('표정_상반신','남성실루엣',n+'.png');
+const SILS = [['01','full',0],['02','full',0],['03','full',0],['04','half',0],['05','half',0],['06','half',1],['07','half',1]];   // [파일, 전신/상반신, 1=왼쪽을 보는 옆모습]
+const itemUrl = (kind,id) => assetUrl('아이템',kind,id+'.png');
+const trainBgUrl = n => assetUrl('배경','조교창',n+'.png');
+const bustUrl = (set,n) => assetUrl('표정_상반신',set,String(n).padStart(2,'0')+'.png');
+const DLG_LABEL = {n:{lobby:'로비',basic:'기초방',gear:'기구방',group:'단체방',posture:'자세 점검방',punish:'체벌방',special:'화장실 훈련방',recovery:'회복방',shop:'매점'}, o:{open:'공용 사무실',exec:'개인 사무실',lobby:'회사 로비',wc:'사내 화장실',lounge:'휴게실·탕비실'}, h:{living:'거실',bed:'침실',bath:'화장실',punish:'체벌방'}};
+DLG_LABEL.e = DLG_LABEL.n;
+const DLG_GROUP = {n:'일반 회원',e:'엘리트 회원',o:'회사',h:'가정'};
+const OFFICE_POOL = {'개인사무실.png':'exec','공용사무실.png':'open','파티션사무실.png':'open','샤워실.png':'wc','화장실.png':'wc','사내화장실.png':'wc','로비.png':'lobby','탕비실.png':'lounge','휴게실.png':'lounge'};
+const HOME_POOL = {'거실.png':'living','빈방.png':'bed','서재.png':'living','침실.png':'bed','화장실.png':'bath','지하실.png':'punish'};
+const DLG_DEF = {"n:lobby":[{"t":"코스 상담","l":[["조교","회원님, 지난달 스펙 평가서 보니까 반사 각도가 영 굼뜨시던데, 오늘 3개월 종합 익스트림 코스로 영혼까지 털려보시겠습니까?"],["회원","네, 주인님! 1등급 혼수 스펙을 따야 하니, 오늘부터 제 보지와 멘탈을 자비 없이 굴려주시길 간청드립니다!"]]},{"t":"입장 안내","l":[["조교","어서 오십시오. 라커룸에서 투명 레인코트만 걸치고 아래는 완전 개방한 상태로 3번 방에 엎드려 계세요."],["회원","네! 입장하자마자 바닥에 무릎 꿇고 침 흘리면서 얌전히 대기해도 되겠습니까?"]]},{"t":"매운맛 강도 요청","l":[["회원","저기 주인님…… 지난주 체벌 코스가 너무 소프트해서 도파민이 반밖에 안 찼는데, 오늘은 제일 입 걸레인 조교님으로 배정해 주실 수 있습니까?"],["조교","추가금 긁으면 뼈마디까지 시원하게 털어드릴 테니까 카드나 내밀고 들어가."]]},{"t":"퇴실 비즈니스 스위칭","l":[["회원","오늘 자궁 끝까지 쑤셔 박아주신 덕분에 걸음걸이가 아주 상쾌합니다! 다음 주 화요일에 또 예약 잡아주시겠습니까?"],["조교","수고하셨습니다, 회원님. 로비 나가실 땐 레인코트 앞섶 잘 여미시고, 조심히 귀가하십시오."]]},{"t":"매칭 스펙 체크","l":[["회원","주인님, 저 다음 달에 대기업 임원 맞선 잡혔는데, 그때까지 7호 규격 무표정으로 삼키는 거 마스터할 수 있겠습니까?"],["조교","내 손바닥이랑 기구에 질질 짜지 않고 버티면 수료증 끊어줄 테니까 혓바닥 놀리지 말고 들어가."]]},{"t":"회원권 재계약","l":[["조교","회원님, 이번 달 횟수 다 털리셨는데 자궁 경부 정밀 조율 10회권 추가 결제하시겠어요?"],["회원","네, 주인님! 3개월 무이자 할부로 긁어주시고, 오늘 바로 제 나태한 멘탈을 자비 없이 털어주시겠습니까?"]]},{"t":"맞선 후기 자랑","l":[["회원","주인님! 어제 센터 수료증 내밀었더니 맞선남이 엉덩이 탄력 확인하고 바로 특급 애프터 신청했습니다!"],["조교","거봐, 내가 패들로 각 잡으랄 때 징징대더니 돈값 하지? 카드 긁고 라커룸 들어가서 벗고 대기해."]]},{"t":"매운맛 강사 지명","l":[["회원","혹시 오늘 제일 손 맵고 거칠기로 소문난 수석 조교님 지명 가능합니까? 오늘 회사에서 결재 반려당해서 거칠게 짓밟히고 싶습니다."],["조교","2번 방으로 가세요. 거친 수준이 아니라 영혼까지 탈탈 털어드릴 테니까 딴소리하지 마시고."]]},{"t":"예약 시간 지각","l":[["조교","회원님, 10분 늦으셨네요? 지각 페널티로 오늘 워밍업 없이 바로 6호 특대형부터 쑤셔 박고 시작합니다."],["회원","흐익! 죄송합니다 주인님! 벌타 달게 받을 테니 군화 코끝부터 정성껏 핥고 시작해도 되겠습니까?"]]},{"t":"퇴실 비즈니스 스위칭 (심화)","l":[["조교","수고하셨습니다, 회원님. 나가실 때 걸음걸이 팔자걸음 되지 않게 골반 힘 딱 주고 나가세요."],["회원","네! 안쪽이 얼얼하지만 엘리베이터에선 완벽한 0.1초 스위칭으로 대기업 커리어우먼 복귀하겠습니다!"]]}],"n:basic":[{"t":"시선 및 턱 각도","l":[["조교","야, 턱 치켜들지 마. 신랑감 얼굴 똑바로 쳐다보는 건 감점 요인이야. 바닥에 코 박아."],["회원","흐읏, 죄송합니다 주인님! 군화 코끝만 얌전히 올려다보며 애원하는 각도로 다시 교정해 주시겠습니까?"]]},{"t":"무릎 꿇기 내구도","l":[["조교","겨우 10분 꿇었다고 허벅지 부들거리냐? 이래 가지고 시댁 첫인사 때 두 시간 버티겠어? 엉덩이 더 낮춰."],["회원","안 됩니다 주인님……! 제 나태한 허벅지를 발로 짓밟아서 바닥에 딱 달라붙게 눌러주십시오!"]]},{"t":"구강 개방 훈련","l":[["조교","입 더 찢어지게 벌려. 턱관절 빠질 때까지 벌려야 자지 귀두부터 뿌리까지 한 입에 삼키지."],["회원","아읍…… 읏, 침이 줄줄 흘러도 턱 닫지 않고 예쁘게 삼키도록 뺨 한 대 올려붙여 주시겠습니까?"]]},{"t":"교성 톤 점검","l":[["회원","주인님, 방금 제 교성 톤이 너무 가식적이거나 시끄럽지는 않았습니까……?"],["조교","내숭 떨지 말고 자궁까지 울리는 진짜 발정 난 암캐 소리 나올 때까지 엉덩이 대."]]},{"t":"골반 스트레칭","l":[["조교","다리 180도로 찢어. 신랑이 위에서 누를 때 골반 안 열리면 바로 당일 파혼이야."],["회원","흐아앙! 찢어질 것 같습니다 주인님……! 제발 골반 위에 체중을 실어 가차 없이 짓눌러 주십시오!"]]},{"t":"발등 밀착 예절","l":[["조교","발등에 침 튀기지 말고 입술만 정갈하게 밀착해. 침 흘리면 바로 뺨 올라간다."],["회원","죄송합니다 주인님! 군화 가죽 광택을 살리듯 가장 정중하고 비천하게 입술을 대고 있겠습니다!"]]},{"t":"눈빛 각도 교정","l":[["조교","눈깔 깔아. 신랑감 얼굴 똑바로 쳐다보는 건 교양 없는 암캐나 하는 짓이야."],["회원","네, 주인님! 바닥에 코 박고 주인님 바지 버클 위치만 조용히 응시하는 각도로 교정해 주시겠습니까?"]]},{"t":"호흡 훈련","l":[["조교","숨 헐떡이지 말고 복식호흡으로 가다듬어. 흥분해서 교성 지르면 기초반 유급이야."],["회원","흐읍…… 흣! 애액이 쏟아져도 심박수 정상으로 유지할 수 있도록 뺨 한 대만 세게 갈겨주십시오!"]]},{"t":"목선 스트레칭","l":[["조교","고개 뒤로 더 젖혀. 그래야 목줄 챘을 때 쇄골 라인이 포식자 눈에 돋보이지."],["회원","아아앗…… 목뼈가 당깁니다 주인님! 가죽 목줄을 확 채워서 숨통을 살짝 조여주시겠습니까?"]]},{"t":"부동자세 칭찬 요구","l":[["회원","주인님, 오늘 20분 무릎 꿇기 부동자세 성공했는데 머리채 한 번만 거칠게 흔들어 주실 수 있습니까?"],["조교","어쭈, 겨우 기초 통과해 놓고 꼬리 치네? 엉덩이 더 내밀어 봐. 칭찬 대신 패들 들어간다."]]}],"n:gear":[{"t":"규격 업그레이드","l":[["조교","오늘 5호 떼고 7호 특대형 들어간다. 찢어질 것 같아도 괄약근 풀지 말고 삼켜."],["회원","흐아아악! 주인님, 제발……! 안쪽 내장까지 닿는 두께인데…… 최고 출력으로 쑤셔 넣어 주시겠습니까?!"]]},{"t":"진동 내구 테스트","l":[["조교","진동 8단계 올렸다. 3분 동안 교성 참으면 합격 도장 찍어준다. 찔찔 싸지 마."],["회원","흐으읍…… 흣! 씹물이 튀어나와도 입술 꽉 깨물고 버틸 테니, 엉덩이 한 번만 더 후려쳐 주십시오!"]]},{"t":"앞뒤 동시 관통","l":[["조교","뒤에 플러그 꽂힌 채로 앞에 딜도 박히는 거 처음이야? 왜 구멍을 좁혀, 벌려야지."],["회원","주인님, 앞뒤가 꽉 막혀서 숨이 안 쉽니다……! 제발 더 깊숙이 쑤셔 박아서 제 뇌를 녹여주시겠습니까?!"]]},{"t":"원격 다이얼 조교","l":[["회원","주인님, 회사 업무 중에도 티 안 나게 참을 수 있도록, 리모컨 다이얼을 불규칙하게 꺾어주시겠습니까?"],["조교","어쭈, 배짱 좋네? 바닥에 오줌 지리듯 질질 싸도 절대 안 꺼줄 테니까 다리 딱 모아."]]},{"t":"사후 도구 청소","l":[["조교","세션 끝. 방금 네 구멍에서 뽑아낸 딜도에 묻은 네 애액, 혀로 깨끗하게 핥아서 닦아놔."],["회원","네, 주인님! 제 천박한 분비물을 한 방울도 남김없이 싹 빨아먹고 반납해도 되겠습니까?"]]},{"t":"8호 익스트림 진입","l":[["조교","자, 8호 특대형 실리콘 기둥 들어간다. 내벽 찢어질 것 같다고 징징대면 바로 퇴실이야."],["회원","흐아아악! 주인님, 제발……! 골반 안쪽이 꽉 차서 숨이 멎을 것 같습니다! 끝까지 밀어 넣어 주십시오!"]]},{"t":"원격 무자비 다이얼","l":[["조교","이거 블루투스 연동이라 내가 밖에서 커피 마시면서 다이얼 돌린다. 10분 동안 소리 새면 징벌방 직행이야."],["회원","흐으읍……! 소리 안 새게 입술 꽉 깨물 테니, 최고 출력으로 제 뇌세포를 지져주시겠습니까?!"]]},{"t":"듀얼 플러그 세팅","l":[["회원","주인님, 다음 달 웨딩드레스 핏 때문에 골반 힙업이 필요한데, 앞뒤 듀얼 플러그 세팅 부탁드려도 되겠습니까?"],["조교","욕심만 많아서는. 버티지도 못할 거면서…… 좋아, 젤 듬뿍 바르고 엉덩이 치켜들어."]]},{"t":"360도 회전 점막 자극","l":[["조교","회전 모드 켰다. 안쪽 점막 다 긁어낼 테니까 아랫배에 힘 딱 주고 삼켜."],["회원","아아앙!! 주인님, 내벽이 빨려 들어갈 것 같습니다! 애액 폭포수가 터져 나올 때까지 가혹하게 조율해 주십시오!"]]},{"t":"쿨타임 해제 검사","l":[["조교","뽑는다. 뽁- 소리 날 때 괄약근 바들거리면 수료증 도장 안 찍어준다."],["회원","하아앗……! 주인님 손길에 안쪽이 뻥 뚫려 허전해 미치겠습니다…… 바로 다음 호수 물려주시면 안 되겠습니까?!"]]}],"n:group":[{"t":"밥그릇 핥기 레이스","l":[["조교","자, 넷 다 엎드려. 혓바닥으로 사료 그릇 제일 늦게 비우는 년은 오늘 퇴실 금지다."],["회원","츱, 츄릅! 주인님, 옆 회원에게 지지 않게 제 뒤통수를 군화로 짓눌러서 더 빨리 핥게 해주십시오!"]]},{"t":"규격 자랑 기싸움","l":[["회원","주인님! 저년은 4호도 버거워서 징징대는데, 저는 6호 박힌 채로 10분째 꼿꼿이 엎드려 있습니다! 저를 더 예뻐해 주시겠습니까?"],["조교","지랄 말고 엉덩이나 더 들어. 둘 다 내 눈엔 똑같이 발정 난 암캐들이니까."]]},{"t":"연대책임 기합","l":[["조교","3번 회원 신음 샜다. 연대책임으로 전원 엎드려뻗쳐 상태에서 골반 돌려."],["회원","흐읏…… 동기 회원님들께 죄송합니다……! 제 뺨을 세게 후려쳐서 분위기를 다시 잡아주시겠습니까, 주인님?!"]]},{"t":"발판 집단 지원","l":[["조교","순서대로 와서 내 발밑에 엎드려. 혓바닥 대기하고 줄 똑바로 서."],["회원","주인님, 제 입술이 주인님 구두 밑창에 제일 먼저 닿을 수 있게 머리채를 잡아 끌어당겨 주십시오!"]]},{"t":"1등 포상 쇼","l":[["조교","오늘 단체 평가 1등은 2번 회원. 조임이랑 복종 태도가 제일 찰지네."],["회원","하아…… 감사합니다 주인님! 꼴찌 한 년들 보는 앞에서 제 보지에 특별 보너스 딜도를 깊게 쑤셔 박아 주시겠습니까?!"]]},{"t":"사료 그릇 청소 레이스 (심화)","l":[["조교","바닥에 밥그릇 4개 놨다. 혓바닥으로 제일 깨끗이 핥아 비우는 년한테 신상 하네스 무료 대여권 준다."],["회원","츱, 츄릅! 주인님, 제 혀놀림만 봐주십시오! 그릇 밑바닥 광택 날 때까지 싹 비우겠습니다!"]]},{"t":"회원 간 서열 새치기","l":[["회원","주인님! 5번 회원은 벌써 자세 무너졌는데, 저는 10분째 각 잡고 대기 중입니다! 쟤 말고 제 엉덩이부터 먼저 패주시겠습니까?"],["조교","닥쳐, 새치기하지 마. 줄 서 있는 순서대로 차례차례 털어줄 테니까 엎드려 있어."]]},{"t":"집단 연대책임 기합","l":[["조교","너희 중 한 년이 신음 흘려서 단체로 엎드려뻗쳐 들어간다. 골반 수평 유지해."],["회원","동기님들께 죄송합니다……! 제 음란한 주둥이를 조교님 군화 발로 짓밟아 침묵시켜 주십시오!"]]},{"t":"가구플 단체 지원","l":[["조교","소파 이동한다. 1번, 2번은 발받침, 3번, 4번은 등받이로 기어 와서 엎드려."],["회원","주인님! 제 푹신한 등판 위에 엉덩이 체중을 온전히 실어 편안하게 앉아 주십시오!"]]},{"t":"집단 맹세 복창","l":[["조교","다 같이 복창한다. '우리는 통제받을 때 가장 가치 있다.' 목소리 작은 년은 딜도 호수 1단계 업이야."],["회원","우리는 통제받을 때 가장 가치 있습니다!! 더 큰 규격으로 저희 구멍을 채워주십시오 주인님!!"]]}],"n:posture":[{"t":"거울 앞 무릎-가슴 자세","l":[["조교","거울 봐. 엉덩이 더 치켜들고 가슴 바닥에 밀착해. 거울에 네 벌건 구멍 다 비치는 거 보여?"],["회원","네, 보입니다 주인님……! 거울 속 제 음란한 치부를 가차 없이 손바닥으로 내리쳐 주시겠습니까?"]]},{"t":"M자 개각 각도","l":[["조교","골반 각도가 10도 부족해. 이러면 신랑감이 위에서 내려다볼 때 맛이 안 살잖아."],["회원","흐아앙! 제 양 발목을 잡아 어깨 뒤까지 확 꺾어서, 속살이 활짝 뒤집히게 고정해 주시겠습니까 주인님?!"]]},{"t":"엉덩이 수평 유지","l":[["조교","등에 유리잔 올려놨다. 허리 흔들려서 잔 깨지면 깨진 조각 옆에서 밤새 무릎 꿇린다."],["회원","읏…… 잔 하나도 안 흔들 테니, 아래에서 진동으로 제 인내심을 한계까지 시험해 주시겠습니까?"]]},{"t":"헐떡임 앵글 교정","l":[["조교","고개 너무 젖히지 마. 턱을 살짝 떨구고 눈물 흘려야 포식자 눈에 꼴리지."],["회원","주인님, 가르쳐주신 이 각도가 마음에 드신다면 제 뒤통수를 거칠게 쥐고 안쪽을 찔러주시겠습니까?"]]},{"t":"특급 수료 판정","l":[["조교","음, 자세 각도 완벽해. 이 상태로 5분간 숨 죽이고 있으면 자세 부문 'A등급' 찍어준다."],["회원","감사합니다 주인님! A등급 혼수를 위해 허벅지가 찢어져도 끝까지 버텨내겠습니다!"]]},{"t":"거울 앞 M자 각도 (심화)","l":[["조교","거울 똑바로 쳐다봐. 양다리 180도 찢어서 사타구니 안쪽 점막까지 거울에 다 보이게 활짝 열어."],["회원","네, 훤히 다 보입니다 주인님……! 거울 속 제 음란한 치부가 적나라하게 비치니 수치심에 애액이 멈추지 않습니다……!"]]},{"t":"꼬리뼈 수평계 테스트","l":[["조교","등에 수평계 올려놨다. 1밀리라도 흔들려서 떨어지면 바로 가죽 슬래퍼 들어간다."],["회원","흐읏…… 주인님! 엉덩이를 허공으로 더 바짝 치켜들 테니, 살짝만 때려 긴장감을 주시겠습니까?"]]},{"t":"애원 시선 각도","l":[["조교","눈에 힘 풀어. 지배자 올려다볼 땐 '제발 박아주세요'라는 눈빛이 뚝뚝 떨어져야 합격이야."],["회원","이렇게 눈물 글썽이며 올려다보면 되겠습니까 주인님? 제 턱을 잡고 입술을 벌려주십시오!"]]},{"t":"척추 기립근 하중 검사","l":[["조교","허리 아치형으로 더 꺾어. 위에서 남자가 체중 실을 때 척추 안 나가려면 기립근 더 바짝 세워야 돼."],["회원","흐아앙! 척추가 끊어질 듯 팽팽합니다 주인님! 제 허리 위에 걸터앉아 무게를 실어주시겠습니까?"]]},{"t":"자세 부문 A등급 판정 (마무리)","l":[["조교","오케이, 자세 각도 98점. 이 정도면 상류층 남편이 첫날밤에 흐뭇해하겠어."],["회원","하아…… 감사합니다 주인님! 신부 수업의 보람이 온몸에 찌릿하게 퍼집니다!"]]}],"n:punish":[{"t":"스팽킹 선고","l":[["조교","오늘 복종 태도 감점이야. 엉덩이 딱 까고 벽 짚어. 스무 대 맞고 뇌 리셋하자."],["회원","네, 주인님! 살이 터지도록 가차 없이 후려치셔서 제 나태한 엉덩이를 시뻘겋게 물들여 주십시오!"]]},{"t":"슬래퍼 풀스윙","l":[["조교","철썩-! 소리 좋네. 뼈 안 상하게 살점만 골라 패니까 걱정 말고 짐승처럼 울어."],["회원","아아아악!! 너무 좋습니다 주인님……! 매운맛이 뼛속까지 박히도록 열 대만 더 연달아 갈겨주시겠습니까?!"]]},{"t":"맞춤형 도구 선택","l":[["회원","주인님, 다음 주 소개팅인데 멍 안 남게 넓적한 실리콘 패들로 쳐주실 수 있습니까?"],["조교","내가 프로인데 흉터 남기겠냐? 겉은 멀쩡해도 속근육만 불타오르게 패줄 테니까 바짝 대."]]},{"t":"반칙 시 추가 체벌","l":[["조교","엉덩이 뒤로 빼지 말랬지. 움찔거렸으니까 벌타로 다섯 대 추가야."],["회원","흐으읍! 잘못했습니다 주인님! 추가 체벌 달게 받을 테니 다리 사이로 손가락도 함께 쑤셔 박아 주십시오!"]]},{"t":"훈육 종료와 칭찬","l":[["조교","끝. 엉덩이 불났네. 맞느라 수고했고, 바닥에 뚝뚝 흘린 애액 닦고 옷 챙겨."],["회원","하아…… 하아…… 주인님의 완벽한 손맛 덕분에 온몸의 독소가 다 빠졌습니다. 정말 감사합니다!"]]},{"t":"가죽 슬래퍼 풀카운트","l":[["조교","짝-! 소리 찰지네. 엉덩이 살점 흔들리는 거 보여? 스무 대 채울 때까지 숫자 똑바로 복창해."],["회원","하, 하나아악!! 감사합니다 주인님! 제 나태한 엉덩이에 불을 질러주시니 너무 상쾌합니다!"]]},{"t":"잡념 분쇄 패들","l":[["회원","주인님, 오늘 사내 회의에서 깨져서 잡념이 많은데…… 묵직한 나무 패들로 제 뇌 퓨즈를 끊어주시겠습니까?"],["조교","단단히 각오해라. 둔탁하게 뼈까지 울릴 테니까 벽 단단히 짚고 이 악물어."]]},{"t":"허벅지 안쪽 훈육","l":[["조교","엉덩이만 맞으니까 긴장 풀리지? 오늘은 허벅지 안쪽 여린 살 들어간다. 다리 모으지 마."],["회원","흐아아악!! 거긴 너무 찌릿합니다 주인님……! 씹물이 바닥에 튀어도 절대 오므리지 않겠습니다!"]]},{"t":"피하 멍 제로 테크닉","l":[["조교","피하 출혈 안 생기게 모세혈관 피해서 스냅으로 찰싹 감아친다. 프로 조교의 손맛 어때?"],["회원","겉은 멀쩡한데 속살만 뜨겁게 불타오릅니다 주인님……! 열 대만 더 연달아 갈겨주십시오!"]]},{"t":"훈육 직후의 다정함","l":[["조교","끝. 엉덩이 새빨갛게 잘 익었네. 맞느라 고생했고, 흘린 땀 닦고 물 한 컵 마셔."],["회원","주인님…… 매질 직후에 이렇게 서늘하고 다정하게 챙겨주시니 엔도르핀이 터져 미칠 것 같습니다……!"]]}],"n:special":[{"t":"배뇨 참기 한계","l":[["조교","물 1리터 마시고 30분 버텼지? 바닥에 쪼그려 앉아. 싸라는 신호 떨어질 때까지 괄약근 꽉 쥐어."],["회원","흐으윽…… 주인님, 방광이 터질 것 같습니다…… 제발 발로 아랫배를 지그시 밟아주시겠습니까?!"]]},{"t":"배뇨 승인","l":[["조교","좋아, 지금 싸. 내 군화 발등에 안 튀게 변기 중앙 조준해서 싹 비워봐."],["회원","샤아아아-! 하아앗…… 주인님, 허락해 주신 덕분에 제 비루한 오줌을 남김없이 쏟아내고 있습니다……!"]]},{"t":"웰니스 관장 훈련","l":[["조교","장 청소용 관장액 2리터 들어간다. 5분 못 참고 지리면 오늘 스펙 등급 F야."],["회원","으아악! 뱃속이 부글거려 미치겠습니다 주인님……! 제발 항문 플러그를 꽉 조여 막아주십시오!"]]},{"t":"실금 청소 징벌","l":[["조교","야, 1분 남겨놓고 타일에 흘렸네? 네가 지린 거 네 입으로 다 핥아서 치워."],["회원","죄송합니다 주인님……! 제 나약함을 벌하는 뜻으로, 바닥을 싹 핥아먹고 다시 관장액을 넣어주십시오!"]]},{"t":"잔여량 0 검사","l":[["회원","주인님, 방광을 완전히 비웠는데 속이 얼얼합니다…… 손가락으로 쑤셔 잔여물이 없는지 확인해 주시겠습니까?"],["조교","어디 보자. 텅 비었네. 요도 점막 깨끗하니까 오늘 배뇨 제어 코스는 패스 도장 찍어준다."]]},{"t":"이온음료 1.5리터 인내","l":[["조교","이온음료 1.5리터 다 마셨지? 변기 앞에 무릎 꿇고 10분 버텨. 한 방울이라도 흘리면 처음부터 다시 마신다."],["회원","흐으윽…… 주인님, 아랫배가 터질 것 같습니다…… 제발 손바닥으로 치골을 지그시 눌러주시겠습니까?!"]]},{"t":"단속적 배뇨 제어","l":[["조교","싸. 대신 끊어서 싸. 내가 '멈춰' 하면 0.1초 만에 괄약근 조여서 잠가야 돼."],["회원","샤아아앗…… 읏! 멈췄습니다 주인님……! 다리가 떨리지만 명령에 따라 요도를 꽉 틀어막고 있습니다……!"]]},{"t":"청결 허브 관장","l":[["회원","주인님, 내일 남친 후보와 첫 데이트라 완벽한 청결이 필요한데, 허브 관장액 3리터 처방 부탁드려도 되겠습니까?"],["조교","3리터면 뱃속 다 뒤집어질 텐데? 화장실 타일에 대가리 박고 버틸 자신 있으면 밸브 연다."]]},{"t":"타일 실금 징벌 (심화)","l":[["조교","야, 1분 남겨놓고 변기 옆 타일에 지렸네? 네가 흘린 오줌, 혓바닥으로 싹 핥아서 치워."],["회원","죄송합니다 주인님……! 제 나약함을 벌하는 뜻으로 바닥을 깨끗이 핥고 다시 관장액을 넣어주십시오!"]]},{"t":"내시경식 검사","l":[["조교","어디 봐. 손가락 넣어서 체크한다. 잔여물 없이 점막까지 깨끗하네. 신부 위생 부문 합격 도장 준다."],["회원","감사합니다 주인님……! 속이 텅 비고 얼얼하니 가장 순수한 암캐로 다시 태어난 기분입니다……!"]]}],"n:recovery":[{"t":"쿨링 젤 도포","l":[["조교","엎드려. 7호 기구에 짓무른 보지 안쪽에 아마테라스 쿨링 젤 듬뿍 짜넣을 테니까 힘 빼."],["회원","흐아아…… 시원합니다 주인님…… 달아오른 점막에 차가운 젤이 스며드니 천국 같습니다……"]]},{"t":"피하 멍 복구","l":[["조교","엉덩이에 재생 레이저 쬘 테니까 10분만 눈 감고 있어. 오늘 밤이면 살결 백옥으로 돌아온다."],["회원","주인님, 애프터케어까지 완벽하시니…… 제가 다음 달 매칭에서 1등 신부로 낙점될 수 있겠습니다."]]},{"t":"도파민 수액 투여","l":[["회원","주인님, 뇌가 완전히 녹아내려 손가락 하나 까딱하기 힘든데…… 고농축 피로회복 앰플 한 대 놔주시겠습니까?"],["조교","팔 내밀어. 혈관에 한 방 맞고 나면 5분 만에 맥박 정상으로 리셋되니까 침 흘리지 말고."]]},{"t":"나른한 칭찬","l":[["조교","오늘 체력 방전 제대로 됐네. 이 정도 근성이면 대기업 상무님 세컨드나 정실 자리도 너끈하겠어."],["회원","모두 주인님의 가차 없는 조율 덕분입니다. 퇴실 전에 제 이마에 수고했다는 뽀뽀 한번 해주실 수 있습니까?"]]},{"t":"0.1초 퇴실 스위칭","l":[["조교","알람 울렸다. 3초 안에 호흡 정돈하고 옷 입으세요, 회원님."],["회원","후- 하. 네! 거짓말처럼 붓기가 싹 빠졌습니다. 오늘 세션 영수증 챙겨서 카운터로 가겠습니다!"]]},{"t":"점막 쿨링 캡슐","l":[["조교","7호 기구에 혹사당한 내벽에 아마테라스 영양 캡슐 투여한다. 깊숙이 젤 짜넣을 테니까 숨 길게 쉬어."],["회원","흐아아…… 시원합니다 주인님…… 화끈거리던 점막이 급속 냉각되면서 세포가 살아나는 것 같습니다……"]]},{"t":"피하 재생 적외선","l":[["조교","엉덩이에 타박상 지우는 적외선 레이저 쏜다. 15분 자고 일어나면 멍 하나 없이 백옥으로 복구돼."],["회원","주인님 품에서 꿀잠 자고 일어나, 내일 출근길에 당당하게 미니스커트 입겠습니다!"]]},{"t":"도파민 전해질 수액","l":[["회원","주인님, 체액을 너무 많이 쏟아서 다리가 후들거리는데…… 링거 한 팩만 혈관에 꽂아주시겠습니까?"],["조교","누워. 포도당이랑 전해질 풀세트로 꽂아줄 테니까 침 흘리지 말고 푹 자."]]},{"t":"매칭 1순위 격려","l":[["조교","오늘 고강도 코스 군소리 없이 다 버텼네. 장하다. 이 정도 스펙이면 다음 달 매칭에서 1순위로 채가겠어."],["회원","흐앙…… 주인님께 인정받으니 눈물이 납니다…… 퇴실 전에 머리 한 번만 더 쓰다듬어 주십시오……"]]},{"t":"칼퇴 비즈니스 복귀","l":[["조교","세션 종료 알람 울렸습니다. 3초 내로 맥박 정돈하시고 옷 입으세요, 회원님."],["회원","후- 하. 네! 방금 전까지 침 흘리던 모습은 깨끗이 잊고, 회사 야근 서류 챙기러 복귀하겠습니다!"]]}],"n:shop":[{"t":"신상 딜도 구매","l":[["회원","주인님, 이번에 나온 마카롱 핑크 8호 익스트림 에디션 재고 있습니까? 오늘 사서 바로 실습해 보고 싶습니다!"],["조교","방금 입고됐는데 너 같은 하체가 감당할 물건이 아니야. 카드 한도 넉넉하면 긁든가."]]},{"t":"특수 리차지 음료","l":[["조교","체액 너무 많이 뺐으니까 저기 '도파민 리차지 쉐이크' 한 캔 원샷해. 칼로리 0이니까 살 안 쪄."],["회원","꿀꺽꿀꺽…… 하아! 주인님, 마시자마자 보지에 다시 애액이 차오르는데 한 번 더 박혀도 되겠습니까?"]]},{"t":"명품 하네스 렌탈","l":[["회원","주인님, 내일 야외 실습 때 착용할 디올르 홀로그램 하네스 S사이즈로 대여 신청서 넣어주시겠습니까?"],["조교","신분증 맡기고 가져가. 가죽에 씹물 튀어서 얼룩지면 세탁비 30만 원 물어야 한다."]]},{"t":"회복 앰플 번들 세일","l":[["조교","회원님, 집에서 홈세션 뛸 때 쓸 아마테라스 앰플 10개 묶음 20% 세일 중인데 하나 쟁여둬요."],["회원","네, 주인님! 남편 후보님 모실 때 필수품이니 20개 세트로 결제해 주십시오!"]]},{"t":"퇴근길 테이크아웃","l":[["회원","주인님, 오늘 저녁 대용으로 마실 수분 보충 젤리 두 팩 결제 부탁드립니다!"],["조교","여기 영수증요, 회원님. 주말에 파트너랑 하드하게 굴러도 월요일 센터 출석 늦지 마시고요."]]},{"t":"가정용 실리콘 슬래퍼","l":[["회원","주인님, 집에서 남편 후보님께 맞을 때 쓸 실리콘 슬래퍼 추천해 주실 수 있습니까?"],["조교","이거 가져가. 탄성 좋아서 소리는 천둥처럼 나는데 피부 손상은 0%라 초보 남편들이 제일 좋아해."]]},{"t":"단백질 리차지 음료 (추가)","l":[["조교","세션 끝나고 근손실 방지용 '도파민 리차지 쉐이크' 1+1 행사 중인데 두 박스 사 갈래?"],["회원","네, 주인님! 원샷하고 안쪽에 다시 애액 차오르면 2차 연장 세션 신청해도 되겠습니까?"]]},{"t":"맞선용 단아한 목줄","l":[["회원","주인님, 이번 주말 선자리에 차고 나갈 얌전하고 고급스러운 파스텔 민트색 목줄 골라주시겠습니까?"],["조교","이 가죽 라인으로 해. 버클에 큐빅 박혀 있어서 상류층 남성들이 환장하는 단아한 굴종 핏이야."]]},{"t":"조교 전용 포인트 충전","l":[["회원","주인님, 오늘 너무 매콤하게 굴려주셔서 감사한 마음에 조교님 전용 웰니스 포인트 10만 점 충전해 드려도 되겠습니까?"],["조교","어이구, 회원님 센스 있으시네. 다음 주엔 특별히 8호 특대형으로 서비스 확실하게 넣어드릴게."]]},{"t":"주말 홈트 패키지 출고","l":[["조교","주말 홈트용 회복 앰플이랑 관장 키트 포장해 뒀습니다. 영수증 챙기시고요."],["회원","네! 주말 내내 집에서 주인님을 완벽히 모시고, 월요일 아침에 개운하게 센터 재등록하러 오겠습니다!"]]}],"e:lobby":[{"t":"VIP 무제한 코스 등록","l":[["조교","VIP 회원님, 오늘 앞뒤 구멍 전부 주먹 들어갈 때까지 안 빼드릴 건데, 피스팅 전용 룸으로 바로 모실까요?"],["회원","네, 주인님! 오늘은 자궁 입구까지 팔뚝 통째로 쑤셔 박혀서 하루 종일 씹물 질질 흘리며 기어 다닐 수 있게 결제해 주시겠습니까?"]]},{"t":"확장 스펙 자랑","l":[["회원","주인님! 저 지난주에 10호 특대형 딜도 꽂은 채로 이사회 PT 발표 무표정으로 마쳤습니다! 오늘 더 굵은 걸로 찢어주시겠습니까?"],["조교","자랑이다, 미친년. 12호 강철 기둥 입고됐으니까 라커룸 가서 팬티 찢어버리고 엎드려 있어."]]},{"t":"현장 소변 대접 요청","l":[["회원","주인님, 입장하자마자 제 입안에 따뜻한 조교님 소변부터 가득 채워주시면 안 되겠습니까? 아침부터 목이 타서 미치겠습니다."],["조교","로비 타일 더러워지니까 7번 방 들어가서 입 벌리고 무릎 꿇고 기다려. 한 방울도 흘리지 마라."]]},{"t":"퇴실 0.1초 스위칭","l":[["회원","오늘 보지 안쪽까지 자비 없이 짓이겨주신 덕분에 아주 개운합니다! 내일 장관급 회담 끝나고 또 대주러 와도 되겠습니까?"],["조교","수고하셨습니다, 전무님. 질구에 꽂아둔 플러그 빠지지 않게 골반 꽉 조이고 운전하십시오."]]},{"t":"좆물 충전 예약","l":[["조교","오늘 수석 조교 다섯 명 좆물 모아서 회원님 자궁 끝까지 채워주는 단체 코스 예약 비어있는데, 결제하시겠어요?"],["회원","꺄악! 당장 골드 카드로 긁어주십시오! 제 암캐 구멍이 터져 나가도록 가득 임신 배설시켜 주시길 청원합니다!"]]}],"e:basic":[{"t":"도그 트레이닝 (구두 청소)","l":[["조교","야, 기어 와서 내 군화 코에 묻은 흙이랑 개사료 찌꺼기 혀로 싹 핥아. 이빨 닿으면 대가리 밟는다."],["회원","츱, 츄릅! 네, 주인님! 밑창 홈 사이까지 침 범벅으로 깨끗이 청소할 테니 엉덩이에 가죽 채찍을 내리쳐 주시겠습니까?"]]},{"t":"좆물 삼키기 자세","l":[["조교","목구멍 열고 혀 길게 빼. 내가 자지 꺼내서 쌀 때까지 눈 깜빡이지 말고 꿀꺽 삼켜."],["회원","아읍…… 네, 주인님! 진득한 좆물을 목구멍 깊숙이 직수로 받아 마실 수 있도록 머리채를 뒤로 확 꺾어주십시오!"]]},{"t":"완전 개방 엎드려뻗쳐","l":[["조교","엉덩이 더 치켜들고 보지 입구 바깥으로 까뒤집어. 질구가 헐렁하게 벌어져서 안쪽 뻘건 살 다 보이잖아."],["회원","흐읏…… 주인님! 제 넓혀진 암캐 구멍이 주인님 시야에 예쁘게 보이도록 뺨을 후려쳐 긴장감을 주시겠습니까?"]]},{"t":"개 짖기 복종","l":[["조교","엉덩이에 슬래퍼 맞을 때마다 '암캐 보지 벌립니다' 하고 짖어. 목소리 작으면 바로 쇠파이프 들어간다."],["회원","월! 왈!! 암캐 보지 활짝 벌립니다 주인님!! 자지든 몽둥이든 마음껏 쑤셔 박아 주십시오!!"]]},{"t":"발바닥 애무 훈육","l":[["조교","내 발가락 사이사이에 낀 땀 냄새 맡으면서 침으로 광내. 씹물 바닥에 줄줄 흘리지 말고."],["회원","하아앙…… 주인님 발 냄새가 너무 음란해서 보지 안쪽이 미친 듯이 조여옵니다…… 제발 짓밟아 주십시오!"]]}],"e:gear":[{"t":"피스팅(Fisting) 전희","l":[["조교","손목까지 젤 발랐다. 다리 활짝 찢어. 주먹 쥐고 자궁벽 정면으로 뚫고 들어갈 테니까 이 악물어."],["회원","흐아아악!! 읏, 팔뚝이 쑥 들어옵니다 주인님……! 제발 손가락 쫙 펴서 배 안쪽을 통째로 휘저어주시겠습니까?!"]]},{"t":"양손 동시 관통 (Double Fisting)","l":[["회원","주인님, 제 앞뒤 구멍이 이미 다 길들여졌으니, 보지와 애널에 양손 주먹을 동시에 꽂아 넣어 주실 수 있습니까?"],["조교","욕심 끝내주네. 양쪽 다 내장 닿을 때까지 끝까지 쑤셔 박아줄 테니까 씹물이나 바닥에 뿜어대지 마."]]},{"t":"12호 강철 딜도 삽입","l":[["조교","오늘 특수 제작한 12호 강철 딜도 들어간다. 차가운 쇠기둥에 점막 다 긁혀서 뒤집혀봐야 정신 차리지."],["회원","꺄아아악!! 너무 두껍습니다 주인님!! 아랫배가 찢어질 것 같은데…… 최고 출력 모터로 진동을 켜주시겠습니까?!"]]},{"t":"착유기 및 유두 고문","l":[["조교","젖꼭지에 산업용 고압 흡입기 달았다. 피 고일 때까지 빨아당길 테니까 소리 질러."],["회원","흐아앙!! 유두가 뜯겨 나갈 것 같습니다 주인님!! 쾌락에 미쳐버린 제 뺨을 자지로 마구 후려쳐 주십시오!"]]},{"t":"씹물 역류 흡입기","l":[["조교","기구 뽑는다. 뽁-! 질구에서 터져 나오는 네 씹물 바닥에 튀잖아. 흡입 튜브로 역류시켜서 네 입에 다시 먹여줄까?"],["회원","네, 주인님! 제 더러운 분비물을 튜브로 목구멍에 직접 쏴서 강제로 삼키게 해주시길 간청드립니다!"]]}],"e:group":[{"t":"집단 인간 육변기","l":[["조교","자, VIP 다섯 명 일렬로 엎드려. 오늘 조교진 열 명이 너희 입이랑 보지 번갈아 가면서 자지 쑤셔 박는다."],["회원","하아앗……! 제 구멍에 좆물이 넘쳐흐를 때까지 릴레이로 박아주십시오 주인님!! 옆 회원보다 제가 더 잘 빨겠습니다!"]]},{"t":"집단 소변 세례","l":[["조교","다 같이 머리 박아. 위에서 조교들이 골든샤워 뿌릴 테니까, 입 벌리고 온몸으로 소변 받아내."],["회원","샤아아-! 감사합니다 주인님!! 뜨거운 오줌에 온몸이 절여지니 천박한 암캐로 완벽히 리셋되는 기분입니다!"]]},{"t":"피스팅 배틀","l":[["회원","주인님! 3번 회원은 팔꿈치까지 들어가니까 헐떡이는데, 저는 어깨 근처까지 버틸 수 있습니다! 제 안을 더 깊게 찢어주십시오!"],["조교","독한 년들끼리 서열 싸움하네. 둘 다 양팔 동시에 쑤셔 박아서 창자까지 비틀어줄 테니까 울지나 마."]]},{"t":"개사료 집단 청소","l":[["조교","바닥에 좆물이랑 개사료 범벅으로 쏟아부었다. 손 안 쓰고 혓바닥으로 제일 먼저 다 핥아먹는 년 보지에 포상 박아준다."],["회원","츱, 츄릅! 주인님 제 혀가 제일 빠릅니다!! 좆물에 젖은 사료를 한 톨도 남김없이 다 삼킬 테니 뒤를 뚫어주십시오!"]]},{"t":"집단 씹물 분수 경쟁","l":[["조교","기구 최고 출력 켠다. 바닥에 씹물 분수 제일 멀리 쏘는 년부터 내 대물 자지 직수로 박아준다."],["회원","푸슛-! 흐아아앙!! 제 분수가 조교님 바지까지 튀었습니다 주인님!! 당장 바지 내리고 제 보지를 관통해 주십시오!"]]}],"e:posture":[{"t":"거울 앞 무제한 개각","l":[["조교","거울 똑바로 쳐다봐. 양다리 180도 찢어서 피스팅당해 활짝 벌어진 보지 속살까지 거울에 다 비치잖아."],["회원","네, 훤히 다 보입니다 주인님……! 자궁 경부까지 훤히 드러난 제 음란한 구멍에 침을 퉤 뱉어주시겠습니까?"]]},{"t":"애널 확장 앵글 점검","l":[["조교","엉덩이 양손으로 더 벌려. 애널에 10호 플러그 박혀서 괄약근 벌겋게 뒤집힌 거 보여?"],["회원","흐으윽…… 보입니다 주인님! 항문이 완전히 헐렁해져 있으니, 조교님 발가락을 쑤셔 넣어 주시겠습니까?"]]},{"t":"척추 하중 극대화","l":[["조교","허리 활처럼 꺾어. 내가 네 등판 위에 올라타서 엉덩이 짓밟을 때 척추 무너지면 바로 F등급이야."],["회원","흐아앙! 기립근 부러질 때까지 군화 발로 제 척추를 짓이겨주십시오 주인님!! 완벽한 굴종 각도를 유지하겠습니다!"]]},{"t":"자궁 위치 정렬","l":[["회원","주인님, 남편 후보님이 뒤에서 쑤실 때 자궁이 직각으로 닿도록 골반 각도 좀 교정해 주실 수 있습니까?"],["조교","골반 잡고 위로 확 꺾는다. 뚝 소리 날 때까지 버텨. 이래야 자지 끝이 경부에 정통으로 박히지."]]},{"t":"무수치 얼굴 점검","l":[["조교","얼굴에 좆물 범벅이 됐는데 눈빛이 너무 당당하네. 진짜 수치심이란 걸 뇌에서 지워버린 년 같아."],["회원","주인님, 저는 오직 지배받기 위해 태어난 최상급 암캐입니다! 제 벌어진 입안에 침을 한 번 더 뱉어주시겠습니까?"]]}],"e:punish":[{"t":"가죽 채찍 100대 풀스윙","l":[["조교","짝-!! 짜악! 피멍 들게 살점 뜯어내는 매운맛 채찍이다. 엉덩이 흔들지 말고 백 대 셀 때까지 버텨."],["회원","끄아아악!! 하나!! 감사합니다 주인님!! 보라색으로 살이 터져나갈 때까지 자비 없이 후려쳐 주십시오!!"]]},{"t":"짓무른 치부 타격","l":[["조교","확장돼서 부어오른 보지 입술만 골라서 슬래퍼로 때린다. 찰싹-! 소리 죽이네."],["회원","아아아앗!! 거길 치시면 씹물이 터져서 미칩니다 주인님……! 제발 더 매섭게 갈겨서 뇌를 태워주십시오!"]]},{"t":"뺨따귀와 침 뱉기","l":[["조교","철썩! 야, 고개 똑바로 들어. 이빨 부러질 때까지 뺨 맞으면서도 '감사합니다' 해야 진짜 엘리트 마조지."],["회원","짝! 감사합니다 주인님!! 입안이 찢어져 피 맛이 도니 흥분되어 견딜 수가 없습니다, 반대쪽도 갈겨주십시오!"]]},{"t":"젖꼭지 클램프 타격","l":[["조교","유두에 나사식 쇠집게 꽉 조여놨다. 패들로 젖가슴 후려칠 때마다 집게 흔들리는 고통 느껴봐."],["회원","흐아아악!! 가슴이 뜯겨 나갈 것 같습니다 주인님!! 고통을 즐길 수 있도록 제 아래에 손가락을 쑤셔주십시오!"]]},{"t":"훈육의 피날레","l":[["조교","백 대 끝났다. 엉덩이 살점 터져서 피랑 체액 범벅이네. 맞느라 수고했으니까 발등이나 핥아."],["회원","하아…… 하아…… 주인님의 완벽한 채찍질 덕분에 극상의 도파민을 맛보았습니다. 은혜에 깊이 감사드립니다!"]]}],"e:special":[{"t":"인간 변기 (페이스 시팅 워터)","l":[["조교","바닥에 누워서 입 벌려. 내가 네 얼굴 위에 앉아서 방광 가득 찬 오줌 직수로 쏟아부을 테니까."],["회원","샤아아아-!! 꿀꺽, 읍……! 주인님의 뜨거운 소변을 목구멍으로 직접 마실 수 있어 무한한 영광입니다……!"]]},{"t":"고압 관장액 4리터 주입","l":[["조교","대형 호스로 관장액 4리터 장 안쪽 끝까지 들이붓는다. 밸브 잠글 때까지 배 터질 것 같아도 참아."],["회원","으아아악!! 창자가 찢어질 것 같습니다 주인님!! 제발 항문 플러그로 꽉 틀어막고 바닥을 기게 해주십시오!"]]},{"t":"타일 위 강제 배설 징벌","l":[["조교","플러그 뽑는다. 뽁-! 타일에 네 뱃속에 든 오물 다 쏟아내. 그리고 네 혓바닥으로 흔적도 없이 핥아 치워."],["회원","뿌우욱-! 하아앗…… 죄송합니다 주인님! 제 더러운 배설물을 남김없이 핥아먹으며 완벽한 청결을 증명하겠습니다!"]]},{"t":"요도 카테터 소변 추출","l":[["조교","요도에 쇠 카테터 꽂아서 방광에 남은 마지막 소변 한 방울까지 강제로 다 뽑아낸다."],["회원","찌릿…… 읏!! 요도가 타들어 가는 쾌락입니다 주인님……! 텅 빈 방광을 발로 짓밟아 쥐어짜 주시겠습니까?!"]]},{"t":"변기 물 핥기","l":[["조교","변기통에 대가리 박아. 변기 물 혀로 다 퍼마실 때까지 고개 들 생각 하지 마."],["회원","츱, 꿀꺽…… 네 주인님! 가장 밑바닥 변소로 전락했음을 온몸으로 느끼며 시원하게 들이마시겠습니다!"]]}],"e:recovery":[{"t":"피스팅 후 내벽 급속 젤 주입","l":[["조교","양손 피스팅으로 헐렁해진 보지 안에 아마테라스 특효 쿨링 젤 2리터 주입한다. 다리 꽉 오므려."],["회원","흐아아아…… 타는 듯이 화끈거리던 내장이 얼음물에 담긴 듯 시원합니다…… 천국이 따로 없습니다 주인님……"]]},{"t":"항문 괄약근 레이저 재생","l":[["조교","플러그에 찢긴 애널에 적외선 재생 빔 쬔다. 10분만 엎드려 있으면 내일 아침에 쫀쫀하게 복구돼."],["회원","감사합니다 주인님…… 복구되자마자 내일 저녁 세션에서 다시 특대형으로 찢어주시길 간청드립니다!"]]},{"t":"도파민 고농축 링거","l":[["조교","혈관에 엑스터시급 도파민 전해질 링거 꽂는다. 뇌세포 퓨즈 나간 거 5분 만에 정상으로 리셋되니까 자."],["회원","주인님 손길에 링거 바늘이 들어가니…… 전신에 소름이 돋으며 피로가 녹아내립니다…… 흑, 너무 좋습니다……"]]},{"t":"살점 피멍 삭제 연고","l":[["조교","채찍에 터진 엉덩이에 재생 크림 듬뿍 발라준다. 손바닥으로 싹 문지를 테니까 아파도 비명 참아."],["회원","아으읏…… 주인님의 거친 손바닥이 상처를 문지를 때마다 찌릿찌릿 쾌락이 번집니다…… 더 세게 발라주십시오!"]]},{"t":"0.1초 완벽 비즈니스 퇴실","l":[["조교","종료 벨 울렸습니다. 3초 안에 호흡 가다듬고 정장 입으세요, 상무님."],["회원","후- 하. 네! 언제 침 흘렸냐는 듯 완벽한 0.1초 스위칭으로 국회 대정부 질문 준비하러 가겠습니다!"]]}],"e:shop":[{"t":"산업용 강철 피스팅 장갑 구매","l":[["회원","주인님, 집에서 홈트용으로 쓸 티타늄 코팅 피스팅 장갑 XL 사이즈 재고 있습니까? 오늘 사가고 싶습니다!"],["조교","방금 독일에서 수입된 거 있다. 손목 꺾임 방지 프레임 달린 거니까 법카 한도 긁고 가져가."]]},{"t":"고농축 좆물 단백질 드링크","l":[["조교","체액 다 털렸으니까 '수석 조교 농축 좆물 단백질 쉐이크' 한 통 마셔. 원샷 때리면 기운 난다."],["회원","꿀꺽, 꿀꺽…… 하아! 비릿하고 진득한 좆물 맛이 위장에 차오르니 보지에 다시 애액이 솟구칩니다 주인님!"]]},{"t":"14호 극대형 세라믹 딜도 결제","l":[["회원","주인님, 이번에 새로 나온 허벅지 굵기만 한 14호 딜도 세트 일시불로 결제 부탁드립니다!"],["조교","너 진짜 구멍 괴물 다 됐네. 이거 들어가다 배 터져도 환불 안 되니까 알아서 써라."]]},{"t":"대용량 멸균 오일 드럼통 배송","l":[["회원","주인님, 집 욕조에 가득 채워놓고 몸 담글 의료용 멸균 오일 200리터 드럼통으로 자택 배송 접수해 주시겠습니까?"],["조교","주소 적고 가. 오늘 저녁에 배송 기사가 네 펜트하우스 욕실에 바로 부어놓을 테니까."]]},{"t":"조교 개인 팁 및 지명권","l":[["회원","주인님, 오늘 제 오장육부를 자비 없이 찢어주신 조교님께 감사 팁으로 500만 원 결제 승인 올려도 되겠습니까?"],["조교","돈 쓸 줄 아네. 내일 특별히 내 진짜 대물 자지로 목구멍이랑 자궁 입구까지 부숴드릴 테니까 기대해."]]}],"o:open":[{"t":"엑셀 수식 점검과 원격 다이얼","l":[["남직원","서 팀장, 3분기 매출 수식 에러 났잖아. 의자 뒤로 빼고 치마 걷어. 9호 진동 8단계 올린다."],["여팀장","흐읏……! 즉시 수정하겠습니다 주인님! 에러 난 행마다 제 보지 안쪽을 최고 출력으로 지져주시겠습니까?"]]},{"t":"복사기 앞 엉덩이 스팽킹","l":[["남직원","컬러 인쇄 50부 나오기 전까지 벽 짚고 엉덩이 대. 잉크 마를 때까지 패들로 찰지게 불 지펴줄 테니까."],["여직원","네, 주인님! 출력물 다 나올 때까지 살점이 터지도록 후려쳐서 제 나태한 기강을 잡아주십시오!"]]},{"t":"회의 자료 배포","l":[["여직원","주인님, 기획안 인쇄본 가져왔습니다. 무릎으로 기어가서 책상 밑 발등에 이마를 박고 올려두어도 되겠습니까?"],["남직원","어, 구두 밑창에 턱 괴고 있어. 서류 다 넘길 때까지 씹물 흘리지 말고 대기해."]]},{"t":"타 부서 남직원의 결재 전 검사","l":[["남직원","마케팅팀에서 올린 결재판인데, 서명받기 전에 뒤 구멍에 박힌 플러그 각도나 똑바로 보여봐."],["여직원","네, 주인님! 양손으로 엉덩이를 활짝 벌려 뒤집힌 괄약근을 검사받을 테니 침을 퉤 뱉어주시겠습니까?"]]},{"t":"야근 기안서 반려와 0.1초 스위칭","l":[["남직원","오늘 야근 취소야. 당장 가방 싸서 엎드려. 안 나가면 사내 세션룸 예약 취소 때린다."],["여직원","(흐트러진 호흡을 0.1초 만에 가다듬으며) 알겠습니다, 대리님. 수정 기안은 내일 오전 9시 정각에 올리겠습니다."]]}],"o:exec":[{"t":"M&A 보고와 책상 밑 구강 조율","l":[["여전무","주인님, 이번 인수합병 최종 계약서입니다…… 읏, 브리핑하는 동안 바지 지퍼를 내리고 제 입안 가득 자지를 쑤셔 넣어 주시겠습니까?"],["남직원","숫자 똑바로 읽어. 브리핑 꼬이면 목구멍 끝까지 찔러서 숨통 막아버릴 테니까."]]},{"t":"결재 도장 날인과 인간 발판","l":[["남직원","대표이사 결재란에 도장 찍어야지. 바닥에 엎드려서 등판 평평하게 대. 의자 대신 밟고 서서 찍게."],["여상무","하아…… 영광입니다 주인님! 제 척추가 부러질 만큼 온 체중을 실어 짓밟고 결재를 진행해 주십시오!"]]},{"t":"실적 부진 훈육과 12호 기구 장착","l":[["남직원","이번 달 영업이익 5% 미달이네? 벌타로 허벅지 굵기만 한 12호 강철 딜도 안쪽에 쑤셔 박는다. 다리 찢어."],["여이사","흐아아악!! 자궁 입구까지 닿아 찢어질 것 같습니다 주인님!! 이 음란한 암캐에게 좆물까지 쏟아부어 주시겠습니까?!"]]},{"t":"외부 VIP 접견 전 복종 점검","l":[["남직원","바이어 들어오기 5분 전이다. 책상 위에 올라가서 M자로 벌려. 안쪽 뻘겋게 까뒤집힌 거 확인해야 서명해 준다."],["여전무","네, 주인님! 완벽히 벌려진 제 치부를 확인하시고, 손바닥으로 클리토리스를 매섭게 튕겨 긴장감을 주시겠습니까?"]]},{"t":"노크 소리와 비즈니스 복귀","l":[["남직원","야, 비서 들어온다. 옷 입어."],["여상무","(단 3초 만에 맥박을 정돈하고 홀로그램 재킷을 여미며) 들어오세요. 방금 지시하신 안건 바로 처리하겠습니다, 김 주임."]]}],"o:lobby":[{"t":"스피드게이트 출근 인식","l":[["남직원","사원증 찍지 마. 바닥에 네 발로 엎드려. 목줄에 달린 스마트 바코드로 게이트 열어줄 테니까."],["여팀장","월! 왈! 감사합니다 주인님! 군화 발치를 혀로 핥으며 게이트 통과해도 되겠습니까?!"]]},{"t":"모닝커피 셔틀과 군화 청소","l":[["여직원","주인님, 주문하신 아이스 아메리카노 로비 벤치로 모셔왔습니다. 마시는 동안 구두 밑창을 침으로 닦아도 되겠습니까?"],["남직원","흙 묻은 홈까지 싹 핥아. 커피 맛 떨어지면 엉덩이 까고 로비 한복판에 꿇린다."]]},{"t":"타사 바이어 영접과 개방 표식","l":[["남직원","오늘 외부 감사팀 오는 날이니까 목에 옐로우 리본 풀로 당겨 매. 엘리트답게 개방 상태 똑바로 보여줘."],["여이사","네, 주인님! 언제든 모든 남성 임직원들께 아래를 대줄 준비가 되어 있음을 단정하게 과시하겠습니다!"]]},{"t":"엘리베이터 앞 부동자세","l":[["남직원","1층 홀에서 고개 빳빳이 들고 서 있지 마. 벽 짚고 골반 180도로 꺾고 서 있어. 꼴리게."],["여직원","흐읏…… 타사 직원들이 다 쳐다보지만, 주인님의 시각적 통제를 위해 치마를 걷어 올리고 대기하겠습니다!"]]},{"t":"지각 페널티 안내 데스크 집행","l":[["남직원","1분 늦었지? 안내 데스크 위에 엎드려. 치마 까고 손바닥으로 다섯 대 후려친다."],["여팀장","짝-! 아아악!! 감사합니다 주인님! 안내 데스크 모니터 옆에서 씹물을 쏟아내며 반성하겠습니다!"]]}],"o:wc":[{"t":"회의 전 강제 배뇨 확인","l":[["남직원","임원 회의 3시간짜리야. 변기 앞에 꿇어. 내가 발로 아랫배 밟을 테니까 오줌 한 방울도 남기지 말고 다 짜내."],["여상무","샤아아앗-! 하아앗…… 텅 비었습니다 주인님! 회의 중간에 절대 지리지 않도록 요도를 꽉 조여두겠습니다!"]]},{"t":"세면대 거울 앞 점막 쿨링젤 보충","l":[["여직원","주인님, 8호 기구에 짓무른 보지 안쪽이 너무 뜨거운데, 세면대 거울 보면서 쿨링젤 듬뿍 짜넣어 주실 수 있습니까?"],["남직원","다리 벌리고 거울 봐. 손가락으로 안쪽까지 푹푹 찔러 넣어줄 테니까 비명 새어나가지 않게 입 다물어."]]},{"t":"웰니스 관장 세척 점검","l":[["남직원","변기 칸 문 열어놔. 장 청소용 관장액 2리터 들어간다. 3분 못 버티고 뿜으면 오후 결재 다 반려야."],["여팀장","으아악!! 뱃속이 뒤틀립니다 주인님!! 변기 손잡이를 잡고 끝까지 참아낼 테니 머리채를 거칠게 당겨주십시오!"]]},{"t":"소변 직수 음용 훈련","l":[["남직원","입 벌려. 아침부터 땀 빼서 목마르잖아. 변기 대신 네 입술에 시원하게 갈겨줄 테니까 꿀꺽 삼켜."],["여이사","꿀꺽, 읍……! 주인님의 따뜻한 소변이 위장을 채우니 너무 벅찹니다! 마지막 한 방울까지 혀로 핥아내겠습니다!"]]},{"t":"립스틱 수정과 구강 세척 퍼포먼스","l":[["남직원","방금 내 자지 빨고 좆물 다 삼켰지? 입 크게 아- 벌려봐. 이빨이랑 혓바닥 깨끗한지 확인하게."],["여팀장","아-! 점막까지 한 방울도 남김없이 삼켰습니다 주인님! 립스틱 다시 바르고 상쾌하게 복귀해도 되겠습니까?"]]}],"o:lounge":[{"t":"캡슐 커피 추출과 쟁반 대기","l":[["여상무","주인님, 에스프레소 더블샷 내리는 동안 바닥에 무릎 꿇고 제 머리 위에 컵 받침을 얹어두어도 되겠습니까?"],["남직원","어, 샷 다 떨어질 때까지 꼼짝 마. 조금이라도 흔들려서 커피 튀면 그 뜨거운 잔 보지에 바로 갖다 댄다."]]},{"t":"사료 그릇 탕비실 나눔","l":[["남직원","간식 시간이다. 싱크대 밑에 개밥그릇 놨으니까 혓바닥으로 싹 핥아먹어. 손 대면 바로 슬래퍼 날아간다."],["여팀장","와작, 츄릅! 네, 주인님! 탕비실 타일 바닥을 기어 다니며 한 톨도 남김없이 씹어 삼키겠습니다!"]]},{"t":"안마의자 대신 인간 발받침","l":[["남직원","휴게실 소파 앉았는데 발받침이 없네? 3번 테이블 여직원, 이리 기어 와서 소파 밑에 엎드려."],["여직원","하아…… 영광입니다 주인님! 푹신한 제 엉덩이 위에 다리를 얹으시고 편히 쉬어주시겠습니까?"]]},{"t":"타 부서 남직원들의 기구 규격 검증","l":[["남직원","너 이번 주에 10호 확장 수료했다며? 치마 걷고 바닥에 엎드려봐. 옆 부서 대리랑 같이 구멍 탄력 좀 보게."],["여팀장","네, 주인님들! 두 분이서 번갈아 손가락을 쑤셔 넣으시며 제 안쪽 확장력을 마음껏 품평해 주십시오!"]]},{"t":"오후 당 충전과 골반 조율","l":[["남직원","식곤증 오네. 서 팀장, 팬트리 테이블 짚고 엉덩이 들어. 패들로 백 대 치고 잠 깨운다."],["여팀장","짝-!! 아아악!! 감사합니다 주인님! 찌릿한 쾌락에 뇌세포가 완전히 깨어났으니 오후 업무도 완벽히 완수하겠습니다!"]]}],"h:living":[{"t":"인간 발받침과 주식 확인","l":[["남성","야, 소파 밑으로 기어 와서 엎드려. 발 올리게. 움직이지 말고 등판 평평하게 수평 유지해."],["여성","네, 주인님! 제 푹신한 등판 위에 두 발을 편히 얹으시고, 주식 차트 보실 동안 발가락 사이사이를 혀로 핥아도 되겠습니까?"]]},{"t":"청소기 가동과 딜도 장착","l":[["남성","거실 바닥 물걸레질 네가 네 발로 기어서 해. 뒤에 8호 플러그 꽂아둘 테니까 빠지면 처음부터 다시 닦는 줄 알아."],["여성","흐읏……! 안쪽이 꽉 찬 채로 거실 바닥을 닦으며 씹물을 흘릴 테니, 지켜보시며 리모컨 다이얼을 올려주시겠습니까?"]]},{"t":"개사료 식기 배급","l":[["남성","오늘 간식은 센터에서 매일 먹던 보급형 사료다. 바닥에 밥그릇 놨으니까 손 쓰지 말고 주둥이 박고 핥아먹어."],["여성","감사합니다 주인님! 밥그릇을 혓바닥으로 깨끗이 비워낸 뒤, 빈 그릇을 입에 물고 주인님 발치에 대기해도 되겠습니까?"]]},{"t":"주간 세션 스케줄 결재","l":[["여성","주인님, 냉장고에 붙여둘 이번 주 세션 계획표입니다. 화요일 야간에 제 보지를 한계까지 찢어주시는 특별 일정을 결재해 주실 수 있겠습니까?"],["남성","화요일엔 회식이라 피곤해. 수요일로 미루고, 대신 수요일에 밤새 안 빼주는 걸로 도장 찍는다."]]},{"t":"홈쇼핑 신상 도구 결제 승인","l":[["여성","주인님! 홈쇼핑에 비너스 라인 신상 10호 강철 딜도가 떴는데, 제 개인 카드로 일시불 결제해서 거실에 세팅해 두어도 되겠습니까?"],["남성","사. 배송 오면 박스 네 이빨로 뜯고, 거실 바닥에 엎드려서 첫 개시 받을 준비나 해."]]}],"h:bed":[{"t":"취침 전 무릎-가슴 체위 점검","l":[["남성","침대 모서리 잡고 엉덩이 더 치켜올려. 센터에서 A등급 수료했다더니 골반 꺾는 각도가 아직 덜 익었잖아."],["여성","아앙! 척추를 활처럼 더 바짝 휘어놓을 테니, 제 헐렁해진 구멍 안쪽으로 주인님의 대물 자지를 자비 없이 찔러 넣어 주시겠습니까?"]]},{"t":"피스팅 확장 복습","l":[["여성","주인님, 오늘 센터에서 손목까지 삼키는 훈련을 이수했는데, 침대 위에서 주인님의 주먹으로 제 자궁 입구를 휘저어주시겠습니까?"],["남성","베개에 얼굴 파묻어. 주먹 쑥 집어넣어서 내벽 다 헤집어놓을 테니까 비명 질러서 윗집 깨우지 말고."]]},{"t":"자궁 경부 타격과 좆물 배설","l":[["남성","허벅지 양옆으로 찢어. 오늘 네 자궁 경부 부서질 때까지 찍어 누를 테니까 좆물 한 방울도 밖으로 흘리지 마."],["여성","흐아아악!! 너무 깊습니다 주인님!! 제 암캐 자궁이 터질 때까지 진득한 씨앗을 쏟아부어 주십시오!!"]]},{"t":"밤샘 결박 방치 훈련","l":[["남성","오늘 밤은 침대 기둥에 사지 묶인 채로 재운다. 다리 벌린 채로 아침까지 꼼짝 못 하게 진동기 켜둘 거야."],["여성","네, 주인님! 밤새 진동으로 뇌가 녹아내려도 얌전히 버틸 테니, 턱 밑에 목줄을 단단히 채워주시겠습니까?"]]},{"t":"모닝콜 구강 청소","l":[["여성","주인님, 안녕히 주무셨습니까. 모닝콜 대신 제 목구멍을 활짝 열어 세워두신 자지를 뿌리까지 삼켜 청소해도 되겠습니까?"],["남성","이빨 닿지 않게 목구멍 깊숙이 삼켜. 좆물 다 쌀 때까지 입 떼면 오늘 아침 밥상 엎어버린다."]]}],"h:bath":[{"t":"출근 전 강제 배뇨 검사","l":[["남성","변기 앞에 무릎 꿇고 아랫배 힘줘. 내가 발로 치골 누를 테니까 오줌 한 방울도 남김없이 싹 비워."],["여성","샤아아앗-! 하아앗…… 텅 비웠습니다 주인님! 회사 가기 전 완벽한 무배뇨 상태가 되었는지 손가락으로 쑤셔 확인해 주시겠습니까?"]]},{"t":"인간 변기 골든샤워","l":[["남성","욕조 바닥에 누워서 입 벌려. 출근 전에 마려운데 네 얼굴이랑 입술에 시원하게 갈겨줄 테니까."],["여성","꿀꺽, 읍……! 주인님의 따뜻한 소변을 온몸으로 마실 수 있어 너무 행복합니다…… 턱으로 흘린 오줌도 핥아내겠습니다!"]]},{"t":"주말 대청소 웰니스 관장","l":[["여성","주인님, 완벽한 장내 청결을 위해 허브 관장액 3리터를 제 항문에 들이부어 주실 수 있겠습니까?"],["남성","호스 꽂는다. 5분 동안 버티지 못하고 타일에 뿜어내면 오늘 밤 체벌방 확정이야."]]},{"t":"세면대 쿨링젤 애프터케어","l":[["남성","세면대 짚고 다리 벌려. 12호 강철 딜도에 혹사당해서 벌겋게 짓무른 보지 안에 아마테라스 젤 듬뿍 짜넣어 줄게."],["여성","흐아아…… 차갑고 시원합니다 주인님…… 화끈거리던 점막이 급속 냉각되니 발끝까지 소름이 돋습니다……"]]},{"t":"타일 바닥 오물 청소 훈육","l":[["남성","야, 변기 옆 타일에 씹물이랑 거품 다 튀었잖아. 혓바닥으로 깨끗이 핥아서 광내 놔."],["여성","네, 주인님! 제 천박한 체액을 제 입으로 남김없이 핥아 치워 바닥을 청결하게 만들어 두겠습니다!"]]}],"h:punish":[{"t":"가죽 패들 풀스윙 훈육","l":[["남성","벽 짚고 엉덩이 까. 어제 마트에서 카트 밀다가 눈치 없이 주저앉은 벌로 서른 대 들어간다."],["여성","짝-!! 하나아악!! 감사합니다 주인님! 제 나태한 엉덩이에 불이 붙도록 가차 없이 내리쳐 주십시오!"]]},{"t":"짓무른 치부 슬래퍼 타격","l":[["여성","주인님, 어제 확장해서 잔뜩 부어오른 제 음란한 보지 입술을 고무 슬래퍼로 찰싹찰싹 때려주시겠습니까?"],["남성","찰싹-! 소리 찰지네. 씹물 튀어도 엉덩이 뒤로 빼지 마. 뼈 안 상하게 살점만 야무지게 조져줄 테니까."]]},{"t":"가죽 채찍 백 대 카운트","l":[["남성","오늘 기강 재정립의 날이다. 매운맛 채찍으로 백 대 채울 때까지 숫자 틀리면 처음부터 리셋이야."],["여성","끄아아악!! 쉰둘!! 살이 터져나갈 것 같습니다 주인님!! 온몸이 보라색으로 물들 때까지 멈추지 말아 주십시오!!"]]},{"t":"뺨따귀와 침 뱉기 세례","l":[["남성","철썩! 야, 턱 똑바로 들어. 이빨 부러질 때까지 뺨 맞으면서도 '주인님' 소리 똑바로 나와야 프로 유부녀지."],["여성","짝! 끄윽……! 감사합니다 주인님! 입안에 피 맛이 도니 도파민이 터져 견딜 수 없습니다, 반대쪽도 후려쳐 주십시오!"]]},{"t":"세션 종료와 0.1초 애프터케어","l":[["남성","백 대 끝. 엉덩이 예쁘게 잘 익었네. 맞느라 수고했으니까 아마테라스 적외선 조사기 켜두고 누워 있어."],["여성","(단 3초 만에 맥박을 정돈하며) 하아…… 주인님의 완벽한 훈육 덕분에 기강이 리셋되었습니다. 시원한 냉수 떠다 바치겠습니다!"]]}]};
+Object.assign(DLG_DEF, {"u:basic:paddle": [{"t": "기초방 · 패들", "l": [["조교", "엉덩이 딱 까고 대. 핑크 패들로 스무 번 칠 동안 골반 흔들리면 처음부터 다시 센다."], ["회원", "네, 주인님! 살점이 불타오르게 후려쳐 주셔서 제 굼뜬 기초 기강을 똑바로 세워주시겠습니까?"]]}], "u:basic:blind": [{"t": "기초방 · 안대", "l": [["조교", "시야 차단한다. 앞 안 보인다고 칭얼대지 말고, 오직 내 구두 발소리에만 온 신경 집중해."], ["회원", "흐읏…… 깜깜해서 너무 무섭지만, 주인님 손길을 더 예민하게 느끼도록 안대를 단단히 묶어주시겠습니까?"]]}], "u:basic:cat": [{"t": "기초방 · 고양이 마스크", "l": [["조교", "마스크 써. 오늘 훈련 끝날 때까지 넌 말하는 인간이 아니라 발정 난 페르시안 암고양이야."], ["회원", "냐앙…… 네, 주인님! 턱 밑을 긁어주실 때까지 바닥에 웅크리고 예쁘게 가르랑거려도 되겠습니까?"]]}], "u:basic:balls": [{"t": "기초방 · 구슬 세트", "l": [["조교", "골반저근 훈련용 묵직한 구슬 세 개 밀어 넣는다. 걸을 때 흘리면 퇴실 검사 퇴짜야."], ["회원", "아으읏…… 안쪽에서 데굴데굴 굴러 미치겠습니다 주인님! 빠져나오지 않게 질구를 꽉 조이고 기어 다니겠습니다!"]]}], "u:gear:gag": [{"t": "기구방 · 재갈", "l": [["조교", "실리콘 볼재갈 물어. 혀 안쪽으로 꽉 누르고 침 턱 밑으로 질질 흘려야 기구방 기본 통과다."], ["회원", "읍, 으우……! (턱을 젖혀 침을 흘리며 더 깊이 물려달라는 듯 고개를 끄덕인다)"]]}], "u:gear:cuffs": [{"t": "기구방 · 퍼 수갑", "l": [["조교", "기둥에 양손 묶는다. 털 달렸다고 안심하지 마, 몸부림칠수록 네 손목만 조여드니까."], ["회원", "네, 주인님! 가동 범위를 완전히 봉쇄해 주셔서, 오직 아래로 들어올 자극에만 매달리게 해주시겠습니까?"]]}], "u:gear:cat": [{"t": "기구방 · 고양이 마스크", "l": [["조교", "입술만 뚫린 마스크 씌워놨으니 딴생각 말고 내 자지만 올려다봐. 주둥이 얌전히 벌리고."], ["회원", "흐아앙…… 마스크 속이 제 더운 숨으로 축축합니다 주인님! 벌어진 입술 틈으로 거칠게 쑤셔 박아 주십시오!"]]}], "u:gear:massager": [{"t": "기구방 · 미니 마사지기", "l": [["조교", "돌기형 마사지기 5단계로 클리에 밀착한다. 씹물 바닥에 분수처럼 뿜어대도 끄는 건 내 맘이야."], ["회원", "흐아아악!! 뇌가 녹아내립니다 주인님!! 제발 떼지 마시고 살점이 짓이겨질 때까지 짓눌러 주시겠습니까?!"]]}], "u:gear:beads": [{"t": "기구방 · 구슬 줄", "l": [["조교", "뒤쪽 애널에 구슬 열 개 줄줄이 쑤셔 박는다. 내가 줄 한 번에 홱 당길 때 교성 참아봐."], ["회원", "으아앙! 괄약근이 하나씩 찢어지듯 삼키고 있습니다 주인님! 뽑으실 땐 장기까지 빨려 나오게 거칠게 뜯어내 주십시오!"]]}], "u:group:paddle": [{"t": "단체방 · 패들", "l": [["조교", "일렬로 엎드려. 1번부터 엉덩이에 패들 불 들어간다. 소리 제일 요란하게 내는 년이 오늘 꼴찌야."], ["회원", "짝-!! 아아악!! 감사합니다 주인님! 옆 회원님보다 제 엉덩이가 더 찰지게 익도록 연달아 갈겨주시겠습니까?"]]}], "u:group:cuffs": [{"t": "단체방 · 퍼 수갑", "l": [["조교", "둘씩 짝지어서 등 맞대고 손목 묶어. 한 년이라도 다리 풀려 주저앉으면 둘 다 패들 추가다."], ["회원", "흐읏…… 동기 회원님 체온이 닿아 너무 흥분됩니다 주인님! 서로 버티며 애액을 쏟아낼 수 있게 결박을 조여주시겠습니까?"]]}], "u:group:cat": [{"t": "단체방 · 고양이 마스크", "l": [["조교", "단체방 전원 고양이 마스크 착용. 내 구두 밑창 보일 때마다 넷이 합창으로 야옹거려."], ["회원", "야옹-!! 주인님! 제가 다른 암고양이들보다 더 천박하게 짖을 테니 제 목덜미를 먼저 쥐어흔들어 주십시오!"]]}], "u:group:tail": [{"t": "단체방 · 꼬리 장식", "l": [["조교", "엉덩이 허공으로 바짝 들어. 넷 다 뒤에 복슬복슬한 핑크 꼬리 플러그 박아둘 테니까 살랑살랑 흔들어봐."], ["회원", "하아앗…… 뒤가 묵직하게 벌어져 걸음이 안 떨어집니다 주인님! 꼬리를 좌우로 흔들며 재롱을 떨어도 되겠습니까?"]]}], "u:posture:blind": [{"t": "자세 점검방 · 안대", "l": [["조교", "안대 써. 보이지 않는 상태에서 거울 앞에서 취했던 M자 개각 각도 그대로 몸으로 기억해."], ["회원", "네, 주인님! 눈이 먼 상태에서도 오직 주인님의 손끝 지시만 따라 허벅지를 180도 벌리고 있겠습니다!"]]}], "u:posture:cat": [{"t": "자세 점검방 · 고양이 마스크", "l": [["조교", "마스크 쓰고 거울 정면 봐. 얌전한 얼굴 감추니까 비로소 암캐 본색이 거울에 다 드러나네."], ["회원", "부끄럽습니다 주인님…… 거울 속 제 음란한 자태를 확인하시고, 턱을 잡아 위로 꺾어주시겠습니까?"]]}], "u:posture:balls": [{"t": "자세 점검방 · 구슬 세트", "l": [["조교", "구슬 세 알 넣은 채로 스쿼트 30회 실시. 하나 내려갈 때마다 안에서 굴러떨어지면 자세 불합격이야."], ["회원", "흐으읍…… 흣! 속에서 짓눌려 씹물이 흐르지만, 골반 각도 완벽히 유지하며 버텨내겠습니다 주인님!"]]}], "u:posture:plug": [{"t": "자세 점검방 · 스틸 플러그", "l": [["조교", "차가운 쇠 플러그 대형 들어간다. 엉덩이 더 벌려. 거울에 쇠붙이 삼키는 애널 점막 다 비쳐."], ["회원", "흐아아악!! 쇳덩이의 묵직한 냉기가 내벽을 찢는 것 같습니다 주인님!! 거울 속 제 구멍을 손바닥으로 때려주시겠습니까?!"]]}], "u:punish:whip": [{"t": "체벌방 · 채찍", "l": [["조교", "짝-!! 짜악! 매운맛 가죽 채찍이다. 엉덩이 살점 터져서 피멍 올라올 때까지 카운트 똑바로 외쳐."], ["회원", "끄아아악!! 쉰셋!! 너무 좋습니다 주인님!! 온몸이 보라색으로 물들 때까지 자비 없이 후려쳐 주십시오!!"]]}], "u:punish:paddle": [{"t": "체벌방 · 패들", "l": [["조교", "벽 짚어. 나무 패들로 둔탁하게 뼈까지 울려줄 테니까 발뒤꿈치 들지 마."], ["회원", "철썩-!! 감사합니다 주인님! 묵직한 타격감에 뇌세포가 타들어 가오니, 다섯 대만 더 연달아 꽂아주시겠습니까?!"]]}], "u:punish:cuffs": [{"t": "체벌방 · 퍼 수갑", "l": [["조교", "천장 고리에 양손 건다. 발끝만 간신히 바닥에 닿게 매달아둘 테니까 매질 피할 생각 하지 마."], ["회원", "흐앙…… 공중에 매달려 허리가 활처럼 휘었습니다 주인님! 도망치지 못하는 제 사타구니를 마음껏 유린해 주십시오!"]]}], "u:punish:tail": [{"t": "체벌방 · 꼬리 장식", "l": [["조교", "채찍 맞으면서 뒤에 꽂힌 꼬리 장식 빠지면 맞은 대수 0개로 리셋이다. 괄약근 꽉 물어."], ["회원", "아아앗!! 매를 맞을 때마다 뒤쪽 플러그가 조여들어 미칠 것 같습니다 주인님!! 꼬리가 빠지지 않게 힘껏 조이고 맞겠습니다!!"]]}], "u:special:blind": [{"t": "별도 훈련방 · 안대", "l": [["조교", "안대 풀 생각 마. 이 방에선 언제 어디서 도구가 네 구멍을 찌르고 들어올지 오직 공포로만 느껴."], ["회원", "흐읏…… 시각이 닫히니 주인님의 거친 숨소리만으로도 아래가 흥건해집니다…… 어서 찔러주시겠습니까?!"]]}], "u:special:gag": [{"t": "별도 훈련방 · 재갈", "l": [["조교", "숨구멍만 뚫린 스트랩 재갈 꽉 조인다. 비명 지르지 말고 꺽꺽거리는 목소리로 쾌락이나 삼켜."], ["회원", "읍……! 으으읍-!! (턱이 빠질 듯 벌려진 채, 타액을 턱선으로 흘리며 애원하듯 도리질 친다)"]]}], "u:special:cat": [{"t": "별도 훈련방 · 고양이 마스크", "l": [["조교", "마스크 귀 잡고 끌어당긴다. 바닥 기어 와서 내 바지 버클 이빨로 물어뜯어 봐."], ["회원", "그르릉…… 츱, 네 주인님! 이빨로 정갈하게 지퍼를 내려 주인님의 대물 자지를 해방해 드려도 되겠습니까?"]]}], "u:special:massager": [{"t": "별도 훈련방 · 미니 마사지기", "l": [["조교", "클리 위에 마사지기 최고 진동으로 테이핑해 둔다. 10분 동안 절정 열 번 넘게 터져도 절대 안 떼줄 거야."], ["회원", "흐아아앙!! 전기가 오르듯 뇌가 녹아버립니다 주인님!! 제발 제 입술을 짓밟아 신음소리를 틀어막아 주십시오!!"]]}], "u:special:beads": [{"t": "별도 훈련방 · 구슬 줄", "l": [["조교", "애널에 박힌 구슬 줄을 한 마디씩 천천히 당겨줄게. 장벽 긁히는 감각에 질질 싸지 마."], ["회원", "하아아악!! 읏, 마디마다 괄약근이 뜯겨 나가는 쾌락입니다……! 단숨에 홱 뽑아서 제 내장을 비틀어주시겠습니까?!"]]}], "u:special:plug": [{"t": "별도 훈련방 · 스틸 플러그", "l": [["조교", "얼음물에 담가뒀던 차가운 스틸 플러그다. 뜨겁게 달아오른 암캐 구멍에 쑤셔 넣을 테니 온도차 느껴봐."], ["회원", "끼야악!! 차가운 쇠기둥이 들어가니 온몸에 소름이 돋습니다 주인님!! 제 타는 듯한 애액으로 데워드려도 되겠습니까?!"]]}], "u:elite:whip": [{"t": "특수훈련실 · 채찍", "l": [["조교", "특수훈련 시작이다. 슬리퍼 신고 도망칠 생각 마. 발목 스칠 때마다 핏줄 서게 후려친다."], ["회원", "짝-!! 아아악!! 발목과 종아리가 타오릅니다 주인님!! 도망치지 않고 제자리에서 네 발로 기며 매를 받겠습니다!!"]]}], "u:elite:cuffs": [{"t": "특수훈련실 · 퍼 수갑", "l": [["조교", "철봉에 양손 묶고 매달려. 오늘 훈련 통과할 때까지 네 발바닥 바닥에 닿을 일 없어."], ["회원", "네, 주인님! 대롱대롱 매달려 무방비하게 열린 제 치부를 주인님의 전용 타깃으로 삼아주시겠습니까?"]]}], "u:elite:massager": [{"t": "특수훈련실 · 미니 마사지기", "l": [["조교", "유두 양쪽에 초강력 마사지기 집게로 물린다. 젖꼭지 뜯겨 나갈 것 같아도 교성 흘리지 마."], ["회원", "흐아앙!! 가슴이 불타서 숨이 턱턱 막힙니다 주인님!! 이 음란한 고통을 견뎌낼 수 있게 보지 안쪽도 찔러주십시오!!"]]}], "u:elite:plug": [{"t": "특수훈련실 · 스틸 플러그", "l": [["조교", "특대형 묵직한 스틸 플러그 안쪽에 박아둔 채로 장애물 코스 기어간다. 떨어뜨리면 특수 채찍 스무 대야."], ["회원", "흐으윽…… 쇠 무게 때문에 엉덩이가 저절로 벌어집니다 주인님!! 배 안쪽이 찢어져도 끝까지 기어가겠습니다!!"]]}], "u:elite:tail": [{"t": "특수훈련실 · 꼬리 장식", "l": [["조교", "꼬리 바짝 세우고 조교들 지나갈 때마다 엉덩이 흔들어. 특수훈련실 최고 암캐가 누구인지 몸으로 증명해."], ["회원", "살랑살랑…… 하아앗! 제가 이 센터에서 가장 완벽하게 길들여진 특수 암캐임을 꼬리를 흔들어 보여드리겠습니다 주인님!!"]]}]});
+DLG_GROUP.u='도구 사용'; DLG_LABEL.u={"basic:paddle": "기초방 · 패들", "basic:blind": "기초방 · 안대", "basic:cat": "기초방 · 고양이 마스크", "basic:balls": "기초방 · 구슬 세트", "gear:gag": "기구방 · 재갈", "gear:cuffs": "기구방 · 퍼 수갑", "gear:cat": "기구방 · 고양이 마스크", "gear:massager": "기구방 · 미니 마사지기", "gear:beads": "기구방 · 구슬 줄", "group:paddle": "단체방 · 패들", "group:cuffs": "단체방 · 퍼 수갑", "group:cat": "단체방 · 고양이 마스크", "group:tail": "단체방 · 꼬리 장식", "posture:blind": "자세 점검방 · 안대", "posture:cat": "자세 점검방 · 고양이 마스크", "posture:balls": "자세 점검방 · 구슬 세트", "posture:plug": "자세 점검방 · 스틸 플러그", "punish:whip": "체벌방 · 채찍", "punish:paddle": "체벌방 · 패들", "punish:cuffs": "체벌방 · 퍼 수갑", "punish:tail": "체벌방 · 꼬리 장식", "special:blind": "별도 훈련방 · 안대", "special:gag": "별도 훈련방 · 재갈", "special:cat": "별도 훈련방 · 고양이 마스크", "special:massager": "별도 훈련방 · 미니 마사지기", "special:beads": "별도 훈련방 · 구슬 줄", "special:plug": "별도 훈련방 · 스틸 플러그", "elite:whip": "특수훈련실 · 채찍", "elite:cuffs": "특수훈련실 · 퍼 수갑", "elite:massager": "특수훈련실 · 미니 마사지기", "elite:plug": "특수훈련실 · 스틸 플러그", "elite:tail": "특수훈련실 · 꼬리 장식"};
+
+const FACES = ['기본','활짝웃음','반짝','눈감고웃음','놀람','충격','당황','시무룩','눈물글썽','엉엉','눈물참기','뾰로통','윙크','편안','혼란','능청'];
+const SNDS = [['','없음'],['thud','퍽'],['slap','짝'],['ding','딩'],['whoosh','슉'],['boing','뿅']];
+const IMAGES = {office:['개인사무실.png','공용사무실.png','파티션사무실.png','로비.png','탕비실.png','휴게실.png','사내화장실.png','샤워실.png','화장실.png'], home:['거실.png','침실.png','화장실.png','지하실.png','빈방.png','서재.png']};
+const FOLDER = {office:'사무실', center:'센터', home:'집'};
+const TITLE  = {office:'회사', center:'WELLNESS CENTER', home:'집'};
+// Each sequence stays in one pose family. Return through the middle frame instead of snapping.
+const WORKPOSE = {
+ office:{
+  kneel:['사무실/요가_바닥운동/04.png','사무실/요가_바닥운동/05.png','사무실/요가_바닥운동/06.png'],
+  arch:['사무실/요가_바닥운동/07.png','사무실/요가_바닥운동/08.png','사무실/요가_바닥운동/09.png'],
+  plank:['사무실/요가_바닥운동/10.png','사무실/요가_바닥운동/11.png','사무실/요가_바닥운동/12.png'],
+  fold:['사무실/요가_스트레칭/01.png','사무실/요가_스트레칭/02.png','사무실/요가_스트레칭/03.png'],
+  side:['사무실/요가_스트레칭/04.png','사무실/요가_스트레칭/05.png','사무실/요가_스트레칭/06.png'],
+  lie:['사무실/요가_스트레칭/07a.png'],
+  curl:['사무실/요가_스트레칭/08.png','사무실/요가_스트레칭/09.png','사무실/요가_스트레칭/10.png']
+ },
+ home:{
+  kneel:['집/1000040214/01a.png','집/1000040214/02.png','집/1000040214/03.png'],
+  arch:['집/1000040214/01b.png','집/1000040214/04.png','집/1000040214/01c.png'],
+  plank:['집/1000040214/07.png','집/1000040214/08.png'],
+  fold:['집/1000040217/05.png','집/1000040217/06.png'],
+  side:['집/1000040216/07.png','집/1000040216/08.png','집/1000040216/09.png'],
+  lie:['집/1000040216/05.png','집/1000040216/06a.png','집/1000040216/06b.png'],
+  curl:['집/1000040216/07.png','집/1000040216/08.png','집/1000040216/09.png'],
+  prone:['집/1000040217/07.png','집/1000040217/08.png'],
+  rest:['집/1000040217/10.png','집/1000040217/11.png']
+ }
+};
+const WORKROOM = {
+ office:{'개인사무실.png':['arch','kneel','fold'],'공용사무실.png':['plank','arch','side'],'파티션사무실.png':['fold','kneel','arch'],'로비.png':['kneel','side','arch'],'탕비실.png':['side','fold','kneel'],'휴게실.png':['lie','curl','kneel'],'사내화장실.png':['fold','kneel','arch'],'샤워실.png':['arch','side','fold'],'화장실.png':['fold','arch','kneel']},
+ home:{'거실.png':['arch','kneel','prone'],'침실.png':['lie','rest','curl'],'화장실.png':['fold','kneel','side'],'지하실.png':['plank','fold','arch'],'빈방.png':['side','prone','arch'],'서재.png':['kneel','curl','rest']}
+};
+function workPoses(m){const b=m.loc.b,slot=m.loc.i,pool=WORKROOM[b][S[b][slot].img]||['kneel','arch','fold'];const key=pool[(m.id+slot)%pool.length],frames=WORKPOSE[b][key];return frames.length===3?[...frames,frames[1]]:frames;}
+const HAIR = {"센터/푸시업": 70.1, "센터/아기자세": 68.4, "센터/네발자세": 50.8, "사무실/근력운동_덤벨바벨": 92.9, "사무실/근력운동_머신": 91.6, "사무실/근력운동_하체": 101.8, "사무실/요가_기본": 105.0, "사무실/요가_바닥운동": 124.2, "사무실/요가_스트레칭": 112.1, "사무실/운동후표정": 201.1, "사무실/준비운동_상체": 132.1, "센터/근력운동_덤벨바벨": 84.5, "센터/근력운동_머신": 86.1, "센터/근력운동_하체": 93.2, "센터/사과포즈": 344.3, "센터/요가_기본": 77.6, "센터/요가_동작변화": 102.6, "센터/요가_응용": 81.0, "센터/운동후표정": 172.1, "센터/준비운동_상체": 124.9, "센터/준비운동_하체": 129.3, "센터/특수훈련실": 153.1, "센터/판타지구속포즈": 159.5, "집/1000040211": 122.0, "집/1000040212": 139.2, "집/1000040213": 111.6, "집/1000040214": 139.1, "집/1000040215": 131.7, "집/1000040216": 111.2, "집/1000040217": 115.1};
+const poseScale = rel => { const f=rel.split('/').slice(0,2).join('/'); const m=HAIR[f]||100; return 0.174*Math.pow(77.6/m,0.6); };   // 머리 크기 기준 배율
+function fitPose(img){
+  const nh=img.naturalHeight, nw=img.naturalWidth; if(!nh||!img.dataset.rel) return;
+  const wrap=img.closest('.stage-people'); const n=wrap?(parseFloat(wrap.style.getPropertyValue('--n'))||1):1;
+  const s=poseScale(img.dataset.rel); let h=nh*s;
+  const wMax=wrap?.classList.contains('community')?160*(+wrap.style.getPropertyValue('--rows')||1)/(+wrap.style.getPropertyValue('--cols')||1):(90/n)/(9/16), hMax=94;
+  if(nw*s>wMax) h*=wMax/(nw*s);
+  const X=Math.min(h,hMax)/0.94, p=img.parentElement; p.style.height=(p.classList.contains('free')?X*0.965:X)+'%'; img.style.height='100%';
+}
+const stem = f => f.replace(/\.[^.]+$/,'');
+
+const KEY='gaia-wellness-v3-roster-preview';
+const PREVIEW_SEED_KEY='gaia-wellness-v3';
+let S = load();
+function load(){
+  try{ const s=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(PREVIEW_SEED_KEY));
+    if(s && s.v===3 && Array.isArray(s.center) && Array.isArray(s.members) && s.cfg){
+      const d=newState(); s.cfg={...d.cfg,...s.cfg}; s.ev=[]; s.titles=s.titles||d.titles; s.dlg=s.dlg||{}; s.inv=s.inv||{}; s.cd=s.cd||{}; s.own=s.own||{}; for(const id in ITEMS) if(ITEMS[id].perm&&(s.inv[id]||0)>0){ s.own[id]=true; s.inv[id]=0; }
+      if(s.poseV!==3){ s.poseV=3; s.members.forEach(m=>{ const R=m.loc&&m.loc.b==='center'&&ROOMS[s.center[m.loc.i]]; if(R&&R.sets) m.pose=Math.floor(Math.random()*R.sets.length); else if(R&&R.dev) m.pose=Math.floor(Math.random()*GEAR.length); }); }
+      if(!s.unG){ s.unG=true; if(s.gold>=50000) s.gold=K.startGold; if(s.rep>=900) s.rep=K.startRep; }   // 시험용 지급분 1회 회수
+      testGrant(s); s.extra=s.extra||{}; s.office=s.office&&s.office.length?s.office:d.office; s.home=s.home&&s.home.length?s.home:d.home;
+      return s; }
+  }catch{}
+  const s=newState(); startMembers(s); testGrant(s); return s;
+}
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch{} }
+const $=(q,el=document)=>el.querySelector(q);
+const $$=(q,el=document)=>[...el.querySelectorAll(q)];
+const mById = id => S.members.find(m=>m.id===id);
+
+/* 토스트 */
+let tq=[], tbusy=false;
+function toast(msg){ tq.push(msg); if(!tbusy) nextToast(); }
+function nextToast(){
+  const m=tq.shift(); const t=$('#toast');
+  if(!m){ tbusy=false; t.classList.remove('show'); return; }
+  tbusy=true; t.textContent=m; t.classList.add('show'); setTimeout(nextToast, 2300);
+}
+
+/* 소리 (WebAudio 합성) */
+let AC=null;
+function noise(len){ const b=AC.createBuffer(1,AC.sampleRate*len,AC.sampleRate), d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; return b; }
+function sound(kind){
+  if(!kind || !S.cfg.sound) return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume();
+    const t=AC.currentTime, out=AC.destination;
+    const env=(g,a,d,v=1)=>{ g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+a+d); };
+    const nz=(f,type,q,a,d,v)=>{ const s=AC.createBufferSource(); s.buffer=noise(a+d+.05); const fl=AC.createBiquadFilter(); fl.type=type; fl.frequency.value=f; fl.Q.value=q; const g=AC.createGain(); env(g,a,d,v); s.connect(fl).connect(g).connect(out); s.start(t); };
+    const tone=(f0,f1,a,d,v,type='sine')=>{ const o=AC.createOscillator(); o.type=type; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+a+d); const g=AC.createGain(); env(g,a,d,v); o.connect(g).connect(out); o.start(t); o.stop(t+a+d+.05); };
+    if(kind==='thud'){ nz(260,'lowpass',1,.004,.12,.9); tone(110,48,.004,.16,.9); }
+    else if(kind==='slap'){ nz(2200,'bandpass',.8,.002,.09,.8); nz(900,'lowpass',1,.002,.05,.5); }
+    else if(kind==='ding'){ tone(880,880,.003,.5,.4); tone(1320,1320,.003,.35,.2); }
+    else if(kind==='whoosh'){ nz(1200,'bandpass',1.5,.12,.2,.5); }
+    else if(kind==='boing'){ tone(320,760,.01,.2,.5,'triangle'); }
+    else if(kind==='pop'){ tone(420,1100,.004,.12,.5,'triangle'); }
+    else if(kind==='sparkle'){ tone(1500,2400,.003,.25,.25); tone(2000,3000,.01,.3,.15); }
+    else if(kind==='coin'){ tone(988,988,.002,.14,.3,'square'); }
+    else if(kind==='coin2'){ tone(1319,1319,.002,.3,.3,'square'); }
+    else if(kind==='chain'){ nz(5200,'bandpass',3,.002,.06,.5); }
+    else if(kind==='meow'){ tone(520,980,.04,.14,.4,'triangle'); tone(980,540,.06,.22,.3,'triangle'); }
+    else if(kind==='bonk'){ tone(260,80,.003,.18,.7,'sine'); nz(700,'lowpass',1,.002,.07,.4); }
+    else if(kind==='fog'){ nz(500,'lowpass',.7,.7,1.3,.35); tone(180,420,.5,1.2,.25,'sine'); }
+    else if(kind==='heart'){ tone(700,1400,.01,.2,.35,'sine'); tone(1050,2100,.05,.25,.2,'sine'); }
+  }catch{}
+}
+addEventListener('pointerdown',()=>{ try{ if(S.cfg.sound){ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); } }catch{} },{once:true});
+
+/* 그리기 */
+let focus='all', editing=false, dragging=false, pendingRender=false,pointerBusy=false;
+const moveState={filter:null,id:null,key:''};let alertKey='';
+let anim=[], actors=[], wand=[]; const WANDER=new Map();
+const row=$('#row');
+
+function memberPoses(m){
+  const R=ROOMS[S.center[m.loc.i]];
+  let poses;
+  if(m.loc.b!=='center') poses=workPoses(m);
+  else if(R&&R.dev) poses=['센터/특수훈련실/'+GEAR[m.pose%GEAR.length]+'.png'];
+  else if(R&&R.sets) poses=R.sets[m.pose%R.sets.length];
+  else poses=(R&&R.poses.length)?R.poses:ROOMS.lobby.poses;
+  return poses;
+}
+function personEl(m, big){
+  const R=ROOMS[S.center[m.loc.i]],poses=memberPoses(m);
+  const p=document.createElement('div'); p.className='person'; p.dataset.id=m.id;
+  if(m.loc.b!=='center'){p.classList.add('work-actor');p.style.setProperty('--work-delay',(-m.id*.47)+'s');}
+  const img=document.createElement('img'); img.className='pose'; img.alt=nameOf(m); img.draggable=false; img.dataset.rel=poses[0]; img.onload=()=>fitPose(img); img.src=poseUrl(poses[0]); p.append(img);
+  const bl=document.createElement('div'); bl.className='blush'; p.append(bl);
+  const fc=document.createElement('img'); fc.className='face'; fc.alt=''; p.append(fc);
+  const hp=document.createElement('div'); hp.className='hp'; hp.innerHTML='<i></i>'; p.append(hp);
+  const dot=document.createElement('span'); dot.className='dot'; p.append(dot);
+  const zz=document.createElement('span'); zz.className='zz'; zz.textContent='💤'; p.append(zz);
+  if(poses.length>1) anim.push({img,poses,off:m.loc.b==='center'?Math.floor(Math.random()*poses.length):m.id%poses.length});
+  if(m.loc.b==='center' && S.center[m.loc.i]!=='shop'){
+    actors.push({m, el:p, face:fc, key:scriptKey(S,m), idx:0, rem:200+Math.random()*900, primary:false, big:!!big});
+  }
+  if(m.loc.b==='center' && R && R.wander){
+    p.classList.add('free');
+    let w=WANDER.get(m.id); if(!w){ w={x:6+Math.random()*60, dir:Math.random()<.5?-1:1, v:3+Math.random()*4, pause:Math.random()*1500}; WANDER.set(m.id,w); }
+    p.style.left=w.x+'%'; img.style.transform=w.dir>0?'scaleX(-1)':''; wand.push({w,el:p,img});
+  }
+  bindDrag(p,m.id);
+  paintPerson(p,m);
+  return p;
+}
+function statusOf(m){
+  const a=avg(m);
+  if(STATS.every(k=>m.st[k]>=95)) return 'grad';
+  if(a>=S.cfg.marry) return 'marry';
+  if(a>=S.cfg.join) return 'join';
+  if(a<m.sign) return 'warn';
+  return '';
+}
+function paintPerson(p,m){
+  $('.hp i',p).style.width=clamp(m.hp,0,100)+'%';
+  $('.hp i',p).style.background = m.hp<K.tiredHp?'#e0584f':m.hp<K.lowHp?'#f2c230':'#5cc27e';
+  const grade=STATS.every(k=>m.st[k]>=95)?'grad':avg(m)>=S.cfg.marry?'home':avg(m)>=S.cfg.join?'join':avg(m)>=S.cfg.join/2?'grow':'low';
+  $('.dot',p).className='dot grade-'+grade+(needsRetrain(S,m)||statusOf(m)==='warn'?' retrain':'');
+  $('.dot',p).title=`평균 ${avg(m).toFixed(1)}`+(needsRetrain(S,m)?' · 재교육 필요':'');
+  $('.zz',p).style.display = m.hp<K.tiredHp ? 'block':'none';
+  $('.blush',p).style.opacity = [0,.25,.45,.65][tierOf(m)];
+}
+function updateBars(){ $$('.person').forEach(p=>{ const m=mById(+p.dataset.id); if(m) paintPerson(p,m); }); }
+
+function fillStage(stage, b, slot, big){
+  const people=inRoom(S,b,slot);
+  const free=b==='center'&&ROOMS[S.center[slot]]&&ROOMS[S.center[slot]].wander;
+  const wrap=document.createElement('div'); wrap.className='stage-people'+(free?' free':''); wrap.style.setProperty('--n',free?1:Math.max(1,people.length));
+  if(b!=='center'){const cols=Math.min(4,Math.max(1,people.length),Math.max(1,Math.ceil(Math.sqrt(people.length*1.6))));const rows=Math.max(1,Math.ceil(people.length/cols));wrap.classList.add('community');wrap.style.setProperty('--cols',cols);wrap.style.setProperty('--rows',rows);}
+  people.forEach(m=>wrap.append(personEl(m,big)));
+  stage.append(wrap);
+}
+function roomEl(k,i){
+  const r=document.createElement('div'); r.className='room'; r.tabIndex=0; r.setAttribute('role','button');
+  r.dataset.slot=i; r.dataset.kind=k;
+  let name='';
+  if(k==='center'){
+    const id=S.center[i];
+    if(!id){ r.classList.add('empty'); r.textContent='+ 방 건설'; r.onclick=()=>openRoom(k,i); return r; }
+    const t=ROOMS[id]; name=t.name; if(id==='lobby') r.classList.add('lobby-room');
+    const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER.center,t.bg); bg.alt=''; r.append(bg);
+    fillStage(r,'center',i,false);
+    const n=inRoom(S,'center',i).length, cap=roomCap(S,i);
+    const label=document.createElement('span'); label.className='label'; label.textContent = t.place?`${name} ${n}/${cap}`:name; r.append(label);
+  }else{
+    const sl=S[k][i]; name=stem(sl.img);
+    const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER[k],sl.img); bg.alt=''; r.append(bg);
+    fillStage(r,k,i,false);
+    const label=document.createElement('span'); label.className='label'; label.textContent=`${TITLE[k]} ${name} ${inRoom(S,k,i).length}/${slotCap(S,k,i)}`; r.append(label);
+  }
+  const badge=document.createElement('span'); badge.className='badge'; badge.textContent='✎'; r.append(badge);
+  r.setAttribute('aria-label',`${FOLDER[k]} ${name}`);
+  r.onclick=()=>{ if(suppressClick) return; if(moveState.id!==null&&!editing){moveMemberTo(moveState.id,k,i);return;}openRoom(k,i); };
+  r.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault();r.click(); } };
+  return r;
+}
+function render(){
+  if(dragging){ pendingRender=true; return; }
+  anim=[]; wand=[]; actors=actors.filter(a=>a.dlg); row.replaceChildren();
+  for(const k of ['office','center','home']){
+    const b=document.createElement('section'); b.className='building '+k; b.dataset.kind=k;
+    const roof=document.createElement('div'); roof.className='roof'; roof.textContent=TITLE[k]; b.append(roof);
+    const list = k==='center'?S.center:S[k], cols=k==='center'?2:1;
+    for(let rowI=list.length/cols-1; rowI>=0; rowI--){
+      const f=document.createElement('div'); f.className='floor';
+      for(let c=0;c<cols;c++) f.append(roomEl(k,rowI*cols+c));
+      const em=document.createElement('em'); em.textContent=(rowI+1)+'F'; f.append(em); b.append(f);
+    }
+    const base=document.createElement('div'); base.className='foundation';
+    if(k==='center'){
+      const add=document.createElement('button'); add.className='pill'; add.textContent=`층 추가 (${K.floorCost}💰)`; add.disabled=S.center.length>=12;
+      add.onclick=()=>{ const r=addFloor(S); if(!r.ok) return toast(r.msg); save(); render(); updateHud(); };
+      const del=document.createElement('button'); del.className='pill'; del.textContent='맨 위 층 철거';
+      const n=S.center.length; del.disabled=n<=2||S.center[n-1]!==null||S.center[n-2]!==null;
+      del.onclick=()=>{ S.center.length-=2; save(); render(); };
+      base.append(add,del);
+    }else{
+      const e=expandInfo(S,k);
+      const add=document.createElement('button'); add.className='pill'; add.textContent=e.full?'최대 칸 수':`칸 추가 (${e.cost}💰)`; add.disabled=!e.can;
+      add.onclick=()=>{ const r=expandSlot(S,k); if(!r.ok) return toast(r.msg); save(); render(); updateHud(); };
+      base.append(add);
+    }
+    b.append(base); row.append(b);
+  }
+  applyFocus(); updateHud();refreshMoveTargets();renderRoster();
+}
+function applyFocus(){
+  $$('.building').forEach(b=>{ b.style.display=(focus==='all'||b.dataset.kind===focus)?'':'none'; });
+  $$('[data-focus]').forEach(b=>b.classList.toggle('active',b.dataset.focus===focus));
+  $('#mapLegend').hidden=focus!=='all';
+  fit();
+}
+function fit(){
+  const view=$('#view'), scene=$('#scene');
+  const tray=$('#moveTray');view.style.height=moveState.filter&&!tray.hidden?Math.max(140,tray.getBoundingClientRect().top-view.getBoundingClientRect().top-8)+'px':'';
+  scene.style.zoom=1; scene.style.width='auto'; scene.style.minHeight='0';
+  const vis=$$('.building').filter(b=>b.style.display!=='none');
+  const natural=vis.reduce((s,b)=>s+b.offsetWidth+16,0)+(vis.length-1)*38+80;
+  const zW=view.clientWidth/natural;
+  const z=Math.max(.35,Math.min(1.5,zW));   // 가로 폭에만 맞추고, 세로는 스크롤
+  scene.style.zoom=z; scene.style.width=Math.max(natural,view.clientWidth/z)+'px'; scene.style.minHeight=moveState.filter?'0':(view.clientHeight/z)+'px';
+  $('#mapLegend').style.top=($('#bar').getBoundingClientRect().bottom+6)+'px';
+}
+addEventListener('resize',fit);
+
+/* 상단 정보 */
+function updateHud(){
+  $('#hGold').textContent=Math.floor(S.gold); $('#hRep').textContent=Math.floor(S.rep);
+  const hh=Math.floor((S.t-S.day)*24);
+  $('#hDay').textContent=`D${S.day+1} · ${String(hh).padStart(2,'0')}시`;
+  const mm=S.members,groups=candidateGroups();
+  const lob=inRoom(S,'center',lobbyIndex(S)).length;
+  const sig=Object.entries(groups).map(([key,list])=>key+':'+list.map(m=>m.id).join(',')).join('|')+`/${lob}/${mm.length}/${moveState.filter}`;
+  if(sig!==alertKey){alertKey=sig;const box=$('#alerts');box.replaceChildren();for(const [key,txt,cls] of [['tired','💤 피곤','hot'],['warn','⚠ 이탈 위험',''],['join','입사 가능','blue'],['marry','집 이동 가능','pink'],['retrain','재교육 필요','hot'],['grad','졸업 임박','gold']]){const list=groups[key];if(!list.length)continue;const c=document.createElement('button');c.className='chip '+cls+(moveState.filter===key?' chosen':'');c.textContent=`${txt} ${list.length}`;c.dataset.candidates=key;c.onclick=()=>openCandidates(key);box.append(c);}const c=document.createElement('button');c.className='chip'+(moveState.filter==='all'?' chosen':'');c.textContent=`회원 ${mm.length}명 · 로비 ${lob}/${ROOMS.lobby.cap}`;c.dataset.candidates='all';c.onclick=()=>openCandidates('all');box.append(c);}
+  renderMoveTray();renderRoster();
+}
+function candidateGroups(){const mm=S.members;return {all:mm,tired:mm.filter(m=>m.loc.b==='center'&&m.hp<K.lowHp),warn:mm.filter(m=>m.loc.b==='center'&&statusOf(m)==='warn'),join:mm.filter(m=>m.loc.b==='center'&&avg(m)>=S.cfg.join),marry:mm.filter(m=>m.loc.b==='office'&&avg(m)>=S.cfg.marry),retrain:mm.filter(m=>needsRetrain(S,m)),grad:mm.filter(m=>m.loc.b==='home'&&STATS.every(k=>m.st[k]>=95))};}
+function openCandidates(key){hideCard();moveState.filter=key;moveState.id=null;moveState.key='';focus='all';$('#view').classList.add('candidates-open');updateHud();applyFocus();refreshMoveTargets();}
+function closeCandidates(){moveState.filter=null;moveState.id=null;moveState.key='';$('#moveTray').hidden=true;$('#view').classList.remove('candidates-open');refreshMoveTargets();updateHud();fit();}
+$('#moveClose').onclick=closeCandidates;
+function selectMove(id){moveState.id=moveState.id===id?null:id;moveState.key='';renderMoveTray();refreshMoveTargets();renderRoster();}
+function refreshMoveTargets(id=moveState.id){const m=mById(id);$$('.room').forEach(r=>{const same=m&&m.loc.b===r.dataset.kind&&m.loc.i===+r.dataset.slot;const ok=m&&!same&&canPlace(S,m,r.dataset.kind,+r.dataset.slot).ok;r.classList.toggle('move-ok',!!ok);r.classList.toggle('move-no',!!m&&!ok);});}
+function moveMemberTo(id,b,i){const m=mById(id);if(!m)return false;const check=canPlace(S,m,b,i);if(!check.ok){toast(check.msg);return false;}place(S,m,b,i);moveState.id=null;moveState.key='';save();render();return true;}
+function renderMoveTray(){if(!moveState.filter||dragging||pointerBusy)return;const list=candidateGroups()[moveState.filter]||[],tray=$('#moveTray'),box=$('#moveList');tray.hidden=false;if(moveState.id!==null&&!list.some(m=>m.id===moveState.id)){moveState.id=null;refreshMoveTargets();}const labels={all:'전체 회원',tired:'피곤한 회원',warn:'이탈 위험 회원',join:'입사 가능한 회원',marry:'집으로 이동할 회원',retrain:'재교육이 필요한 회원',grad:'졸업을 앞둔 회원'};$('#moveTitle').textContent=`${labels[moveState.filter]} · ${list.length}명`;const selected=mById(moveState.id);$('#moveHint').textContent=selected?`${nameOf(selected)} 선택 · 밝게 표시된 방을 눌러 주세요.`:list.length?'회원을 끌거나, 회원을 누른 뒤 목적지 방을 누르세요.':'해당하는 회원이 없습니다.';const key=moveState.filter+'/'+moveState.id+'/'+list.map(m=>`${m.id}:${m.loc.b}:${m.loc.i}:${Math.floor(avg(m))}:${Math.floor(m.hp)}:${memberPoses(m)[0]}`).join('|');if(key===moveState.key)return;moveState.key=key;const scroll=box.scrollLeft;box.replaceChildren();for(const m of list){const btn=document.createElement('button');btn.className='move-member'+(moveState.id===m.id?' selected':'');btn.dataset.id=m.id;btn.setAttribute('aria-label',`${nameOf(m)} 선택`);const im=document.createElement('img');im.className='pose';im.alt='';im.src=poseUrl(memberPoses(m)[0]);const name=document.createElement('strong');name.textContent=nameOf(m);const sub=document.createElement('small');sub.textContent=`${m.loc.b==='center'?'센터':TITLE[m.loc.b]} · ${Math.round(avg(m))}점`;btn.append(im,name,sub);bindDrag(btn,m.id,true);btn.onclick=e=>{if(e.detail===0)selectMove(m.id);};box.append(btn);}box.scrollLeft=scroll;}
+
+/* 영구 회원 목록: 프레임 색=등급, 카드 내용=이름/표정/현위치 */
+let rosterKey='';
+function rosterGrade(m){
+  const a=avg(m);
+  return STATS.every(k=>m.st[k]>=95)?'grad':a>=S.cfg.marry?'home':a>=S.cfg.join?'join':a>=S.cfg.join/2?'grow':'low';
+}
+const rosterColors={low:'#e9e9e4',grow:'#569ce2',join:'#54b87d',home:'#a778ce',grad:'#e6b800'};
+function rosterFace(m){
+  if(m.hp<K.tiredHp) return '시무룩';
+  if(m.hp<K.lowHp) return '당황';
+  if(statusOf(m)==='warn'||needsRetrain(S,m)) return '눈물글썽';
+  if(rosterGrade(m)==='grad') return '반짝';
+  if(rosterGrade(m)==='home') return '활짝웃음';
+  if(rosterGrade(m)==='join') return '윙크';
+  if(m.loc.b==='center' && S.center[m.loc.i]==='recovery') return '편안';
+  if(m.loc.b==='home') return '눈감고웃음';
+  return '기본';
+}
+function rosterPlace(m){
+  if(m.loc.b==='center') return ROOMS[S.center[m.loc.i]]?.name||'센터';
+  return stem(S[m.loc.b]?.[m.loc.i]?.img||'')||TITLE[m.loc.b];
+}
+function renderRoster(){
+  if(dragging||pointerBusy) return;
+  const box=$('#rosterList');
+  const key=moveState.id+'/'+S.members.map(m=>[m.id,m.name,rosterGrade(m),rosterFace(m),m.loc.b,m.loc.i,rosterPlace(m)].join(':')).join('|');
+  if(key===rosterKey) return;
+  rosterKey=key;
+  const scroll=box.scrollLeft;
+  box.replaceChildren();
+  for(const m of S.members){
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='roster-card'+(moveState.id===m.id?' selected':'');
+    btn.dataset.id=m.id;btn.style.setProperty('--grade',rosterColors[rosterGrade(m)]);
+    btn.setAttribute('aria-label',nameOf(m)+' · '+rosterPlace(m));
+    const name=document.createElement('strong');name.textContent=m.name;
+    const portrait=document.createElement('img');portrait.className='pose';portrait.alt='';
+    portrait.draggable=false;portrait.src=faceUrl(rosterFace(m));
+    const place=document.createElement('small');place.textContent=rosterPlace(m);
+    btn.append(name,portrait,place);
+    bindDrag(btn,m.id,true,true);
+    btn.onclick=e=>{if(e.detail===0){selectMove(m.id);locate(m.id);}};
+    box.append(btn);
+  }
+  box.scrollLeft=scroll;
+}
+
+function locate(id){
+  const m=mById(id); if(!m) return;
+  if(focus!=='all')focus=m.loc.b; applyFocus();
+  const p=$(`.person[data-id="${id}"]`); if(p){ p.scrollIntoView({block:'center',inline:'center',behavior:'smooth'}); p.classList.add('pulse'); setTimeout(()=>p.classList.remove('pulse'),2500); }
+}
+
+/* 포즈 번갈아·표정 말풍선·하트 */
+let tick=0;
+setInterval(()=>{ tick++; anim.forEach(a=>{ if(a.img.isConnected){ const rel=a.poses[(tick+a.off)%a.poses.length]; a.img.dataset.rel=rel; a.img.src=poseUrl(rel); } }); },900);
+function preload(){ const seen=new Set(); const warm=p=>{if(!seen.has(p)){seen.add(p);new Image().src=poseUrl(p);}};Object.values(ROOMS).forEach(t=>[...t.poses,...(t.sets||[]).flat()].forEach(warm));Object.values(WORKPOSE).forEach(building=>Object.values(building).flat().forEach(warm)); DEV.forEach(n=>new Image().src=poseUrl('센터/특수훈련실/'+n+'.png')); FACES.forEach(f=>new Image().src=faceUrl(f)); }
+
+function stageOf(a){ return a.el.closest('.stage-big'); }
+function runActors(){
+  const dtm=100;
+  actors=actors.filter(a=>a.el.isConnected);
+  for(const a of actors){
+    const steps=getScript(S,a.key); if(!steps.length) continue;
+    a.rem-=dtm;
+    if(a.rem>0) continue;
+    const s=steps[a.idx%steps.length]; a.idx=(a.idx+1)%steps.length;
+    a.rem=Math.max(300,+s.ms||1000);
+    const showFace = a.dlg || true;
+    a.face.src=faceUrl(s.face); a.el.classList.add('act');
+    const stage=stageOf(a);
+    if(stage && a.primary){
+      const cap=$('.cap',stage);
+      if(cap){ $('img',cap).src=faceUrl(s.face); $('b',cap).textContent=nameOf(a.m); $('span',cap).textContent=s.line?fillLine(S,a.m,s.line):''; }
+      if(s.snd) sound(s.snd);
+      if(s.snd==='thud'||s.snd==='slap'||s.face==='충격'){ stage.classList.remove('shake'); void stage.offsetWidth; stage.classList.add('shake'); const f=$('.flash',stage); if(f){ f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); } }
+    }
+  }
+}
+setInterval(runActors,100);
+setInterval(()=>{ wand.forEach(o=>{
+  const {w,el,img}=o; if(!el.isConnected||el.classList.contains('dragging')) return;
+  if(w.pause>0){ w.pause-=100; return; }
+  const sw=el.parentElement.clientWidth||1, pw=el.offsetWidth/sw*100, max=Math.max(2,98-pw);
+  w.x+=w.dir*w.v*0.1;
+  if(w.x<=2){ w.x=2; w.dir=1; } else if(w.x>=max){ w.x=max; w.dir=-1; }
+  const r=Math.random(); if(r<.02){ w.pause=800+Math.random()*2200; } else if(r<.035){ w.dir*=-1; }
+  el.style.left=w.x+'%'; img.style.transform=w.dir>0?'scaleX(-1)':'';
+}); },100);
+setInterval(()=>{
+  $$('.person').forEach(p=>{
+    if(!p.isConnected || p.closest('[style*="display: none"]')) return;
+    const m=mById(+p.dataset.id); if(!m) return;
+    const t=tierOf(m); if(t<1) return;
+    if(Math.random()<.12*t){
+      const h=document.createElement('span'); h.className='heart'; h.textContent='♥'; h.style.left=(25+Math.random()*50)+'%'; h.style.top=(Math.random()*20)+'%';
+      p.append(h); setTimeout(()=>h.remove(),1700);
+    }
+  });
+},700);
+
+/* 시간 흐름 */
+let last=Date.now(), saveAt=0;
+setInterval(()=>{
+  const now=Date.now(); let dt=(now-last)/1000; last=now;
+  if(document.hidden || dragging || pointerBusy || document.querySelector("#mgDialog[open]")) return;
+  dt=Math.min(dt,1.5);
+  const before=S.members.length;
+  advance(S, dt*S.cfg.speed/(S.cfg.dayMin*60));
+  if(S.ev.length){ S.ev.splice(0).forEach(toast); render(); if(dlg.open && cur) openRoom(cur.k,cur.i,true); }
+  updateBars(); updateHud();
+  if(now-saveAt>4000){ saveAt=now; save(); }
+},250);
+document.addEventListener('visibilitychange',()=>{ last=Date.now(); if(document.hidden) save(); });
+
+/* 드래그 앤 드롭 */
+let suppressClick=false;
+function roomAt(x,y){ const el=document.elementFromPoint(x,y); const r=el&&el.closest?el.closest('.room'):null; return r&&r.dataset.slot!==undefined&&!r.closest('dialog')?r:null; }
+function bindDrag(el,id,fromTray=false,fromRoster=false){
+  el.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0) return;
+    const m=mById(id); if(!m) return;
+    const sx=e.clientX, sy=e.clientY; let started=false, scrolling=false, hot=null,scrollRaf=0,px=sx,py=sy; const ghost=$('#ghost');pointerBusy=true;
+    try{ el.setPointerCapture(e.pointerId); }catch{}
+    const clear=()=>{ if(hot){ hot.classList.remove('drop-ok','drop-no'); hot=null; } };
+    const updateHot=()=>{const r=roomAt(px,py);if(r!==hot){clear();hot=r;}if(hot){const ok=dropOk(m,hot);hot.classList.toggle('drop-ok',ok);hot.classList.toggle('drop-no',!ok);}};
+    const scrollFrame=()=>{if(!started)return;const view=$('#view'),r=view.getBoundingClientRect(),tray=$('#moveTray'),bottom=tray.hidden?r.bottom:Math.min(r.bottom,tray.getBoundingClientRect().top),edge=48;const dx=px<r.left+edge?-12:px>r.right-edge?12:0,dy=py<r.top+edge?-14:py>bottom-edge?14:0;if(dx||dy){view.scrollBy(dx,dy);updateHot();}scrollRaf=requestAnimationFrame(scrollFrame);};
+    const onMove=ev=>{
+      px=ev.clientX;py=ev.clientY;
+      if(!started){ if(scrolling) return; const dx=ev.clientX-sx,dy=ev.clientY-sy; if(Math.hypot(dx,dy)<8) return; if(fromRoster && Math.abs(dx)>Math.abs(dy)*1.2){scrolling=true;return;} started=true; dragging=true; el.classList.add('dragging'); ghost.src=$('img.pose',el).src; ghost.hidden=false; hideCard();refreshMoveTargets(id);scrollRaf=requestAnimationFrame(scrollFrame); }
+      ev.preventDefault(); ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px';
+      updateHot();
+    };
+    const finish=()=>{pointerBusy=false;cancelAnimationFrame(scrollRaf);el.removeEventListener('pointermove',onMove); el.removeEventListener('pointerup',onUp); el.removeEventListener('pointercancel',onCancel); try{ el.releasePointerCapture(e.pointerId); }catch{} };
+    const onUp=ev=>{
+      finish();
+      if(!started){ suppressClick=true; setTimeout(()=>suppressClick=false,0);if(fromTray){if(!scrolling){selectMove(id);if(fromRoster)locate(id);}}else showCard(m,ev.clientX,ev.clientY); return; }
+      ghost.hidden=true; clear(); dragging=false; suppressClick=true; setTimeout(()=>suppressClick=false,0);
+      const r=roomAt(ev.clientX,ev.clientY);
+      if(r){
+        const b=r.dataset.kind, i=+r.dataset.slot;
+        if(!(b===m.loc.b&&i===m.loc.i)){
+          const c=canPlace(S,m,b,i);
+          if(c.ok){ place(S,m,b,i);moveState.id=null;moveState.key=''; save(); } else toast(c.msg);
+        }
+      }
+      pendingRender=false; render();
+    };
+    const onCancel=()=>{ finish(); ghost.hidden=true; clear(); dragging=false; el.classList.remove('dragging');refreshMoveTargets(); if(pendingRender){ pendingRender=false; render(); } };
+    el.addEventListener('pointermove',onMove); el.addEventListener('pointerup',onUp); el.addEventListener('pointercancel',onCancel);
+  });
+}
+function dropOk(m,r){ const b=r.dataset.kind,i=+r.dataset.slot; if(b===m.loc.b&&i===m.loc.i) return false; return canPlace(S,m,b,i).ok; }
+
+/* 상세 카드 */
+const card=$('#card');
+function hideCard(){ card.style.display='none'; }
+function showCard(m,x,y){
+  const a=avg(m), tags=m.tags.join(' · ');
+  const where = m.loc.b==='center' ? (ROOMS[S.center[m.loc.i]]||{}).name : TITLE[m.loc.b];
+  const bar=(label,v,cls='')=>`<div class="bar ${cls}"><span>${label}</span><div><i style="width:${clamp(v,0,100)}%"></i></div><span>${Math.round(v)}</span></div>`;
+  card.innerHTML=`<h3>${m.name}${m.nick?` <small>(${m.nick})</small>`:''}</h3><div class="tags">${tags}</div>`+
+    STATS.map(k=>bar(SN[k],m.st[k])).join('')+bar('체력',m.hp,'hpb')+
+    `<div class="meta">평균 <b>${a.toFixed(1)}</b> (가입 때 ${m.sign.toFixed(1)})<br>소속 ${S.day-m.born}일째 · ${where||''}<br>${statusText(m)}</div>`;
+  if(m.loc.b!=='center'||m.loc.i!==lobbyIndex(S)){ const b=document.createElement('button'); b.className='pill'; b.textContent='로비로 보내기'; b.onclick=()=>{ returnToLobby(S,m); save(); hideCard(); render(); }; card.append(b); }
+  const rb=document.createElement('button'); rb.className='pill'; rb.style.marginLeft='6px'; rb.textContent='직접 조교'; rb.onclick=()=>{ hideCard(); openSolo(m); }; card.append(rb);
+  card.style.display='block';
+  const w=250,h=card.offsetHeight; card.style.left=clamp(x-w/2,8,innerWidth-w-8)+'px'; card.style.top=clamp(y+16,8,innerHeight-h-8)+'px';
+}
+function statusText(m){ const s=statusOf(m); return {grad:'🌟 졸업 임박!',marry:'💗 결혼 기준 도달',join:'🔷 입사 기준 도달',warn:'⚠ 가입 때보다 낮아요. 훈련이 필요합니다.',}[s]||'상태 양호'; }
+document.addEventListener('pointerdown',e=>{ if(!card.contains(e.target)&&!e.target.closest('.person')) hideCard(); });
+
+/* 방 대화창 */
+const dlg=$('#dlg'); let cur=null;
+$('#dStage').addEventListener('click',e=>{ if(e.target.closest('.person')||!sceneAdv) return; sceneAdv(); });
+function stopDlgActors(){ actors=actors.filter(a=>!a.dlg); }
+/* ── 대사집 연출: 방을 열면 회원이 한쪽에서 튀어나와 말하고, 남성 등은 반투명 실루엣 ── */
+const getDlg = k => (S.dlg&&S.dlg[k]&&S.dlg[k].length) ? S.dlg[k] : (DLG_DEF[k]||[]);
+const BUST_WHO = ['회원','여직원','여성'];
+const isBust = (who,lines) => lines.some(x=>BUST_WHO.includes(x[0])) ? BUST_WHO.includes(who) : who.startsWith('여');
+function dlgPools(k,i,m){
+  if(k==='center'){
+    const id=S.center[i]; if(id==='elite') return ['e:gear','e:punish','e:special'];
+    const e=avg(m)>=S.cfg.join; return DLG_LABEL.n[id]?[(e?'e:':'n:')+id]:[];
+  }
+  if(k==='office') return ['o:'+(OFFICE_POOL[S.office[i].img]||'open')];
+  return ['h:'+(HOME_POOL[S.home[i].img]||'living')];
+}
+function bustFace(t){
+  let c;
+  if(/엉엉|흑|흐아|울|눈물|살려|제발|징징|흐앙|아파|찢어/.test(t)) c=[5];
+  else if(/죄송|부끄|…|읏|저기|혹시|괜찮|무섭/.test(t)) c=[4,4,2];
+  else if(/!/.test(t)&&/감사|좋|상쾌|파이팅|드디어|해냈|자랑|성공|열심/.test(t)) c=[3,6];
+  else if(/예약|추가|결제|지명|카드|다음|또/.test(t)) c=[7,1];
+  else if(/\?/.test(t)) c=[1,6];
+  else c=[1,2,6,3];
+  return c[Math.floor(Math.random()*c.length)];
+}
+let sceneRun=0, sceneTimer=0, sceneAdv=null;
+function stopScene(){ sceneRun++; clearTimeout(sceneTimer); sceneAdv=null; }
+function mountScene(stage,k,i){
+  stopScene(); const run=sceneRun;
+  $$('.scene',stage).forEach(x=>x.remove());
+  const layer=document.createElement('div'); layer.className='scene'; stage.append(layer);
+  const setName=k==='center'?'센터':k==='office'?'회사':'집'; let lastSc=null;
+  const next=fast=>{
+    if(run!==sceneRun||!layer.isConnected) return;
+    layer.replaceChildren();
+    const ms=inRoom(S,k,i); if(!ms.length){ sceneTimer=setTimeout(next,3000); return; }
+    const m=ms[Math.floor(Math.random()*ms.length)], pools=dlgPools(k,i,m);
+    const arr=pools.length?getDlg(pools[Math.floor(Math.random()*pools.length)]):[];
+    if(!arr.length){ sceneTimer=setTimeout(next,4000); return; }
+    let sc=arr[Math.floor(Math.random()*arr.length)]; if(arr.length>1&&sc===lastSc) sc=arr[(arr.indexOf(sc)+1)%arr.length]; lastSc=sc;
+    const side=Math.random()<.5?'L':'R', oth=side==='L'?'R':'L';
+    const bust=document.createElement('img'); bust.className='bust '+side; bust.alt=''; layer.append(bust);
+    const sd=SILS[Math.floor(Math.random()*SILS.length)];
+    const sil=document.createElement('img'); sil.alt=''; sil.src=silUrl(sd[0]); sil.className='sil '+sd[1]+' '+oth+((sd[2]&&oth==='L')?' flip':''); layer.append(sil);
+    const bub=document.createElement('div'); bub.className='bub'; bub.innerHTML='<b></b><span></span>'; layer.append(bub);
+    let li=0, skip=false;
+    const step=()=>{
+      if(run!==sceneRun||!layer.isConnected) return;
+      if(li>=sc.l.length){ bust.classList.remove('on'); sil.classList.remove('on'); bub.style.opacity=0; sceneTimer=setTimeout(next,2000); return; }
+      const [who,text]=sc.l[li++], b=isBust(who,sc.l);
+      if(b){ bust.src=bustUrl(setName,bustFace(text)); void bust.offsetWidth; bust.classList.add('on'); } else { void sil.offsetWidth; sil.classList.add('on'); }
+      bub.className='bub '+(b?side:oth)+(b?'':' male'); bub.firstChild.textContent=b?nameOf(m):who; bub.lastChild.textContent=fillLine(S,m,text); bub.style.opacity=1;
+      sceneTimer=setTimeout(step,clamp(1700+text.length*60,2400,5600));
+    };
+    sceneAdv=()=>{ clearTimeout(sceneTimer); if(li>=sc.l.length){ next(true); } else step(); };
+    sceneTimer=setTimeout(step,fast===true?60:500);
+  };
+  next();
+}
+function buildItemBar(actions,i,id){
+  const list=Object.entries(ITEMS).filter(([k,it])=>it.rooms.includes(id)); if(!list.length) return;
+  const bar=document.createElement('div'); bar.className='itembar'; bar.dataset.i=i;
+  list.forEach(([k,it])=>{
+    const b=document.createElement('button'); b.className='ibtn'; b.dataset.id=k; b.title=it.name+' — '+it.desc;
+    b.innerHTML=`<img alt="" src="${itemUrl('아이콘',k)}"><span>${it.name}</span><i></i>`; b.onclick=()=>doUseItem(i,k); bar.append(b);
+  });
+  actions.append(bar); refreshItemBar();
+}
+function refreshItemBar(){
+  const bar=$('.itembar'); if(!bar||!dlg.open) return; const i=+bar.dataset.i, left=(S.cd[i]||0)-S.t;
+  $$('.ibtn',bar).forEach(b=>{ $('i',b).textContent=itemTag(b.dataset.id); b.classList.toggle('none',!hasItem(S,b.dataset.id)); b.classList.toggle('cool',left>0); });
+}
+setInterval(refreshItemBar,400);
+function doUseItem(i,k){
+  const r=useItem(S,i,k); if(!r.ok) return toast(r.msg);
+  save(); render(); refreshItemBar(); itemFx($('#dStage'),i,k,r.members);
+}
+const gainText = (it,mul=1) => Object.entries(it.up).map(([s,v])=>`${SN[s]} +${Math.round(v*mul)}`).join(' · ');
+function useSets(k,rid){
+  let a=rid?getDlg(`u:${rid}:${k}`):[]; if(a.length) return a;
+  a=getDlg('u:'+k); if(a.length) return a;
+  return ITEMS[k].rooms.flatMap(r=>getDlg(`u:${r}:${k}`));
+}
+const rr=(a,b)=>a+Math.random()*(b-a);
+const fxEl=(fx,cls,html)=>{ const e=document.createElement('div'); e.className=cls; if(html!==undefined) e.innerHTML=html; fx.append(e); return e; };
+function burst(fx,n,glyphs,cx,cy,o={}){
+  for(let j=0;j<n;j++){
+    const e=fxEl(fx,'ptc',glyphs[j%glyphs.length]), ang=Math.random()*6.283, d=rr(o.min||14,o.max||52);
+    e.style.cssText=`left:${cx}%;top:${cy}%;font-size:${rr(o.s0||18,o.s1||46)}px;--dx:${Math.cos(ang)*d}cqw;--dy:${Math.sin(ang)*d*.62}cqw;--r:${rr(-320,320)}deg;animation-delay:${rr(0,o.delay||.2)}s;animation-duration:${rr(.8,1.5)}s`;
+    setTimeout(()=>e.remove(),2300);
+  }
+}
+function onom(fx,text,x,y,o={}){
+  const e=fxEl(fx,'onom',text);
+  e.style.cssText=`left:${x}%;top:${y}%;--rot:${o.rot??rr(-14,14)}deg;color:${o.c||'#fff44f'};font-size:${o.s||'clamp(34px,11cqw,112px)'};animation-delay:${o.d||0}s;--life:${o.life||1.1}s`;
+  setTimeout(()=>e.remove(),(o.life||1.1)*1000+(o.d||0)*1000+200);
+}
+const shk=(stage,heavy)=>{ const c=heavy?'shake2':'shake'; stage.classList.remove('shake','shake2'); void stage.offsetWidth; stage.classList.add(c); };
+function cryBlitz(fx,set,n){
+  for(let j=0;j<n;j++){ const im=document.createElement('img'); im.className='cryimg'; im.alt=''; im.src=bustUrl(set,5);
+    im.style.cssText=`left:${rr(-4,88)}%;top:${rr(-8,52)}%;height:${rr(26,44)}%;--r:${rr(-22,22)}deg;animation-delay:${j*0.035}s`; fx.append(im); }
+}
+/* 도구별 이펙트: c = {fx,stage,at,bust,side,set,face,prod} — 체감상 "스킬 썼다!"가 되도록 과하게 */
+const FXLIB = {
+  whip(c){ const {fx,stage,at,bust}=c;
+    [[22,-14],[48,10],[68,-6]].forEach(([y,a],j)=>{ at(()=>{ const s=fxEl(fx,'slash'); s.style.cssText=`top:${y}%;--a:${a}deg`; setTimeout(()=>s.remove(),600); sound('whoosh'); },80+j*140); });
+    at(()=>{ onom(fx,'짜악!!',50,38,{c:'#ff4d6d',rot:-9}); shk(stage,true); sound('slap'); burst(fx,16,['💢','💥','⭐'],50,45); },260);
+    at(()=>{ bust.classList.add('fling'); sound('bonk'); },720);
+    at(()=>{ onom(fx,'끄아악!',50,26,{c:'#8be9ff',s:'clamp(26px,8cqw,84px)',d:.15}); },900);
+    at(()=>{ bust.classList.remove('fling'); },1500); },
+  paddle(c){ const {fx,stage,at}=c;
+    [[32,42,-12],[66,56,10],[48,30,-4]].forEach(([x,y,r],j)=>{ at(()=>{ onom(fx,j==2?'찰싹찰싹!':'찰싹!',x,y,{c:'#ff8a3d',rot:r,s:j==2?'clamp(40px,13cqw,130px)':undefined}); shk(stage,j==2); sound('slap'); burst(fx,10,['💔','💗','✋'],x,y,{max:34}); },120+j*330); }); },
+  blind(c){ const {fx,stage,at}=c;
+    at(()=>{ fxEl(fx,'dark'); onom(fx,'깜깜…',50,45,{c:'#cbb6ff',s:'clamp(26px,8cqw,84px)',life:1.2}); sound('ding'); },60);
+    at(()=>{ burst(fx,22,['✨','⭐','💫'],50,50,{max:48}); onom(fx,'반짝!',50,40,{c:'#fff7a8'}); sound('sparkle'); },980); },
+  gag(c){ const {fx,stage,at,set}=c;
+    at(()=>{ onom(fx,'읍읍!!',50,36,{c:'#9de8ff'}); shk(stage,true); sound('boing'); burst(fx,18,['💦','💧','💢'],50,48); },120);
+    at(()=>{ cryBlitz(fx,set,28); sound('pop'); },520);
+    at(()=>{ sound('pop'); },760); at(()=>{ sound('pop'); },980); },
+  cuffs(c){ const {fx,stage,at,prod}=c;
+    prod.style.display='none';
+    ['l','r'].forEach(sd=>{ const im=document.createElement('img'); im.className='cf '+sd; im.alt=''; im.src=prod.src; fx.append(im); });
+    at(()=>sound('whoosh'),100);
+    at(()=>{ onom(fx,'찰칵!!',50,36,{c:'#ffd24d'}); shk(stage,true); sound('chain'); sound('ding'); fxEl(fx,'ring'); burst(fx,18,['💗','⭐','✨'],50,58); },640);
+    at(()=>{ sound('chain'); },860); },
+  cat(c){ const {fx,stage,at,bust}=c;
+    for(let j=0;j<7;j++) at(()=>{ burst(fx,1,['🐾'],8+j*14,84-(j%2)*8,{min:3,max:6,s0:30,s1:40,delay:0}); sound('pop'); },80+j*120);
+    at(()=>{ onom(fx,'냐앙~♥',50,34,{c:'#ffb3e6',rot:-6}); sound('meow'); burst(fx,18,['💗','💖','🎵'],50,50); },420);
+    at(()=>{ bust.classList.add('hop'); },700);
+    at(()=>{ onom(fx,'냐아앙!',34,58,{c:'#fff',s:'clamp(24px,7cqw,72px)'}); sound('meow'); },1050); }
+};
+const TOY_ONOM={massager:'부르르르♥',balls:'데굴데굴♥',beads:'하나, 둘, 셋♥',plug:'꾸욱♥',tail:'살랑살랑♥'};
+function toyFx(c,k){ const {fx,stage,at,bust}=c;
+  at(()=>{ fxEl(fx,'fog'); sound('fog'); onom(fx,TOY_ONOM[k]||'두근♥',50,36,{c:'#fff',life:1.5,d:.2}); },60);
+  at(()=>{ burst(fx,46,['💗','💖','💕','♥','✨'],50,50,{max:56,s0:24,s1:70,delay:.35}); onom(fx,'두근두근♥',50,52,{c:'#ff4d94',s:'clamp(40px,13cqw,130px)',life:1.6}); shk(stage,true); sound('heart'); sound('sparkle'); },1700);
+  at(()=>{ burst(fx,24,['💗','💕','✨'],50,50,{max:60,delay:.3}); sound('heart'); },2300);
+  at(()=>{ bust.classList.add('zoom','on'); },2850);
+}
+function itemFx(stage,i,k,ms,opt={}){
+  const it=ITEMS[k]; stopScene(); $$('.ifx,.scene',stage).forEach(x=>x.remove());
+  const arr=useSets(k,opt.room!==undefined?opt.room:S.center[i]), sc=arr.length?arr[Math.floor(Math.random()*arr.length)]:null;
+  const lines=sc?sc.l:[['회원',`(${it.name} 사용!)`]];
+  const side=Math.random()<.5?'L':'R', oth=side==='L'?'R':'L', toy=!it.perm, set=opt.set||'센터';
+  const face=it.face[Math.floor(Math.random()*it.face.length)];
+  const fx=document.createElement('div'); fx.className='ifx';
+  fx.innerHTML=`<div class="veil"></div><img class="prod" alt="" src="${itemUrl('상품',k)}" style="left:${side==='L'?68:32}%"><img class="ibust ${side}" alt="" src="${bustUrl(set,face)}"><div class="ibub"><b></b><span></span></div><div class="gain">${gainText(it,opt.mul||1)}${opt.solo?'':` · ${ms.length}명`}</div>`;
+  stage.append(fx);
+  const bust=$('.ibust',fx), bub=$('.ibub',fx), gain=$('.gain',fx), prod=$('.prod',fx), T=[]; let n=-1, done=false;
+  const at=(f,t)=>T.push(setTimeout(f,t));
+  const fl=$('.flash',stage); if(fl){ fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go'); }
+  const ctx={fx,stage,at,bust,side,set,face,prod};
+  if(toy){ toyFx(ctx,k); } else { it.snd.forEach((s,ix)=>at(()=>sound(s),ix*260)); at(()=>bust.classList.add('on'),450); (FXLIB[k]||(()=>{}))(ctx); }
+  const D=toy?4300:2100;
+  at(()=>gain.classList.add('show'),toy?3300:900);
+  const end=()=>{ if(done) return; done=true; T.forEach(clearTimeout); fx.remove(); stage.classList.remove('shake','shake2'); if(opt.after) opt.after(); else if(cur&&cur.k==='center'&&cur.i===i&&dlg.open) mountScene(stage,'center',i); };
+  const next=()=>{
+    T.forEach(clearTimeout); n++; if(n>=lines.length){ end(); return; }
+    const [w,t0]=lines[n], t=fillLine(S,ms[0],t0), b=isBust(w,lines);
+    bub.classList.remove('show'); void bub.offsetWidth;
+    bub.className='ibub '+(b?side:oth)+(b?'':' male'); $('b',bub).textContent=b?nameOf(ms[0]):w; $('span',bub).textContent=t;
+    at(()=>bub.classList.add('show'),30); at(next,1800+t.length*45);
+  };
+  at(next,D); fx.onclick=()=>{ if(n<0) return; next(); };
+}
+/* ── 1:1 직접 조교창 ── */
+let soloM=null, soloBusy=false;
+const SOLO_SET={center:'센터',office:'회사',home:'집'};
+function soloBars(m){
+  const bar=(label,v,cls='')=>`<div class="bar ${cls}"><span>${label}</span><div><i style="width:${clamp(v,0,100)}%"></i></div><span>${Math.round(v)}</span></div>`;
+  return STATS.map(k=>bar(SN[k],m.st[k])).join('')+bar('체력',m.hp,'hpb')+`<div style="grid-column:1/-1;font-size:12px;color:#6b867c">평균 ${avg(m).toFixed(1)}</div>`;
+}
+function refreshSolo(){
+  if(!soloM||!tdlg.open) return;
+  if(!S.members.includes(soloM)){ tdlg.close(); return; }
+  $('#tBars').innerHTML=soloBars(soloM);
+  $$('#tTools .ibtn').forEach(b=>{ $('i',b).textContent=itemTag(b.dataset.id); b.classList.toggle('none',!hasItem(S,b.dataset.id)); });
+}
+setInterval(refreshSolo,700);
+function openSolo(m){
+  soloM=m; soloBusy=false; const set=SOLO_SET[m.loc.b];
+  const where=m.loc.b==='center'?(ROOMS[S.center[m.loc.i]]||{}).name:TITLE[m.loc.b];
+  $('#tTitle').textContent=`직접 조교 · ${nameOf(m)}`;
+  const st=$('#tStage'); st.replaceChildren(); st.className='stage-big';
+  const bg=document.createElement('img'); bg.className='bg'; bg.alt=''; bg.src=trainBgUrl(set); st.append(bg);
+  const bu=document.createElement('img'); bu.className='tbust'; bu.alt=''; bu.src=bustUrl(set,1); st.append(bu);
+  const fl=document.createElement('div'); fl.className='flash'; st.append(fl);
+  $('#tInfo').textContent=`${nameOf(m)}님 (${where||''}) — 도구를 골라 한 명에게 직접 사용합니다. 방 전체에 쓸 때보다 효과 ×${SOLO_UP}, 체력 소모 ×${SOLO_HP}입니다.`;
+  const tools=$('#tTools'); tools.replaceChildren();
+  Object.entries(ITEMS).forEach(([k,it])=>{
+    const b=document.createElement('button'); b.className='ibtn'; b.dataset.id=k; b.title=`${it.name} — ${gainText(it,SOLO_UP)} (체력 −${Math.round(it.hp*SOLO_HP)})`;
+    b.innerHTML=`<img alt="" src="${itemUrl('아이콘',k)}"><span>${it.name}</span><i></i>`; b.onclick=()=>doSolo(k); tools.append(b);
+  });
+  refreshSolo(); if(!tdlg.open) tdlg.showModal();
+}
+function doSolo(k){
+  if(soloBusy||!soloM) return;
+  const r=useItemSolo(S,soloM,k); if(!r.ok) return toast(r.msg);
+  soloBusy=true; save(); render(); refreshSolo();
+  const st=$('#tStage'), bu=$('.tbust',st), set=SOLO_SET[soloM.loc.b]; bu.style.opacity=0;
+  itemFx(st,-1,k,[soloM],{set,mul:SOLO_UP,solo:true,room:(soloM.loc.b==='center'?S.center[soloM.loc.i]:null),after:()=>{ soloBusy=false; bu.style.opacity=1; refreshSolo(); }});
+}
+let lastBuy=null;
+const itemTag = id => ITEMS[id].perm ? (S.own[id]?'✔':'🔒') : '×'+(S.inv[id]||0);
+function buyFx(card,k){
+  const par=dlg.open?dlg:document.body, r=card.getBoundingClientRect(), w=document.createElement('div'); w.className='buyfx';
+  w.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height*.35}px`;
+  w.innerHTML=`<img alt="" src="${itemUrl('상품',k)}"><b>+1</b>`+Array.from({length:14},(_,j)=>{ const a=rr(0,6.283),d=rr(50,130); return `<span class="bp" style="--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d-40}px;--r:${rr(-200,200)}deg;animation-delay:${rr(0,.2)}s">${['✨','⭐','💗','🪙'][j%4]}</span>`; }).join('');
+  par.append(w); sound('coin'); setTimeout(()=>sound('coin2'),90); setTimeout(()=>sound('sparkle'),260); setTimeout(()=>w.remove(),1500);
+}
+function buildShop(box){
+  box.append(Object.assign(document.createElement('h3'),{textContent:'매점 · 도구 구매 (골드 또는 명성치) — 기본 도구는 한 번만 사면 계속 쓰고, 토이는 쓰면 사라지는 1회용입니다'}));
+  Object.entries(ITEMS).forEach(([k,it])=>{
+    const owned=it.perm&&S.own[k], c=document.createElement('div'); c.className='shopcard'+(lastBuy===k?' flashc':'');
+    c.innerHTML=`<img alt="" src="${itemUrl('상품',k)}"><div><b>${it.name}</b><span class="badge ${it.perm?'perm':'once'}">${it.perm?'영구':'1회용'}</span><em class="${lastBuy===k?'jump':''}">${it.perm?(owned?'보유 ✔':'미보유'):'보유 '+(S.inv[k]||0)}</em></div><small>${it.desc}<br>${gainText(it)} (체력 −${it.hp})<br>${it.rooms.map(r=>ROOMS[r].name).join('·')}</small><div class="buy"></div>`;
+    [['gold','🪙'],['rep','⭐']].forEach(([cur2,ic])=>{
+      const b=document.createElement('button'); b.textContent=owned?'보유 중':`${ic} ${it[cur2]}`; b.disabled=owned||(cur2==='gold'?S.gold:S.rep)<it[cur2];
+      b.onclick=()=>{ const r=buyItem(S,k,cur2); if(!r.ok) return toast(r.msg); buyFx(c,k); lastBuy=k;
+        toast(it.perm?`${it.name} 구입! 이제 ${it.rooms.map(x=>ROOMS[x].name).join('·')}에서 계속 쓸 수 있어요`:`${it.name} 구입! (보유 ${S.inv[k]}) 쓰면 사라지는 1회용이에요`);
+        save(); render(); setTimeout(()=>{ box.replaceChildren(); buildShop(box); lastBuy=null; },380); };
+      $('.buy',c).append(b);
+    });
+    box.append(c);
+  });
+}
+const fxText=(img,k)=>{ const F=(WFX[k]||{})[img]; if(!F) return ''; const f=o=>Object.entries(o).map(([a,v])=>SN[a]).join('·'); return `▲ ${f(F.up)} 상승 / ▼ ${f(F.dn)} 하락 (점수가 낮은 항목일수록 크게 오르고, 높은 항목일수록 크게 깎입니다)`; };
+function openRoom(k,i,refresh){
+  cur={k,i}; hideCard(); stopScene();
+  const id=k==='center'?S.center[i]:null;
+  const stage=$('#dStage'); stage.replaceChildren(); stopDlgActors(); anim=anim.filter(a=>a.img.isConnected);
+  const actions=$('#dActions'), choices=$('#dChoices'), info=$('#dInfo'); actions.replaceChildren(); choices.replaceChildren();
+  const showChooser=(editing&&!refresh)||(k==='center'&&!id);
+  if(k==='center'&&id){
+    const t=ROOMS[id], cap=roomCap(S,i);
+    $('#dTitle').textContent=`${t.name} · ${Math.floor(i/2)+1}층 ${i%2+1}번`;
+    const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER.center,t.bg); bg.alt=''; stage.append(bg);
+    fillStage(stage,'center',i,true);
+    const fl=document.createElement('div'); fl.className='flash'; stage.append(fl);
+    const cp=document.createElement('div'); cp.className='cap'; cp.innerHTML='<img alt=""><div><b></b><span></span></div>'; stage.append(cp);
+    const first=actors.filter(a=>a.el.closest('#dStage'));
+    first.forEach((a,ix)=>{ a.dlg=true; a.primary=ix===0; if(ix===0) a.el.classList.add('prim'); });
+    if(!first.length) cp.style.display='none';
+    const gains = t.train ? Object.entries(t.train).map(([k2,v])=>`${SN[k2]} +${v}`).join(', ')+` /일 · 체력 −${t.hp}/일`+(t.eff<1?` · 1인당 효율 ${Math.round(t.eff*100)}%`:'') : (t.regen?`체력 +${t.regen}/일`:'');
+    const n=inRoom(S,'center',i).length;
+    info.textContent=t.desc+(t.place?`  (${n}/${cap}명)`:'')+(gains?`\n${gains}`:''); info.style.whiteSpace='pre-line';
+    if(n>0&&id!=='lobby'){ const b=document.createElement('button'); b.className='pill'; b.textContent='방 비우기 (로비로)'; b.onclick=()=>{ inRoom(S,'center',i).forEach(m=>returnToLobby(S,m)); save(); render(); openRoom(k,i); }; actions.append(b); }
+    const c=capCost(S,i);
+    if(t.up){ const b=document.createElement('button'); b.className='pill'; const maxed=cap>=t.max; b.textContent=maxed?'정원 최대':`정원 +1 (${c}💰)`; b.disabled=maxed; b.onclick=()=>{ const r=upgradeCap(S,i); if(!r.ok) return toast(r.msg); save(); render(); openRoom(k,i); }; actions.append(b); }
+    buildItemBar(actions,i,id);
+  }else if(k==='center'){
+    $('#dTitle').textContent=`센터 · ${Math.floor(i/2)+1}층 ${i%2+1}번 (빈 칸)`; info.textContent='만들 방을 고르세요.'; info.style.whiteSpace='';
+  }else{
+    const sl=S[k][i];
+    $('#dTitle').textContent=`${TITLE[k]} · ${i+1}번 · ${stem(sl.img)} · ${inRoom(S,k,i).length}/${slotCap(S,k,i)}명`;
+    const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER[k],sl.img); bg.alt=''; stage.append(bg);
+    fillStage(stage,k,i,true);
+    if(!(k==='office'&&sl.img==='개인사무실.png')){const add=document.createElement('button');add.className='pill';add.textContent=`정원 +1 (${workCapCost(S,k,i)}💰)`;add.onclick=()=>{const r=upgradeWorkCap(S,k,i);if(!r.ok)return toast(r.msg);save();render();openRoom(k,i,true);};actions.append(add);}
+    info.textContent=(k==='office'?`평균 ${S.cfg.join} 이상 회원이 갈 수 있습니다. 여기서 평균 ${S.cfg.marry}까지 올리면 집으로 보낼 수 있습니다.`:`회사를 거쳐 평균 ${S.cfg.marry} 이상이 된 회원이 갈 수 있습니다. 점수가 떨어지면 센터로 돌아옵니다.`)+`\n${fxText(S[k][i].img,k)}`; info.style.whiteSpace='pre-line';
+  }
+  stage.hidden=(k==='center'&&!id); stage.classList.toggle('compact',showChooser);
+  if(!showChooser&&(k!=='center'||id)) mountScene(stage,k,i);
+  if(k==='center'&&id==='shop'&&!showChooser) buildShop(choices);
+  if(showChooser) buildChooser(k,i,choices);
+  if(!dlg.open) dlg.showModal();
+}
+function buildChooser(k,i,box){
+  const h=t=>Object.assign(document.createElement('h3'),{textContent:t});
+  if(k==='center'){
+    const curId=S.center[i];
+    if(curId==='lobby'){ box.append(h('로비는 바꿀 수 없습니다.')); return; }
+    box.append(h(curId?'다른 방으로 바꾸기 (비용 새로 지불)':'방 종류'));
+    ROOM_ORDER.forEach(id=>{
+      if(id==='lobby') return;
+      const t=ROOMS[id], btn=document.createElement('button');
+      const used=t.unique&&S.center.some((v,ix)=>v===id&&ix!==i), locked=S.rep<t.unlock;
+      btn.disabled=used||id===curId||locked;
+      const img=document.createElement('img'); img.src=bgUrl(FOLDER.center,t.bg); img.alt=''; btn.append(img,document.createTextNode(t.name));
+      const sm=document.createElement('small'); sm.textContent= used?'이미 있음': locked?`🔒 명성 ${t.unlock}`:`${t.cost}💰 · ${t.cap?`${t.cap}명`:'배치 없음'}`; btn.append(sm);
+      btn.onclick=()=>{
+        const occ=inRoom(S,'center',i); const r=buildRoom(S,i,id); if(!r.ok) return toast(r.msg);
+        occ.forEach(m=>returnToLobby(S,m)); save(); render(); openRoom('center',i);
+      };
+      box.append(btn);
+    });
+    if(curId){ const del=document.createElement('button'); del.textContent='철거'; del.style.background='#f3dede'; del.onclick=()=>{ inRoom(S,'center',i).forEach(m=>returnToLobby(S,m)); S.center[i]=null; save(); render(); dlg.close(); }; box.append(del); }
+  }else{
+    IMAGES[k].forEach(f=>{
+      const btn=document.createElement('button'); const img=document.createElement('img'); img.src=bgUrl(FOLDER[k],f); img.alt='';
+      btn.append(img,document.createTextNode(stem(f))); { const F=(WFX[k]||{})[f]; if(F){ const sm=document.createElement('small'); sm.textContent='▲'+Object.keys(F.up).map(a=>SN[a]).join('·')+' ▼'+Object.keys(F.dn).map(a=>SN[a]).join('·'); btn.append(sm); } } btn.disabled=S[k][i].img===f;
+      btn.onclick=()=>{if(k==='office'&&f==='개인사무실.png'&&inRoom(S,k,i).length>1)return toast('개인사무실로 바꾸려면 회원을 1명만 남겨 주세요.');S[k][i].img=f; save(); render(); openRoom(k,i); }; box.append(btn);
+    });
+  }
+}
+$('#dlg .close').onclick=()=>dlg.close();
+dlg.addEventListener('close',()=>{ stopDlgActors(); stopScene(); });
+const bd=(d)=>d.addEventListener('click',e=>{ if(e.target===d){ const r=d.getBoundingClientRect(); if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) d.close(); } });
+bd(dlg);
+const tdlg=$('#tdlg'); bd(tdlg); $('#tdlg .close').onclick=()=>tdlg.close(); tdlg.addEventListener('close',()=>{ stopScene(); });
+
+/* 설정 · 편집기 */
+const dlg2=$('#dlg2'); bd(dlg2); $('#dlg2 .close').onclick=()=>dlg2.close();
+function openSettings(){
+  $('#d2Title').textContent='설정'; const b=$('#d2Body'); b.className=''; b.replaceChildren();
+  const C=S.cfg;
+  const row=(label,el)=>{ const r=document.createElement('div'); r.className='setrow'; r.append(Object.assign(document.createElement('span'),{textContent:label}),el); b.append(r); };
+  const sel=(opts,val,fn)=>{ const s=document.createElement('select'); opts.forEach(([v,t])=>{ const o=document.createElement('option'); o.value=v; o.textContent=t; if(String(v)===String(val)) o.selected=true; s.append(o); }); s.onchange=()=>{ fn(s.value); save(); updateHud(); }; return s; };
+  const num=(val,fn,min,max)=>{ const n=document.createElement('input'); n.type='number'; n.value=val; n.min=min; n.max=max; n.style.width='80px'; n.onchange=()=>{ fn(clamp(+n.value||min,min,max)); save(); render(); }; return n; };
+  row('하루 길이',sel([[1,'1분'],[2,'2분'],[3,'3분'],[5,'5분'],[10,'10분']],C.dayMin,v=>C.dayMin=+v));
+  row('속도 (시험용)',sel([[1,'×1'],[2,'×2'],[5,'×5'],[10,'×10'],[30,'×30']],C.speed,v=>C.speed=+v));
+  row('한 달 (일)',num(C.monthDays,v=>C.monthDays=v,3,30));
+  row('입사(회사) 기준 평균',num(C.join,v=>C.join=v,10,95));
+  row('결혼(집) 기준 평균',num(C.marry,v=>C.marry=v,20,99));
+  row('효과음',sel([[1,'켜짐'],[0,'꺼짐']],C.sound?1:0,v=>C.sound=v==='1'));
+  const gb=document.createElement('button'); gb.className='pill'; gb.textContent='골드 +99,999 · 명성 999'; gb.onclick=()=>{ S.gold+=99999; S.rep=Math.max(S.rep,999); save(); updateHud(); toast('지급했습니다.'); };
+  row('시험용 지급',gb);
+  const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
+  rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
+  row('초기화',rs);
+  const vb=document.createElement('span'); vb.textContent='미리보기 · 빌드 1015-H · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  dlg2.showModal();
+}
+function openEditor(){
+  $('#d2Title').textContent='편집기'; const b=$('#d2Body'); b.className='ed'; b.replaceChildren();
+  const tabs=document.createElement('div'); tabs.className='tabs'; const body=document.createElement('div'); b.append(tabs,body);
+  const T=[['scene','장면 순서표'],['dlg','대사집'],['title','호칭'],['bk','백업']]; let tab='scene', key='basic', dkey='n:lobby';
+  const keys=()=>[...ROOM_ORDER.filter(r=>ROOMS[r].place&&!ROOMS[r].dev),...DEV.map(n=>'dev:'+n.slice(0,2))];
+  const kname=k=>k.startsWith('dev:')?`${GEARN.includes(k.slice(4))?'기구방':'특수훈련실'} · ${DEV.find(n=>n.startsWith(k.slice(4))).slice(2).replace('_',' ')}`:ROOMS[k].name;
+  const draw=()=>{
+    tabs.replaceChildren(); T.forEach(([id,t])=>{ const x=document.createElement('button'); x.textContent=t; x.className=tab===id?'on':''; x.onclick=()=>{ tab=id; draw(); }; tabs.append(x); });
+    body.replaceChildren();
+    if(tab==='scene'){
+      const s=document.createElement('select'); keys().forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=kname(k); if(k===key) o.selected=true; s.append(o); }); s.onchange=()=>{ key=s.value; draw(); }; body.append(s);
+      const cp=document.createElement('p'); cp.className='info'; cp.textContent='한 줄 = 표정 + 효과음 + 대사 + 시간(ms). 대사에 {이름} {호칭} 을 쓸 수 있습니다. 호칭은 점수 단계별로 호칭 탭에서 채웁니다.'; body.append(cp);
+      if(!S.scripts) S.scripts={}; if(!S.scripts[key]) S.scripts[key]=JSON.parse(JSON.stringify(getScript(S,key)));
+      const steps=S.scripts[key], tb=document.createElement('table');
+      steps.forEach((st0,ix)=>{
+        const tr=document.createElement('tr');
+        const fs=document.createElement('select'); FACES.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; if(f===st0.face) o.selected=true; fs.append(o); }); fs.onchange=()=>{ st0.face=fs.value; save(); };
+        const ss=document.createElement('select'); SNDS.forEach(([v,t])=>{ const o=document.createElement('option'); o.value=v; o.textContent=t; if(v===st0.snd) o.selected=true; ss.append(o); }); ss.onchange=()=>{ st0.snd=ss.value; sound(st0.snd); save(); };
+        const ln=document.createElement('input'); ln.className='line'; ln.value=st0.line; ln.placeholder='대사'; ln.onchange=()=>{ st0.line=ln.value; save(); };
+        const ms=document.createElement('input'); ms.className='ms'; ms.type='number'; ms.value=st0.ms; ms.step=100; ms.onchange=()=>{ st0.ms=clamp(+ms.value||1000,300,20000); save(); };
+        const up=document.createElement('button'); up.textContent='↑'; up.onclick=()=>{ if(ix>0){ [steps[ix-1],steps[ix]]=[steps[ix],steps[ix-1]]; save(); draw(); } };
+        const dx=document.createElement('button'); dx.textContent='✕'; dx.onclick=()=>{ steps.splice(ix,1); save(); draw(); };
+        [fs,ss,ln,ms,up,dx].forEach(el=>{ const td=document.createElement('td'); td.append(el); tr.append(td); }); tb.append(tr);
+      });
+      body.append(tb);
+      const act=document.createElement('div'); act.className='dactions';
+      const add=document.createElement('button'); add.className='pill'; add.textContent='+ 줄 추가'; add.onclick=()=>{ steps.push({face:'기본',ms:1500,line:'',snd:''}); save(); draw(); };
+      const rst=document.createElement('button'); rst.className='pill'; rst.textContent='이 장면 기본값으로'; rst.onclick=()=>{ delete S.scripts[key]; save(); draw(); };
+      act.append(add,rst); body.append(act);
+    }else if(tab==='dlg'){
+      const sel=document.createElement('select');
+      Object.entries(DLG_GROUP).forEach(([g,gn])=>{ const og=document.createElement('optgroup'); og.label=gn; Object.entries(DLG_LABEL[g]).forEach(([r,rn])=>{ const o=document.createElement('option'); o.value=g+':'+r; o.textContent=`${gn} · ${rn}`; if(o.value===dkey) o.selected=true; og.append(o); }); sel.append(og); });
+      sel.onchange=()=>{ dkey=sel.value; draw(); }; body.append(sel);
+      const p=document.createElement('p'); p.className='info'; p.textContent='묶음 하나 = 제목 한 줄 + "화자: 대사" 줄들. 묶음 사이는 빈 줄로 나눕니다. 회원·여직원·여성이 말하면 캐릭터가 튀어나오고, 그 외(조교·남직원·남성 등)는 반투명 실루엣이 말합니다.'; body.append(p);
+      const ta=document.createElement('textarea'); ta.style.minHeight='300px';
+      ta.value=getDlg(dkey).map(sc=>sc.t+'\n'+sc.l.map(x=>x[0]+': '+x[1]).join('\n')).join('\n\n');
+      ta.onchange=()=>{ const arr=ta.value.split(/\n\s*\n/).map(bk=>{ const ls=bk.split('\n').map(x=>x.trim()).filter(Boolean); const o={t:'',l:[]}; ls.forEach(x=>{ const m=x.match(/^([^:：]{1,8})[:：]\s*(.+)$/); if(m) o.l.push([m[1].trim(),m[2].replace(/^"|"$/g,'')]); else if(!o.t) o.t=x; }); return o; }).filter(o=>o.l.length); if(!S.dlg) S.dlg={}; S.dlg[dkey]=arr; save(); toast('저장했습니다.'); };
+      body.append(ta);
+      const act=document.createElement('div'); act.className='dactions';
+      const rst=document.createElement('button'); rst.className='pill'; rst.textContent='이 방 기본값으로'; rst.onclick=()=>{ if(S.dlg) delete S.dlg[dkey]; save(); draw(); };
+      act.append(rst); body.append(act);
+    }else if(tab==='title'){
+      const p=document.createElement('p'); p.className='info'; p.textContent='회원의 점수 단계(평균 35 미만 / 55 미만 / 80 미만 / 그 이상)에 따라 대사의 {호칭} 자리에 들어갈 말을 한 줄에 하나씩 적습니다. 비워 두면 낮은 단계 것을, 전부 비면 "회원님"을 씁니다.'; body.append(p);
+      ['1단계 (처음)','2단계','3단계','4단계 (최상)'].forEach((lab,t)=>{
+        const h=document.createElement('h4'); h.textContent=lab; const ta=document.createElement('textarea'); ta.value=(S.titles[t]||[]).join('\n');
+        ta.onchange=()=>{ S.titles[t]=ta.value.split('\n').map(x=>x.trim()).filter(Boolean); save(); }; body.append(h,ta);
+      });
+    }else{
+      const p=document.createElement('p'); p.className='info'; p.textContent='내보내기를 누르면 아래 칸에 내용이 채워집니다. 복사해서 메모에 보관하세요. 불러오기는 아래 칸에 붙여 넣고 누르면 됩니다.'; body.append(p);
+      const ta=document.createElement('textarea'); ta.style.minHeight='220px'; body.append(ta);
+      const act=document.createElement('div'); act.className='dactions';
+      const ex=document.createElement('button'); ex.className='pill'; ex.textContent='내보내기'; ex.onclick=()=>{ ta.value=JSON.stringify({scripts:S.scripts||{},titles:S.titles,dlg:S.dlg||{}}); ta.select(); try{ navigator.clipboard.writeText(ta.value).then(()=>toast('복사했습니다.')).catch(()=>{}); }catch{} };
+      const im=document.createElement('button'); im.className='pill'; im.textContent='불러오기'; im.onclick=()=>{ try{ const o=JSON.parse(ta.value); if(!o||typeof o!=='object') throw 0; if(o.scripts&&typeof o.scripts==='object') S.scripts=o.scripts; if(o.dlg&&typeof o.dlg==='object') S.dlg=o.dlg; if(Array.isArray(o.titles)&&o.titles.length===4) S.titles=o.titles.map(a=>Array.isArray(a)?a.map(String):[]); save(); toast('불러왔습니다.'); }catch{ toast('형식이 올바르지 않습니다.'); } };
+      act.append(ex,im); body.append(act);
+    }
+  };
+  draw(); dlg2.showModal();
+}
+
+/* 버튼 */
+$$('[data-focus]').forEach(b=>b.onclick=()=>{ focus=b.dataset.focus; applyFocus(); });
+$('#btnEdit').onclick=()=>{ editing=!editing; document.body.classList.toggle('editing',editing); $('#btnEdit').classList.toggle('on',editing); $('#btnEdit').textContent=editing?'변경 완료':'방 변경'; if(editing) toast('바꿀 방을 누르세요.'); };
+$('#btnSet').onclick=openSettings; $('#btnEditor').onclick=openEditor;
+$('#btnTools').onclick=()=>{const menu=$('#toolsPopup');menu.hidden=!menu.hidden;$('#btnTools').setAttribute('aria-expanded',String(!menu.hidden));};
+$('#toolsPopup button').forEach(btn=>btn.addEventListener('click',()=>{$('#toolsPopup').hidden=true;$('#btnTools').setAttribute('aria-expanded','false');}));
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#btnTools,#toolsPopup')){$('#toolsPopup').hidden=true;$('#btnTools').setAttribute('aria-expanded','false');}});
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+$('#btnFull').onclick=async()=>{ const d=document.documentElement; try{ if(fsEl()) await (document.exitFullscreen||document.webkitExitFullscreen).call(document); else await (d.requestFullscreen||d.webkitRequestFullscreen).call(d); }catch{ toast('전체 화면을 지원하지 않는 환경입니다.'); } };
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{ $('#btnFull').textContent=fsEl()?'전체 화면 해제':'전체 화면'; setTimeout(fit,50); }));
+
+preload(); render();
+</script>
+<script src="vendor/matter.min.js"></script>
+<script src="minigames.js"></script>
+</body>
+</html>
