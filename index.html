@@ -199,14 +199,14 @@ const K = {
 /* 방 정의. train: 하루 기준 성장량, cost: 하루 체력 소모, cap: 기본 정원, max: 확장 한계, eff: 1인당 효율 */
 const ROOMS = {
   lobby:   {name:'로비',        bg:'휴게실.png',    cap:6, max:6, place:true, unique:true, cost:0,    unlock:0,   desc:'회원이 도착해서 대기하는 곳입니다. 체력이 천천히 돌아옵니다.', poses:['센터/요가_기본/02.png']},
-  basic:   {name:'기초방',      bg:'요가실.png',    cap:3, max:6, place:true, cost:150,  unlock:0,   train:{ge:9,bo:5},        hp:12, eff:1,   up:100, desc:'신규 회원의 첫 훈련 방입니다.', poses:['센터/요가_응용/02.png','센터/요가_응용/03.png']},
-  gear:    {name:'기구방',      bg:'트레이닝실.png', cap:2, max:4, place:true, cost:250,  unlock:0,   train:{ki:8,um:5},        hp:16, eff:1,   up:150, desc:'기구를 쓰는 고강도 훈련 방입니다.', poses:['센터/근력운동_덤벨바벨/01.png','센터/근력운동_덤벨바벨/02.png']},
+  basic:   {name:'기초방',      bg:'요가실.png',    cap:3, max:6, place:true, cost:150,  unlock:0,   train:{ge:9,bo:5},        hp:12, eff:1,   up:100, desc:'신규 회원의 첫 훈련 방입니다.', poses:['센터/요가_응용/02.png','센터/요가_응용/03.png'], sets:[['센터/요가_응용/02.png','센터/요가_응용/03.png'],['센터/요가_응용/04.png','센터/요가_응용/05.png'],['센터/요가_기본/04.png']]},
+  gear:    {name:'기구방',      bg:'트레이닝실.png', cap:2, max:4, place:true, cost:250,  unlock:0,   train:{ki:8,um:5},        hp:16, eff:1,   up:150, desc:'기구를 쓰는 고강도 훈련 방입니다.', poses:['센터/근력운동_덤벨바벨/01.png','센터/근력운동_덤벨바벨/02.png'], sets:[['센터/근력운동_덤벨바벨/01.png','센터/근력운동_덤벨바벨/02.png'],['센터/근력운동_머신/04.png','센터/근력운동_머신/05.png'],['센터/근력운동_덤벨바벨/10.png','센터/근력운동_덤벨바벨/11.png','센터/근력운동_덤벨바벨/12.png'],['센터/근력운동_덤벨바벨/04.png','센터/근력운동_덤벨바벨/05.png','센터/근력운동_덤벨바벨/06.png'],['센터/근력운동_머신/10.png','센터/근력운동_머신/11a.png']]},
   group:   {name:'단체방',      bg:'체육관.png',    cap:4, max:8, place:true, cost:300,  unlock:0,   train:{ge:7,bo:6,ki:3},   hp:13, eff:.7,  up:150, desc:'여러 회원이 함께 하는 방입니다. 사람이 많은 대신 1인당 성장이 느립니다.', poses:['센터/준비운동_상체/02.png','센터/준비운동_상체/03.png']},
-  recovery:{name:'회복방',      bg:'샤워실.png',    cap:3, max:6, place:true, cost:200,  unlock:0,   regen:70, up:100, desc:'피곤한 회원이 쉬는 방입니다. 체력이 빠르게 돌아옵니다.', poses:['센터/운동후표정/03.png']},
+  recovery:{name:'회복방',      bg:'샤워실.png',    cap:3, max:6, place:true, cost:200,  unlock:0,   regen:70, up:100, desc:'피곤한 회원이 쉬는 방입니다. 체력이 빠르게 돌아옵니다.', poses:['센터/운동후표정/03.png'], sets:[['센터/운동후표정/02.png'],['센터/운동후표정/01a.png','센터/운동후표정/01b.png'],['센터/요가_기본/07.png'],['센터/운동후표정/03.png']]},
   shop:    {name:'매점',        bg:'매점.png',      cap:0, max:0, place:false, unique:true, cost:150, unlock:10,  desc:'로비 회원의 체력 회복을 조금 돕습니다.', poses:[]},
-  posture: {name:'자세 점검방', bg:'운동실.jpg',    cap:1, max:3, place:true, cost:300,  unlock:25,  train:{ki:10},           hp:16, eff:1,   up:200, desc:'거울 앞에서 자세를 교정하는 방입니다. 1명씩 집중합니다.', poses:['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png']},
-  punish:  {name:'체벌방(?)',   bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:500,  unlock:50,  train:{bo:14,um:7},       hp:26, eff:1,   up:300, desc:'효과가 크지만 체력 소모도 큽니다.', poses:['센터/사과포즈/01.png','센터/사과포즈/02.png']},
-  special: {name:'별도 훈련방', bg:'화장실.png',    cap:1, max:3, place:true, cost:600,  unlock:90,  train:{um:12,ge:8},       hp:24, eff:1,   up:300, desc:'체벌방과 다른 계열의 훈련 방입니다. (이름 미정)', poses:['센터/준비운동_하체/02.png','센터/준비운동_하체/03.png']},
+  posture: {name:'자세 점검방', bg:'운동실.jpg',    cap:1, max:3, place:true, cost:300,  unlock:25,  train:{ki:10},           hp:16, eff:1,   up:200, desc:'거울 앞에서 자세를 교정하는 방입니다. 1명씩 집중합니다.', poses:['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'], sets:[['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'],['센터/요가_동작변화/07b.png','센터/요가_동작변화/07c.png'],['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/요가_응용/10.png','센터/요가_응용/12.png']]},
+  punish:  {name:'체벌방(?)',   bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:500,  unlock:50,  train:{bo:14,um:7},       hp:26, eff:1,   up:300, desc:'효과가 크지만 체력 소모도 큽니다.', poses:['센터/사과포즈/01.png','센터/사과포즈/02.png'], sets:[['센터/근력운동_하체/04.png','센터/근력운동_하체/05.png','센터/근력운동_하체/06.png'],['센터/근력운동_덤벨바벨/10.png','센터/근력운동_덤벨바벨/11.png','센터/근력운동_덤벨바벨/12.png'],['센터/요가_응용/02.png','센터/요가_응용/03.png'],['센터/준비운동_상체/07.png'],['센터/요가_기본/07.png'],['센터/요가_기본/06.png'],['센터/사과포즈/01.png','센터/사과포즈/02.png']]},
+  special: {name:'별도 훈련방', bg:'화장실.png',    cap:1, max:3, place:true, cost:600,  unlock:90,  train:{um:12,ge:8},       hp:24, eff:1,   up:300, desc:'체벌방과 다른 계열의 훈련 방입니다. (이름 미정)', poses:['센터/준비운동_하체/02.png','센터/준비운동_하체/03.png'], sets:[['센터/준비운동_하체/01.png','센터/준비운동_하체/02.png','센터/준비운동_하체/03.png']]},
   elite:   {name:'특수훈련실',  bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:1500, unlock:120, minAvg:50, train:{ki:12,um:12,bo:12,ge:12}, hp:32, eff:1, up:500, desc:'입사 기준을 넘은 엘리트 회원만 들어갑니다. 효과도 체력 소모도 가장 큽니다.', poses:[]}
 };
 const ROOM_ORDER = ['lobby','basic','gear','group','recovery','shop','posture','punish','special','elite'];
@@ -276,7 +276,7 @@ function place(S,m,b,i){
   if(b==='center'){
     const occ=inRoom(S,'center',i).filter(x=>x!==m);
     if(occ.length>=roomCap(S,i) && occ.length) occ[0].loc={...m.loc};     // 정원 1짜리가 차 있으면 자리 교환
-    if(S.center[i]==='elite') m.pose=Math.floor(rnd()*ELITE.length);
+    const RR=ROOMS[S.center[i]]; if(RR&&(RR.sets||S.center[i]==='elite')) m.pose=Math.floor(rnd()*(RR.sets?RR.sets.length:ELITE.length));
   }
   m.loc={b,i}; m.tr=0;
 }
@@ -469,6 +469,7 @@ function personEl(m, big){
   let poses;
   if(m.loc.b!=='center') poses=WORKPOSE[m.loc.b];
   else if(S.center[m.loc.i]==='elite') poses=['센터/특수훈련실/'+ELITE[m.pose%ELITE.length]+'.png'];
+  else if(R&&R.sets) poses=R.sets[m.pose%R.sets.length];
   else poses=(R&&R.poses.length)?R.poses:ROOMS.lobby.poses;
   const p=document.createElement('div'); p.className='person'; p.dataset.id=m.id;
   const img=document.createElement('img'); img.className='pose'; img.alt=nameOf(m); img.draggable=false; img.src=poseUrl(poses[0]); p.append(img);
@@ -602,7 +603,7 @@ function locate(id){
 /* 포즈 번갈아·표정 말풍선·하트 */
 let tick=0;
 setInterval(()=>{ tick++; anim.forEach(a=>{ if(a.img.isConnected) a.img.src=poseUrl(a.poses[(tick+a.off)%a.poses.length]); }); },900);
-function preload(){ const seen=new Set(); Object.values(ROOMS).forEach(t=>t.poses.forEach(p=>{ if(!seen.has(p)){ seen.add(p); new Image().src=poseUrl(p);} })); FACES.forEach(f=>new Image().src=faceUrl(f)); }
+function preload(){ const seen=new Set(); Object.values(ROOMS).forEach(t=>[...t.poses,...(t.sets||[]).flat()].forEach(p=>{ if(!seen.has(p)){ seen.add(p); new Image().src=poseUrl(p);} })); FACES.forEach(f=>new Image().src=faceUrl(f)); }
 
 function stageOf(a){ return a.el.closest('.stage-big'); }
 function runActors(){
