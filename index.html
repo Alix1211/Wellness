@@ -56,8 +56,10 @@ body.editing .room:not(.empty){outline:3px dashed #3e7969aa;outline-offset:-3px}
 .room.drop-ok{outline:4px solid #4aa37f;outline-offset:-4px}
 .room.drop-no{outline:4px solid #d46a6a;outline-offset:-4px}
 .stage-people{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;gap:2%;padding:0 3% 3.5%;z-index:2;pointer-events:none}
-.person{height:74%;display:flex;align-items:flex-end;justify-content:center;max-width:calc(94% / var(--n,1));pointer-events:auto;touch-action:none;cursor:grab;position:relative}
+.person{height:100%;display:flex;align-items:flex-end;justify-content:center;max-width:calc(94% / var(--n,1));pointer-events:auto;touch-action:none;cursor:grab;position:relative}
 .person img.pose{height:100%;width:auto;max-width:100%;object-fit:contain;object-position:bottom;display:block;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none;filter:drop-shadow(0 2px 2px #0003)}
+.stage-people.free{display:block;padding:0}
+.person.free{position:absolute;bottom:3.5%;height:96.5%;max-width:none}
 .person.dragging{opacity:.3}
 .person.pulse{animation:pulse .6s 4}
 @keyframes pulse{50%{transform:scale(1.15)}}
@@ -73,7 +75,6 @@ body.editing .room:not(.empty){outline:3px dashed #3e7969aa;outline-offset:-3px}
 @keyframes zz{to{transform:translateY(-4px)}}
 .person .heart{position:absolute;pointer-events:none;color:#ff5c93;font-size:16px;animation:rise 1.6s forwards;text-shadow:0 0 3px #fff}
 @keyframes rise{from{opacity:1;transform:translateY(0) scale(.6)}to{opacity:0;transform:translateY(-55px) scale(1.1)}}
-.lobby-room .person{height:62%}
 #ghost{position:fixed;z-index:100;pointer-events:none;height:110px;transform:translate(-50%,-80%);filter:drop-shadow(0 6px 8px #0005)}
 footer{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:6;background:#fffcf2ed;padding:7px;border-radius:18px;display:flex;gap:4px;box-shadow:0 5px 30px #304a4c25}
 footer button{background:transparent;padding:9px 14px;color:#42685e;white-space:nowrap;border-radius:12px}
@@ -200,18 +201,24 @@ const K = {
 /* 방 정의. train: 하루 기준 성장량, cost: 하루 체력 소모, cap: 기본 정원, max: 확장 한계, eff: 1인당 효율 */
 const ROOMS = {
   lobby:   {name:'로비',        bg:'휴게실.png',    cap:6, max:6, place:true, unique:true, cost:0,    unlock:0,   desc:'회원이 도착해서 대기하는 곳입니다. 체력이 천천히 돌아옵니다.', poses:['센터/요가_기본/02.png']},
-  basic:   {name:'기초방',      bg:'요가실.png',    cap:3, max:6, place:true, cost:150,  unlock:0,   train:{ge:9,bo:5},        hp:12, eff:1,   up:100, desc:'신규 회원의 첫 훈련 방입니다.', poses:['센터/요가_응용/02.png','센터/요가_응용/03.png'], sets:[['센터/요가_응용/02.png','센터/요가_응용/03.png'],['센터/요가_응용/04.png','센터/요가_응용/05.png'],['센터/요가_기본/04.png']]},
-  gear:    {name:'기구방',      bg:'트레이닝실.png', cap:2, max:4, place:true, cost:250,  unlock:0,   train:{ki:8,um:5},        hp:16, eff:1,   up:150, desc:'기구를 쓰는 고강도 훈련 방입니다.', poses:['센터/근력운동_덤벨바벨/01.png','센터/근력운동_덤벨바벨/02.png'], sets:[['센터/근력운동_덤벨바벨/01.png','센터/근력운동_덤벨바벨/02.png'],['센터/근력운동_머신/04.png','센터/근력운동_머신/05.png'],['센터/근력운동_덤벨바벨/10.png','센터/근력운동_덤벨바벨/11.png','센터/근력운동_덤벨바벨/12.png'],['센터/근력운동_덤벨바벨/04.png','센터/근력운동_덤벨바벨/05.png','센터/근력운동_덤벨바벨/06.png'],['센터/근력운동_머신/10.png','센터/근력운동_머신/11a.png']]},
-  group:   {name:'단체방',      bg:'체육관.png',    cap:4, max:8, place:true, cost:300,  unlock:0,   train:{ge:7,bo:6,ki:3},   hp:13, eff:.7,  up:150, desc:'여러 회원이 함께 하는 방입니다. 사람이 많은 대신 1인당 성장이 느립니다.', poses:['센터/준비운동_상체/02.png','센터/준비운동_상체/03.png']},
+  basic:   {name:'기초방',      bg:'요가실.png',    cap:3, max:6, place:true, cost:150,  unlock:0,   train:{ge:9,bo:5},        hp:12, eff:1,   up:100, desc:'신규 회원의 첫 훈련 방입니다.', poses:['센터/푸시업/01.png','센터/푸시업/02.png','센터/푸시업/03.png'], sets:[['센터/푸시업/01.png','센터/푸시업/02.png','센터/푸시업/03.png'],['센터/아기자세/01.png','센터/아기자세/02.png','센터/아기자세/03.png'],['센터/요가_기본/04.png']]},
+  gear:    {name:'기구방',      bg:'트레이닝실.png', cap:2, max:4, place:true, cost:250,  unlock:0,   train:{ki:8,um:5},        hp:16, eff:1,   up:150, dev:true, desc:'형틀·십자대·의자·사슬·밧줄 같은 중세 기구로 훈련하는 방입니다.', poses:[]},
+  group:   {name:'단체방',      bg:'체육관.png',    cap:4, max:8, place:true, cost:300,  unlock:0,   train:{ge:7,bo:6,ki:3},   hp:13, eff:.7,  up:150, desc:'여러 회원이 함께 하는 방입니다. 사람이 많은 대신 1인당 성장이 느립니다.', wander:true, poses:['센터/네발자세/01.png','센터/네발자세/02.png','센터/네발자세/03.png'], sets:[['센터/네발자세/01.png','센터/네발자세/02.png','센터/네발자세/03.png'],['센터/네발자세/04.png','센터/네발자세/05.png','센터/네발자세/06.png']]},
   recovery:{name:'회복방',      bg:'샤워실.png',    cap:3, max:6, place:true, cost:200,  unlock:0,   regen:70, up:100, desc:'피곤한 회원이 쉬는 방입니다. 체력이 빠르게 돌아옵니다.', poses:['센터/운동후표정/03.png'], sets:[['센터/운동후표정/02.png'],['센터/운동후표정/01a.png','센터/운동후표정/01b.png'],['센터/요가_기본/07.png'],['센터/운동후표정/03.png']]},
   shop:    {name:'매점',        bg:'매점.png',      cap:0, max:0, place:false, unique:true, cost:150, unlock:10,  desc:'로비 회원의 체력 회복을 조금 돕습니다.', poses:[]},
   posture: {name:'자세 점검방', bg:'운동실.jpg',    cap:1, max:3, place:true, cost:300,  unlock:25,  train:{ki:10},           hp:16, eff:1,   up:200, desc:'거울 앞에서 자세를 교정하는 방입니다. 1명씩 집중합니다.', poses:['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'], sets:[['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png'],['센터/요가_동작변화/07b.png','센터/요가_동작변화/07c.png'],['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/요가_응용/10.png','센터/요가_응용/12.png']]},
   punish:  {name:'체벌방(?)',   bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:500,  unlock:50,  train:{bo:14,um:7},       hp:26, eff:1,   up:300, desc:'효과가 크지만 체력 소모도 큽니다.', poses:['센터/사과포즈/01.png','센터/사과포즈/02.png'], sets:[['센터/근력운동_하체/04.png','센터/근력운동_하체/05.png','센터/근력운동_하체/06.png'],['센터/근력운동_덤벨바벨/10.png','센터/근력운동_덤벨바벨/11.png','센터/근력운동_덤벨바벨/12.png'],['센터/요가_응용/02.png','센터/요가_응용/03.png'],['센터/준비운동_상체/07.png'],['센터/요가_기본/07.png'],['센터/요가_기본/06.png'],['센터/사과포즈/01.png','센터/사과포즈/02.png']]},
   special: {name:'별도 훈련방', bg:'화장실.png',    cap:1, max:3, place:true, cost:600,  unlock:90,  train:{um:12,ge:8},       hp:24, eff:1,   up:300, desc:'체벌방과 다른 계열의 훈련 방입니다. (이름 미정)', poses:['센터/준비운동_하체/02.png','센터/준비운동_하체/03.png'], sets:[['센터/준비운동_하체/01.png','센터/준비운동_하체/02.png','센터/준비운동_하체/03.png']]},
-  elite:   {name:'특수훈련실',  bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:1500, unlock:120, minAvg:50, train:{ki:12,um:12,bo:12,ge:12}, hp:32, eff:1, up:500, desc:'입사 기준을 넘은 엘리트 회원만 들어갑니다. 효과도 체력 소모도 가장 큽니다.', poses:[]}
+  elite:   {name:'특수훈련실',  bg:'마사지실.jpg',  cap:2, max:4, place:true, cost:1500, unlock:120, minAvg:50, train:{ki:12,um:12,bo:12,ge:12}, hp:32, eff:1, up:500, desc:'입사 기준을 넘은 엘리트 회원만 들어갑니다. 엎드리거나 누운 자세로 훈련하며 효과도 체력 소모도 가장 큽니다.', poses:[], sets:[
+    ['센터/근력운동_하체/04.png','센터/근력운동_하체/05.png','센터/근력운동_하체/06.png'],
+    ['센터/근력운동_덤벨바벨/04.png','센터/근력운동_덤벨바벨/05.png','센터/근력운동_덤벨바벨/06.png'],
+    ['센터/근력운동_머신/10.png','센터/근력운동_머신/11a.png','센터/근력운동_머신/11b.png'],
+    ['센터/요가_기본/06.png'],['센터/요가_기본/07.png'],
+    ['센터/요가_동작변화/07a.png','센터/요가_동작변화/07b.png','센터/요가_동작변화/07c.png'],
+    ['센터/요가_응용/07.png','센터/요가_응용/08.png'],['센터/운동후표정/02.png']]}
 };
 const ROOM_ORDER = ['lobby','basic','gear','group','recovery','shop','posture','punish','special','elite'];
-const ELITE = ['01형틀_서기','02형틀_꿇기','03기둥_사슬','04의자','05십자대','06발사슬','07밧줄_앉기','08기둥_묶음','09밧줄_꿇기'];
+const DEV = ['01형틀_서기','02형틀_꿇기','03기둥_사슬','04의자','05십자대','06발사슬','07밧줄_앉기','08기둥_묶음','09밧줄_꿇기'];
 
 const SUR=['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','홍'];
 const G1=['하','서','지','민','수','예','유','채','다','소','나','윤','아','은','재','시','연','보','가','도'];
@@ -278,7 +285,7 @@ function place(S,m,b,i){
   if(b==='center'){
     const occ=inRoom(S,'center',i).filter(x=>x!==m);
     if(occ.length>=roomCap(S,i) && occ.length) occ[0].loc={...m.loc};     // 정원 1짜리가 차 있으면 자리 교환
-    const RR=ROOMS[S.center[i]]; if(RR&&(RR.sets||S.center[i]==='elite')) m.pose=Math.floor(rnd()*(RR.sets?RR.sets.length:ELITE.length));
+    const RR=ROOMS[S.center[i]]; if(RR&&(RR.sets||RR.dev)) m.pose=Math.floor(rnd()*(RR.sets?RR.sets.length:DEV.length));
   }
   m.loc={b,i}; m.tr=0;
 }
@@ -384,15 +391,16 @@ const DEF_SCRIPTS = (()=>{
     posture:[st('기본',1500,'이 자세… 맞나요?'),st('당황',1400,'조금 부끄러운데요…'),st('능청',2200,'…완벽하죠?')],
     punish:SPANK,
     special:[st('당황',1400,'…네?'),st('혼란',1500,'잠깐만요…'),st('시무룩',1400,'으으…'),st('능청',2800,'…괜찮아요.')],
+    elite:[st('편안',1300,'시작하나요?'),st('당황',1300,'…?'),st('충격',700,'앗!','thud'),st('눈물참기',1200,'으으…'),st('엉엉',1000,'흑…'),st('능청',3500,'…(방긋)')],
     recovery:[st('편안',2000,'후우…'),st('눈감고웃음',2000,'좋다…'),st('윙크',1500)]
   };
   const A=['기본','당황','충격','눈물참기','능청'], B=['활짝웃음','반짝','충격','엉엉','능청'], C=['편안','뾰로통','시무룩','윙크'];
   const seq=(faces,hit)=>faces.map((f,i)=>st(f, f==='능청'?3500:1300, f==='충격'?'앗!':f==='능청'?'…(방긋)':'', f==='충격'?hit:''));
-  ELITE.forEach((n,i)=>{ const key='elite:'+n.slice(0,2);
+  DEV.forEach((n,i)=>{ const key='dev:'+n.slice(0,2);
     d[key] = i<2 ? seq(A,'boing') : i===2||i===4 ? seq(B,'boing') : i===3 ? seq(['활짝웃음','당황','충격','시무룩','능청'],'boing') : i===5 ? seq(['놀람','당황','시무룩','눈물참기','능청'],'') : seq(C,''); });
   return d;
 })();
-function scriptKey(S,m){ const id=S.center[m.loc.i]; return id==='elite' ? 'elite:'+ELITE[m.pose%ELITE.length].slice(0,2) : id; }
+function scriptKey(S,m){ const id=S.center[m.loc.i]; return ROOMS[id]&&ROOMS[id].dev ? 'dev:'+DEV[m.pose%DEV.length].slice(0,2) : id; }
 function getScript(S,key){ return (S.scripts&&S.scripts[key]) || DEF_SCRIPTS[key] || DEF_SCRIPTS.basic; }
 function fillLine(S,m,line){
   const t=tierOf(m); let pool=[]; for(let k=t;k>=0&&!pool.length;k--) pool=S.titles[k]||[];
@@ -414,6 +422,16 @@ const IMAGES = {office:['개인사무실.png','공용사무실.png','파티션�
 const FOLDER = {office:'사무실', center:'센터', home:'집'};
 const TITLE  = {office:'회사', center:'WELLNESS CENTER', home:'집'};
 const WORKPOSE = {office:['사무실/요가_기본/02.png','사무실/준비운동_상체/02.png'], home:['집/1000040212/01.png','집/1000040211/02.png']};
+const HAIR = {"센터/푸시업": 70.1, "센터/아기자세": 68.4, "센터/네발자세": 50.8, "사무실/근력운동_덤벨바벨": 92.9, "사무실/근력운동_머신": 91.6, "사무실/근력운동_하체": 101.8, "사무실/요가_기본": 105.0, "사무실/요가_바닥운동": 124.2, "사무실/요가_스트레칭": 112.1, "사무실/운동후표정": 201.1, "사무실/준비운동_상체": 132.1, "센터/근력운동_덤벨바벨": 84.5, "센터/근력운동_머신": 86.1, "센터/근력운동_하체": 93.2, "센터/사과포즈": 344.3, "센터/요가_기본": 77.6, "센터/요가_동작변화": 102.6, "센터/요가_응용": 81.0, "센터/운동후표정": 172.1, "센터/준비운동_상체": 124.9, "센터/준비운동_하체": 129.3, "센터/특수훈련실": 153.1, "센터/판타지구속포즈": 159.5, "집/1000040211": 122.0, "집/1000040212": 139.2, "집/1000040213": 111.6, "집/1000040214": 139.1, "집/1000040215": 131.7, "집/1000040216": 111.2, "집/1000040217": 115.1};
+const poseScale = rel => { const f=rel.split('/').slice(0,2).join('/'); const m=HAIR[f]||100; return 0.174*Math.pow(77.6/m,0.6); };   // 머리 크기 기준 배율
+function fitPose(img){
+  const nh=img.naturalHeight, nw=img.naturalWidth; if(!nh||!img.dataset.rel) return;
+  const wrap=img.closest('.stage-people'); const n=wrap?(parseFloat(wrap.style.getPropertyValue('--n'))||1):1;
+  const s=poseScale(img.dataset.rel); let h=nh*s;
+  const wMax=(90/n)/(9/16), hMax=94;
+  if(nw*s>wMax) h*=wMax/(nw*s);
+  const X=Math.min(h,hMax)/0.94, p=img.parentElement; p.style.height=(p.classList.contains('free')?X*0.965:X)+'%'; img.style.height='100%';
+}
 const stem = f => f.replace(/\.[^.]+$/,'');
 
 const KEY='gaia-wellness-v3';
@@ -463,18 +481,18 @@ addEventListener('pointerdown',()=>{ try{ if(S.cfg.sound){ AC=AC||new (window.Au
 
 /* 그리기 */
 let focus='center', editing=false, dragging=false, pendingRender=false;
-let anim=[], actors=[];
+let anim=[], actors=[], wand=[]; const WANDER=new Map();
 const row=$('#row');
 
 function personEl(m, big){
   const R=ROOMS[S.center[m.loc.i]];
   let poses;
   if(m.loc.b!=='center') poses=WORKPOSE[m.loc.b];
-  else if(S.center[m.loc.i]==='elite') poses=['센터/특수훈련실/'+ELITE[m.pose%ELITE.length]+'.png'];
+  else if(R&&R.dev) poses=['센터/특수훈련실/'+DEV[m.pose%DEV.length]+'.png'];
   else if(R&&R.sets) poses=R.sets[m.pose%R.sets.length];
   else poses=(R&&R.poses.length)?R.poses:ROOMS.lobby.poses;
   const p=document.createElement('div'); p.className='person'; p.dataset.id=m.id;
-  const img=document.createElement('img'); img.className='pose'; img.alt=nameOf(m); img.draggable=false; img.src=poseUrl(poses[0]); p.append(img);
+  const img=document.createElement('img'); img.className='pose'; img.alt=nameOf(m); img.draggable=false; img.dataset.rel=poses[0]; img.onload=()=>fitPose(img); img.src=poseUrl(poses[0]); p.append(img);
   const bl=document.createElement('div'); bl.className='blush'; p.append(bl);
   const fc=document.createElement('img'); fc.className='face'; fc.alt=''; p.append(fc);
   const hp=document.createElement('div'); hp.className='hp'; hp.innerHTML='<i></i>'; p.append(hp);
@@ -483,6 +501,11 @@ function personEl(m, big){
   if(poses.length>1) anim.push({img,poses,off:Math.floor(Math.random()*poses.length)});
   if(m.loc.b==='center' && S.center[m.loc.i]!=='shop'){
     actors.push({m, el:p, face:fc, key:scriptKey(S,m), idx:0, rem:200+Math.random()*900, primary:false, big:!!big});
+  }
+  if(m.loc.b==='center' && R && R.wander){
+    p.classList.add('free');
+    let w=WANDER.get(m.id); if(!w){ w={x:6+Math.random()*60, dir:Math.random()<.5?-1:1, v:3+Math.random()*4, pause:Math.random()*1500}; WANDER.set(m.id,w); }
+    p.style.left=w.x+'%'; img.style.transform=w.dir>0?'scaleX(-1)':''; wand.push({w,el:p,img});
   }
   bindDrag(p,m.id);
   paintPerson(p,m);
@@ -507,7 +530,8 @@ function updateBars(){ $$('.person').forEach(p=>{ const m=mById(+p.dataset.id); 
 
 function fillStage(stage, b, slot, big){
   const people=inRoom(S,b,slot);
-  const wrap=document.createElement('div'); wrap.className='stage-people'; wrap.style.setProperty('--n',Math.max(1,people.length));
+  const free=b==='center'&&ROOMS[S.center[slot]]&&ROOMS[S.center[slot]].wander;
+  const wrap=document.createElement('div'); wrap.className='stage-people'+(free?' free':''); wrap.style.setProperty('--n',free?1:Math.max(1,people.length));
   people.forEach(m=>wrap.append(personEl(m,big)));
   stage.append(wrap);
 }
@@ -537,7 +561,7 @@ function roomEl(k,i){
 }
 function render(){
   if(dragging){ pendingRender=true; return; }
-  anim=[]; actors=actors.filter(a=>a.dlg); row.replaceChildren();
+  anim=[]; wand=[]; actors=actors.filter(a=>a.dlg); row.replaceChildren();
   for(const k of ['office','center','home']){
     const b=document.createElement('section'); b.className='building '+k; b.dataset.kind=k;
     const roof=document.createElement('div'); roof.className='roof'; roof.textContent=TITLE[k]; b.append(roof);
@@ -604,8 +628,8 @@ function locate(id){
 
 /* 포즈 번갈아·표정 말풍선·하트 */
 let tick=0;
-setInterval(()=>{ tick++; anim.forEach(a=>{ if(a.img.isConnected) a.img.src=poseUrl(a.poses[(tick+a.off)%a.poses.length]); }); },900);
-function preload(){ const seen=new Set(); Object.values(ROOMS).forEach(t=>[...t.poses,...(t.sets||[]).flat()].forEach(p=>{ if(!seen.has(p)){ seen.add(p); new Image().src=poseUrl(p);} })); FACES.forEach(f=>new Image().src=faceUrl(f)); }
+setInterval(()=>{ tick++; anim.forEach(a=>{ if(a.img.isConnected){ const rel=a.poses[(tick+a.off)%a.poses.length]; a.img.dataset.rel=rel; a.img.src=poseUrl(rel); } }); },900);
+function preload(){ const seen=new Set(); Object.values(ROOMS).forEach(t=>[...t.poses,...(t.sets||[]).flat()].forEach(p=>{ if(!seen.has(p)){ seen.add(p); new Image().src=poseUrl(p);} })); DEV.forEach(n=>new Image().src=poseUrl('센터/특수훈련실/'+n+'.png')); FACES.forEach(f=>new Image().src=faceUrl(f)); }
 
 function stageOf(a){ return a.el.closest('.stage-big'); }
 function runActors(){
@@ -629,6 +653,15 @@ function runActors(){
   }
 }
 setInterval(runActors,100);
+setInterval(()=>{ wand.forEach(o=>{
+  const {w,el,img}=o; if(!el.isConnected||el.classList.contains('dragging')) return;
+  if(w.pause>0){ w.pause-=100; return; }
+  const sw=el.parentElement.clientWidth||1, pw=el.offsetWidth/sw*100, max=Math.max(2,98-pw);
+  w.x+=w.dir*w.v*0.1;
+  if(w.x<=2){ w.x=2; w.dir=1; } else if(w.x>=max){ w.x=max; w.dir=-1; }
+  const r=Math.random(); if(r<.02){ w.pause=800+Math.random()*2200; } else if(r<.035){ w.dir*=-1; }
+  el.style.left=w.x+'%'; img.style.transform=w.dir>0?'scaleX(-1)':'';
+}); },100);
 setInterval(()=>{
   $$('.person').forEach(p=>{
     if(!p.isConnected || p.closest('[style*="display: none"]')) return;
@@ -806,8 +839,8 @@ function openEditor(){
   $('#d2Title').textContent='편집기'; const b=$('#d2Body'); b.className='ed'; b.replaceChildren();
   const tabs=document.createElement('div'); tabs.className='tabs'; const body=document.createElement('div'); b.append(tabs,body);
   const T=[['scene','장면 순서표'],['title','호칭'],['bk','백업']]; let tab='scene', key='basic';
-  const keys=()=>[...ROOM_ORDER.filter(r=>ROOMS[r].place),...ELITE.map(n=>'elite:'+n.slice(0,2))];
-  const kname=k=>k.startsWith('elite:')?`특수훈련실 · ${ELITE.find(n=>n.startsWith(k.slice(6))).slice(2).replace('_',' ')}`:ROOMS[k].name;
+  const keys=()=>[...ROOM_ORDER.filter(r=>ROOMS[r].place&&!ROOMS[r].dev),...DEV.map(n=>'dev:'+n.slice(0,2))];
+  const kname=k=>k.startsWith('dev:')?`기구방 · ${DEV.find(n=>n.startsWith(k.slice(4))).slice(2).replace('_',' ')}`:ROOMS[k].name;
   const draw=()=>{
     tabs.replaceChildren(); T.forEach(([id,t])=>{ const x=document.createElement('button'); x.textContent=t; x.className=tab===id?'on':''; x.onclick=()=>{ tab=id; draw(); }; tabs.append(x); });
     body.replaceChildren();
