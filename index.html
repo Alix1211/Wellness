@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>가이아 시티 · 웰니스 센터</title>
+<style>
+:root{
+  --ink:#304a4c; --ink-soft:#59776c; --leaf:#3e7969; --leaf-soft:#e1ede4;
+  --cream:#fffcf3; --sand:#f4e7ce; --sand-dark:#d3bea0; --sky1:#a6dded; --sky2:#e5f5f0;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;color:var(--ink);background:#cef0f4;overflow:hidden}
+button{font:inherit;cursor:pointer;border:0;color:inherit}
+
+/* 상단 */
+header{height:68px;padding:10px 22px;display:flex;align-items:center;justify-content:space-between;background:#fffcf3ec;position:relative;z-index:5;box-shadow:0 3px 15px #405f6415}
+header small{font-size:11px;letter-spacing:3px;color:#719b92;display:block}
+header h1{font-size:21px;margin:0}
+nav{display:flex;gap:8px}
+nav button{background:var(--leaf-soft);border-radius:12px;padding:10px 16px;color:#31594f}
+nav button.active{background:var(--leaf);color:#fff}
+
+/* 장면 */
+#view{height:calc(100dvh - 68px);overflow-y:auto;overflow-x:hidden;background:linear-gradient(var(--sky1),var(--sky2) 75%);position:relative}
+#scene{display:flex;flex-direction:column;position:relative;transform-origin:top left}
+#row{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:38px;padding:100px 40px 0;position:relative;z-index:1}
+.sun{position:absolute;top:34px;right:9%;width:64px;height:64px;border-radius:50%;background:#fff6cc;box-shadow:0 0 60px #fff4c9}
+.cloud{position:absolute;top:60px;left:10%;width:180px;height:28px;border-radius:50%;background:#ffffff95}
+.ground{height:120px;flex:none;background:linear-gradient(#acd3a2 0 20px,#e9dfc8 20px 75px,#cbbda4 75px 80px,#e7d7bc 80px);border-top:5px solid #91bd8c;position:relative;z-index:0}
+
+/* 건물 */
+.building{position:relative;width:290px;flex:none;background:var(--sand);border:8px solid var(--sand);border-bottom:14px solid var(--sand-dark);box-shadow:8px 8px 0 #638b841c;border-radius:8px 8px 0 0}
+.building.center{width:540px;background:#e5eee3;border-color:#e5eee3;border-bottom-color:#b8c9b9}
+.roof{position:absolute;top:-51px;left:-15px;right:-15px;height:43px;border-radius:9px 9px 3px 3px;background:#4a7d72;color:#fff;text-align:center;padding:10px;font-weight:700;letter-spacing:3px;box-shadow:0 5px #c0d5c7;font-size:15px}
+.building.home .roof{background:#ba826d;box-shadow:0 5px #e0cbb8}
+.building.center .roof{background:#60978b}
+.floor{display:flex;gap:8px;border-bottom:8px solid var(--sand);position:relative}
+.center .floor{border-color:#e5eee3}
+.floor:last-of-type{border-bottom:0}
+.floor em{position:absolute;left:-30px;top:45%;font-size:11px;font-style:normal;color:#47726c}
+.foundation{padding:12px;text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.pill{background:var(--leaf-soft);border-radius:12px;padding:10px 16px;color:#31594f;font-size:14px}
+.pill[disabled]{opacity:.4;cursor:default}
+
+/* 방 */
+.room{position:relative;flex:1 1 0;min-width:0;aspect-ratio:16/9;background:#dde2d5;overflow:hidden;outline-offset:-4px;border-radius:2px;user-select:none;-webkit-user-select:none}
+.room>img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.room:focus-visible{outline:4px solid #468c7b}
+.room.empty{background:repeating-linear-gradient(135deg,#eef3ea 0 10px,#e3ebdf 10px 20px);display:grid;place-items:center;color:#7a978c;font-size:13px;border:2px dashed #b4cabb}
+.room .label{position:absolute;bottom:5px;left:6px;background:#fff9eada;border-radius:5px;padding:2px 7px;font-size:11px;pointer-events:none;z-index:3}
+.room .badge{position:absolute;top:5px;right:6px;background:#3e7969;color:#fff;border-radius:50%;width:20px;height:20px;display:none;place-items:center;font-size:11px;z-index:3}
+body.editing .room .badge{display:grid}
+body.editing .room:not(.empty){outline:3px dashed #3e7969aa;outline-offset:-3px}
+.room.drop-ok{outline:4px solid #4aa37f;outline-offset:-4px}
+.room.drop-no{outline:4px solid #d46a6a;outline-offset:-4px}
+.room.noplace::after{content:"";position:absolute;inset:0;pointer-events:none}
+
+/* 방 안 회원 */
+.stage-people{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;gap:2%;padding:0 3% 3.5%;z-index:2;pointer-events:none}
+.person{height:74%;display:flex;align-items:flex-end;justify-content:center;max-width:calc(94% / var(--n,1));pointer-events:auto;touch-action:none;cursor:grab;position:relative}
+.person img{height:100%;width:auto;max-width:100%;object-fit:contain;object-position:bottom;display:block;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none;filter:drop-shadow(0 2px 2px #0003)}
+.person.dragging{opacity:.3}
+.person .tag{position:absolute;top:-2px;left:50%;transform:translateX(-50%);background:#fffdf5e6;border-radius:5px;font-size:10px;padding:0 5px;white-space:nowrap}
+.lobby-room .person{height:62%}
+.room .person .tag{display:none}
+#ghost{position:fixed;z-index:100;pointer-events:none;height:110px;transform:translate(-50%,-80%);filter:drop-shadow(0 6px 8px #0005)}
+
+/* 하단 바 */
+footer{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:6;background:#fffcf2ed;padding:8px;border-radius:18px;display:flex;gap:6px;box-shadow:0 5px 30px #304a4c25}
+footer button{background:transparent;padding:10px 16px;color:#42685e;white-space:nowrap;border-radius:12px}
+footer button.on{background:var(--leaf);color:#fff}
+#toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#304a4cee;color:#fff;border-radius:12px;padding:10px 18px;font-size:14px;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+
+/* 대화창 */
+dialog{border:0;border-radius:20px;padding:18px;background:#fffdf5;color:var(--ink);width:min(860px,94vw);max-height:92dvh;box-shadow:0 20px 80px #284f4666;overflow:auto}
+dialog::backdrop{background:#203e4966}
+.dhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.dhead h2{margin:0;font-size:20px}
+.dhead .close{font-size:26px;background:transparent;padding:4px 14px}
+.stage-big{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#e4e9df}
+.stage-big>img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stage-big[hidden]{display:none}
+.stage-big.compact{width:min(400px,100%)}
+.info{margin:12px 2px 0;font-size:14px;color:var(--ink-soft);line-height:1.6}
+.dactions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:14px}
+.choices button{background:#e7eee3;padding:8px;border-radius:10px;text-align:left;font-size:13px}
+.choices img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;margin-bottom:5px;border-radius:6px}
+.choices small{display:block;color:#6b867c;font-size:11px;margin-top:2px}
+.choices button[disabled]{opacity:.4;cursor:default}
+.choices h3{grid-column:1/-1;margin:6px 0 0;font-size:14px}
+
+@media(max-width:650px){header{height:auto;flex-direction:column;align-items:flex-start;gap:6px}#view{height:calc(100dvh - 96px)}}
+</style>
+</head>
+<body>
+<header>
+  <div><small>GAIA CITY</small><h1>웰니스 센터</h1></div>
+  <nav aria-label="건물 선택">
+    <button class="active" data-focus="all">전체</button>
+    <button data-focus="office">사무실</button>
+    <button data-focus="center">센터</button>
+    <button data-focus="home">집</button>
+  </nav>
+</header>
+
+<main id="view">
+  <div id="scene">
+    <div class="sun"></div><div class="cloud"></div>
+    <div id="row"></div>
+    <div class="ground"></div>
+  </div>
+</main>
+
+<footer>
+  <button id="btnVisit">회원 방문</button>
+  <button id="btnEdit">방 변경</button>
+  <button id="btnFull">전체 화면</button>
+</footer>
+<div id="toast"></div>
+<img id="ghost" hidden alt="">
+
+<dialog id="dlg">
+  <div class="dhead"><h2 id="dTitle"></h2><button class="close" aria-label="닫기">×</button></div>
+  <div class="stage-big" id="dStage"></div>
+  <p class="info" id="dInfo"></p>
+  <div class="dactions" id="dActions"></div>
+  <div class="choices" id="dChoices"></div>
+</dialog>
+
+<script>
+'use strict';
+/* ─────────────────────────────────────────────
+   에셋 주소
+   - 같은 폴더에서 열면 ./ , 파일로 직접 열면 GitHub 원본을 사용
+   ───────────────────────────────────────────── */
+const ASSET_BASE = location.protocol === 'file:' ? 'https://raw.githubusercontent.com/Alix1211/Wellness/main/' : './';
+const assetUrl = (...parts) => ASSET_BASE + parts.map(encodeURIComponent).join('/');
+const bgUrl   = (folder, file) => assetUrl('배경', folder, file);
+const poseUrl = (rel) => assetUrl('포즈_낱개', ...rel.split('/')) ;   // rel 예: 센터/요가_응용/02.png
+
+/* ─────────────────────────────────────────────
+   센터 방 종류 (이름·기능은 임시. 바꾸려면 여기만 고치면 됨)
+   cap: 한 번에 들어가는 회원 수 / placeable: 회원 배치 가능 여부
+   poses: 방 안에서 번갈아 보이는 포즈 (포즈_낱개 안의 파일)
+   ───────────────────────────────────────────── */
+const CENTER = {
+  lobby:   {name:'로비',        bg:'휴게실.png',   cap:6, placeable:true,  unique:true,  desc:'회원이 도착해서 대기하는 곳입니다.', poses:['센터/요가_기본/02.png']},
+  basic:   {name:'기초방',      bg:'요가실.png',   cap:1, placeable:true,  desc:'신규 회원의 첫 훈련 방입니다.', poses:['센터/요가_응용/02.png','센터/요가_응용/03.png']},
+  gear:    {name:'기구방',      bg:'트레이닝실.png',cap:1, placeable:true,  desc:'기구를 쓰는 고강도 훈련 방입니다.', poses:['센터/근력운동_덤벨바벨/01.png','센터/근력운동_덤벨바벨/02.png']},
+  group:   {name:'단체방',      bg:'체육관.png',   cap:4, placeable:true,  desc:'여러 회원이 함께 하는 방입니다.', poses:['센터/준비운동_상체/02.png','센터/준비운동_상체/03.png']},
+  posture: {name:'자세 점검방', bg:'운동실.jpg',   cap:1, placeable:true,  desc:'거울 앞에서 자세를 교정하는 방입니다.', poses:['센터/준비운동_하체/04.png','센터/준비운동_하체/06.png']},
+  punish:  {name:'체벌방(?)',   bg:'마사지실.jpg', cap:1, placeable:true,  desc:'특수 훈련 방입니다.', poses:['센터/사과포즈/01.png','센터/사과포즈/02.png']},
+  special: {name:'별도 훈련방', bg:'화장실.png',   cap:1, placeable:true,  desc:'체벌방과 다른 계열의 훈련 방입니다. (이름 미정)', poses:['센터/준비운동_하체/02.png','센터/준비운동_하체/03.png']},
+  recovery:{name:'회복방',      bg:'샤워실.png',   cap:1, placeable:true,  desc:'세션 후 애프터케어 방입니다.', poses:['센터/운동후표정/03.png']},
+  shop:    {name:'매점',        bg:'매점.png',     cap:0, placeable:false, unique:true,  desc:'회복 제품과 도구를 파는 곳입니다.', poses:[]}
+};
+const CENTER_ORDER = ['lobby','basic','gear','group','posture','punish','special','recovery','shop'];
+
+/* 사무실·집은 아직 용도 미정 → 그림만 고르는 방 */
+const IMAGES = {
+  office:['개인사무실.png','공용사무실.png','파티션사무실.png','샤워실.png','화장실.png'],
+  home:['거실.png','빈방.png','서재.png']
+};
+const FOLDER = {office:'사무실', center:'센터', home:'집'};
+const TITLE  = {office:'사무실', center:'WELLNESS CENTER', home:'집'};
+const stem = f => f.replace(/\.[^.]+$/,'');
+
+/* ─────────────────────────────────────────────
+   상태와 저장
+   ───────────────────────────────────────────── */
+const KEY = 'gaia-wellness-v2';
+const DEFAULT = () => ({
+  center:['lobby','basic','gear','group'],
+  office:['개인사무실.png','공용사무실.png','파티션사무실.png'],
+  home:['거실.png','서재.png','빈방.png'],
+  members:[{id:1,name:'회원 1',at:0},{id:2,name:'회원 2',at:0},{id:3,name:'회원 3',at:0}],
+  next:4
+});
+let S = load();
+function load(){
+  let s = null;
+  try{ s = JSON.parse(localStorage.getItem(KEY)); }catch{}
+  const d = DEFAULT();
+  if(!s || typeof s !== 'object') return d;
+  const okCenter = Array.isArray(s.center) && s.center.length>=2 && s.center.length<=12 && s.center.length%2===0 &&
+    s.center.every(v=>v===null||CENTER[v]) && s.center.filter(v=>v==='lobby').length===1;
+  const okBld = k => Array.isArray(s[k]) && s[k].length===3 && s[k].every(v=>IMAGES[k].includes(v));
+  const out = {
+    center: okCenter ? s.center : d.center,
+    office: okBld('office') ? s.office : d.office,
+    home:   okBld('home') ? s.home : d.home,
+    members: Array.isArray(s.members) ? s.members.filter(m=>m && Number.isInteger(m.id) && typeof m.name==='string' && Number.isInteger(m.at)) : d.members,
+    next: Number.isInteger(s.next) ? s.next : d.next
+  };
+  /* 회원 위치 보정: 존재하지 않는 방/정원 초과는 로비로 */
+  const lobby = out.center.indexOf('lobby');
+  const count = {};
+  out.members.forEach(m=>{
+    const t = CENTER[out.center[m.at]];
+    count[m.at] = (count[m.at]||0);
+    if(!t || !t.placeable || count[m.at] >= t.cap) m.at = lobby;
+    count[m.at] = (count[m.at]||0)+1;
+  });
+  return out;
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch{ toast('이 브라우저에서는 저장할 수 없습니다.'); } }
+
+const $ = (q,el=document)=>el.querySelector(q);
+const $$ = (q,el=document)=>[...el.querySelectorAll(q)];
+const peopleIn = i => S.members.filter(m=>m.at===i);
+const lobbyIndex = () => S.center.indexOf('lobby');
+
+let toastTimer;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),1800); }
+
+/* ─────────────────────────────────────────────
+   그리기
+   ───────────────────────────────────────────── */
+let focus='all', editing=false, anim=[];
+const row = $('#row');
+
+function personEl(m, poses){
+  const p = document.createElement('div');
+  p.className='person'; p.dataset.id=m.id;
+  const img = document.createElement('img');
+  img.alt = m.name; img.draggable=false;
+  img.src = poseUrl(poses[0]);
+  p.append(img);
+  const tag = document.createElement('span'); tag.className='tag'; tag.textContent=m.name; p.append(tag);
+  if(poses.length>1) anim.push({img, poses, off:Math.floor(Math.random()*poses.length)});
+  bindDrag(p, m.id);
+  return p;
+}
+
+function fillStage(stage, slot){
+  const t = CENTER[S.center[slot]];
+  const people = peopleIn(slot);
+  const wrap = document.createElement('div');
+  wrap.className='stage-people';
+  wrap.style.setProperty('--n', Math.max(1,people.length));
+  people.forEach(m=>wrap.append(personEl(m, t.poses.length?t.poses:CENTER.lobby.poses)));
+  stage.append(wrap);
+}
+
+function roomEl(k, i){
+  const r = document.createElement('div');
+  r.className='room'; r.tabIndex=0; r.setAttribute('role','button');
+  let name='';
+  if(k==='center'){
+    const id = S.center[i];
+    if(!id){
+      r.classList.add('empty'); r.textContent='+ 방 건설'; r.dataset.slot=i; r.dataset.kind=k;
+      r.setAttribute('aria-label',`센터 ${Math.floor(i/2)+1}층 빈 방, 건설`);
+      r.onclick = () => openRoom(k,i);
+      return r;
+    }
+    const t = CENTER[id];
+    name = t.name;
+    if(id==='lobby') r.classList.add('lobby-room');
+    const bg = document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER.center,t.bg); bg.alt=''; r.append(bg);
+    fillStage(r,i);
+    const n = peopleIn(i).length;
+    const label = document.createElement('span'); label.className='label'; label.textContent = t.cap>1 ? `${name} ${n}/${t.cap}` : name; r.append(label);
+  }else{
+    const file = S[k][i];
+    name = stem(file);
+    const bg = document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER[k],file); bg.alt=''; r.append(bg);
+    const label = document.createElement('span'); label.className='label'; label.textContent=name; r.append(label);
+  }
+  const badge = document.createElement('span'); badge.className='badge'; badge.textContent='✎'; r.append(badge);
+  r.dataset.slot=i; r.dataset.kind=k;
+  r.setAttribute('aria-label', `${FOLDER[k]} ${name}`);
+  r.onclick = () => { if(suppressClick) return; openRoom(k,i); };
+  r.onkeydown = e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openRoom(k,i); } };
+  return r;
+}
+
+function render(){
+  anim = [];
+  row.replaceChildren();
+  for(const k of ['office','center','home']){
+    const b = document.createElement('section');
+    b.className='building '+k; b.dataset.kind=k;
+    const roof = document.createElement('div'); roof.className='roof'; roof.textContent=TITLE[k]; b.append(roof);
+    const list = k==='center' ? S.center : S[k];
+    const cols = k==='center' ? 2 : 1;
+    for(let rowI=list.length/cols-1; rowI>=0; rowI--){
+      const f = document.createElement('div'); f.className='floor';
+      for(let c=0;c<cols;c++) f.append(roomEl(k, rowI*cols+c));
+      const em = document.createElement('em'); em.textContent=(rowI+1)+'F'; f.append(em);
+      b.append(f);
+    }
+    if(k==='center'){
+      const base = document.createElement('div'); base.className='foundation';
+      const add = document.createElement('button'); add.className='pill'; add.textContent='층 추가';
+      add.disabled = S.center.length>=12;
+      add.onclick = () => { S.center.push(null,null); save(); render(); };
+      const del = document.createElement('button'); del.className='pill'; del.textContent='맨 위 층 철거';
+      const n = S.center.length;
+      del.disabled = n<=2 || S.center[n-1]!==null || S.center[n-2]!==null;
+      del.onclick = () => { S.center.length -= 2; save(); render(); };
+      base.append(add,del); b.append(base);
+    }
+    row.append(b);
+  }
+  applyFocus();
+}
+
+/* 방 안 포즈 번갈아 보여주기 */
+let tick=0;
+setInterval(()=>{ tick++; anim.forEach(a=>{ a.img.src = poseUrl(a.poses[(tick+a.off)%a.poses.length]); }); }, 900);
+function preloadPoses(){ const seen=new Set(); Object.values(CENTER).forEach(t=>t.poses.forEach(p=>{ if(!seen.has(p)){ seen.add(p); new Image().src=poseUrl(p);} })); }
+
+/* ─────────────────────────────────────────────
+   화면 맞춤 / 건물 선택
+   ───────────────────────────────────────────── */
+function applyFocus(){
+  document.body.classList.toggle('focus', focus!=='all');
+  $$('.building').forEach(b=>{ b.style.display = (focus==='all'||b.dataset.kind===focus) ? '' : 'none'; });
+  $$('[data-focus]').forEach(b=>b.classList.toggle('active', b.dataset.focus===focus));
+  fit();
+}
+function fit(){
+  const view=$('#view'), scene=$('#scene');
+  scene.style.zoom=1; scene.style.width='auto'; scene.style.minHeight='0';
+  const vis = $$('.building').filter(b=>b.style.display!=='none');
+  const natural = vis.reduce((s,b)=>s+b.offsetWidth+16,0) + (vis.length-1)*38 + 80;
+  const z = Math.max(.35, Math.min(1.5, view.clientWidth/natural));
+  scene.style.zoom = z;
+  scene.style.width = (view.clientWidth/z)+'px';
+  scene.style.minHeight = (view.clientHeight/z)+'px';
+}
+addEventListener('resize', fit);
+
+/* ─────────────────────────────────────────────
+   드래그 앤 드롭 (마우스·터치 공통)
+   ───────────────────────────────────────────── */
+let suppressClick=false;
+function canDrop(m, slot){
+  if(slot===m.at) return false;
+  const t = CENTER[S.center[slot]];
+  if(!t || !t.placeable) return false;
+  const n = peopleIn(slot).length;
+  if(n>=t.cap && t.cap!==1) return false;
+  return true;
+}
+function move(m, slot){
+  const t = CENTER[S.center[slot]];
+  const occ = peopleIn(slot);
+  if(occ.length>=t.cap && t.cap===1){ occ[0].at = m.at; }   // 한 명 방이면 서로 자리 교환
+  m.at = slot;
+}
+function roomAt(x,y){
+  const el = document.elementFromPoint(x,y);
+  const r = el && el.closest ? el.closest('.room') : null;
+  return r && r.dataset.kind==='center' && r.dataset.slot!==undefined ? r : null;
+}
+function bindDrag(el, id){
+  el.addEventListener('pointerdown', e=>{
+    if(e.pointerType==='mouse' && e.button!==0) return;
+    const m = S.members.find(x=>x.id===id); if(!m) return;
+    const sx=e.clientX, sy=e.clientY; let started=false, hot=null;
+    const ghost=$('#ghost');
+    try{ el.setPointerCapture(e.pointerId); }catch{}
+    const clear=()=>{ if(hot){ hot.classList.remove('drop-ok','drop-no'); hot=null; } };
+    const onMove = ev=>{
+      if(!started){
+        if(Math.hypot(ev.clientX-sx, ev.clientY-sy)<8) return;
+        started=true; el.classList.add('dragging');
+        ghost.src = el.querySelector('img').src; ghost.hidden=false;
+      }
+      ev.preventDefault();
+      ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px';
+      const r = roomAt(ev.clientX, ev.clientY);
+      if(r!==hot){ clear(); hot=r; }
+      if(hot){ const ok=canDrop(m, +hot.dataset.slot); hot.classList.toggle('drop-ok',ok); hot.classList.toggle('drop-no',!ok); }
+    };
+    const finish = ev=>{
+      el.removeEventListener('pointermove',onMove); el.removeEventListener('pointerup',onUp); el.removeEventListener('pointercancel',onCancel);
+      try{ el.releasePointerCapture(e.pointerId); }catch{}
+    };
+    const onUp = ev=>{
+      finish();
+      if(!started) return;
+      ghost.hidden=true; clear();
+      suppressClick=true; setTimeout(()=>suppressClick=false,0);
+      const r = roomAt(ev.clientX, ev.clientY);
+      if(r){
+        const slot=+r.dataset.slot;
+        if(canDrop(m,slot)){ move(m,slot); save(); }
+        else if(slot!==m.at){
+          const t=CENTER[S.center[slot]];
+          toast(!t||!t.placeable ? `${t?t.name:'이 방'}에는 회원을 넣을 수 없습니다.` : `${t.name}이(가) 가득 찼습니다.`);
+        }
+      }
+      render();
+    };
+    const onCancel = ()=>{ finish(); ghost.hidden=true; clear(); el.classList.remove('dragging'); };
+    el.addEventListener('pointermove',onMove); el.addEventListener('pointerup',onUp); el.addEventListener('pointercancel',onCancel);
+  });
+}
+
+/* ─────────────────────────────────────────────
+   방 대화창
+   ───────────────────────────────────────────── */
+const dlg=$('#dlg');
+let cur=null;
+function openRoom(k,i){
+  cur={k,i};
+  const id = k==='center' ? S.center[i] : null;
+  const stage = $('#dStage'); stage.replaceChildren(); anim = anim.filter(a=>a.img.isConnected);
+  const actions=$('#dActions'), choices=$('#dChoices'), info=$('#dInfo');
+  actions.replaceChildren(); choices.replaceChildren();
+  const showChooser = editing || (k==='center' && !id);
+
+  if(k==='center' && id){
+    const t=CENTER[id];
+    $('#dTitle').textContent = `${t.name} · ${Math.floor(i/2)+1}층 ${i%2+1}번`;
+    const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER.center,t.bg); bg.alt=''; stage.append(bg);
+    fillStage(stage,i);
+    const n=peopleIn(i).length;
+    info.textContent = t.desc + (t.cap>0 ? `  (${n}/${t.cap}명)` : '');
+    if(n>0 && id!=='lobby'){
+      const b=document.createElement('button'); b.className='pill'; b.textContent='방 비우기 (로비로)';
+      b.onclick=()=>{ if(!sendToLobby(peopleIn(i))) return; save(); render(); openRoom(k,i); };
+      actions.append(b);
+    }
+  }else if(k==='center'){
+    $('#dTitle').textContent = `센터 · ${Math.floor(i/2)+1}층 ${i%2+1}번 (빈 방)`;
+    info.textContent='만들 방을 고르세요.';
+  }else{
+    const file=S[k][i];
+    $('#dTitle').textContent = `${FOLDER[k]} · ${i+1}층 · ${stem(file)}`;
+    const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER[k],file); bg.alt=''; stage.append(bg);
+    info.textContent = editing ? '바꿀 그림을 고르세요. (용도는 아직 정해지지 않았습니다.)' : '용도는 아직 정해지지 않았습니다.';
+  }
+  stage.hidden = (k==='center' && !id);
+  stage.classList.toggle('compact', showChooser);
+  if(showChooser) buildChooser(k,i,choices);
+  if(!dlg.open) dlg.showModal();
+}
+function sendToLobby(list){
+  const L=lobbyIndex(), cap=CENTER.lobby.cap;
+  if(peopleIn(L).length + list.length > cap){ toast('로비 자리가 부족합니다.'); return false; }
+  list.forEach(m=>m.at=L); return true;
+}
+function buildChooser(k,i,box){
+  if(k==='center'){
+    const cur=S.center[i];
+    if(cur==='lobby'){ box.append(Object.assign(document.createElement('h3'),{textContent:'로비는 바꿀 수 없습니다.'})); return; }
+    box.append(Object.assign(document.createElement('h3'),{textContent: cur?'다른 방으로 바꾸기':'방 종류'}));
+    CENTER_ORDER.forEach(id=>{
+      const t=CENTER[id];
+      const btn=document.createElement('button');
+      const used = S.center.some((v,idx)=>v===id && idx!==i);
+      const blocked = t.unique && used;
+      btn.disabled = blocked || id===cur;
+      const img=document.createElement('img'); img.src=bgUrl(FOLDER.center,t.bg); img.alt='';
+      btn.append(img, document.createTextNode(t.name));
+      const sm=document.createElement('small'); sm.textContent = blocked ? '이미 있음' : (t.cap>1?`최대 ${t.cap}명`:(t.cap===1?'1명':'배치 없음')); btn.append(sm);
+      btn.onclick=()=>{
+        if(S.center[i] && peopleIn(i).length && !sendToLobby(peopleIn(i))) return;
+        S.center[i]=id; save(); render(); openRoom('center',i);
+      };
+      box.append(btn);
+    });
+    if(cur){
+      const del=document.createElement('button'); del.textContent='철거'; del.style.background='#f3dede';
+      del.onclick=()=>{ if(peopleIn(i).length && !sendToLobby(peopleIn(i))) return; S.center[i]=null; save(); render(); dlg.close(); };
+      box.append(del);
+    }
+  }else{
+    IMAGES[k].forEach(f=>{
+      const btn=document.createElement('button');
+      const img=document.createElement('img'); img.src=bgUrl(FOLDER[k],f); img.alt='';
+      btn.append(img, document.createTextNode(stem(f)));
+      btn.disabled = S[k][i]===f;
+      btn.onclick=()=>{ S[k][i]=f; save(); render(); openRoom(k,i); };
+      box.append(btn);
+    });
+  }
+}
+$('.close').onclick=()=>dlg.close();
+dlg.addEventListener('click',e=>{ if(e.target===dlg){ const r=dlg.getBoundingClientRect(); if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) dlg.close(); } });
+
+/* ─────────────────────────────────────────────
+   버튼
+   ───────────────────────────────────────────── */
+$$('[data-focus]').forEach(b=>b.onclick=()=>{ focus=b.dataset.focus; applyFocus(); });
+$('#btnEdit').onclick=()=>{ editing=!editing; document.body.classList.toggle('editing',editing); $('#btnEdit').classList.toggle('on',editing); $('#btnEdit').textContent = editing?'변경 완료':'방 변경'; if(editing) toast('바꿀 방을 누르세요.'); };
+$('#btnVisit').onclick=()=>{
+  const L=lobbyIndex();
+  if(peopleIn(L).length>=CENTER.lobby.cap){ toast('로비가 가득 찼습니다.'); return; }
+  S.members.push({id:S.next, name:'회원 '+S.next, at:L}); S.next++; save(); render();
+};
+$('#btnFull').onclick=async()=>{ try{ if(document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }catch{ toast('전체 화면을 지원하지 않는 환경입니다.'); } };
+
+preloadPoses();
+render();
+</script>
+</body>
+</html>
