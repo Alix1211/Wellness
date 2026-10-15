@@ -1248,7 +1248,7 @@ function openSettings(){
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
   rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
-  const vb=document.createElement('span'); vb.textContent='빌드 1015-E · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  const vb=document.createElement('span'); vb.textContent='빌드 1015-F · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
   dlg2.showModal();
 }
 function openEditor(){

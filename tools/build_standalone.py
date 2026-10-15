@@ -71,13 +71,14 @@ rep("const trainBgUrl = n => assetUrl('배경','조교창',n+'.png');","const TR
 # Inline mini-game source and sprite assets for offline file:// use.
 mg=open(SRC+'/minigames.js',encoding='utf-8').read()
 mgmap={}
-for kind in ['animals','sausages']:
+for kind in ['animals','sausages','poses','portrait']:
     for f in sorted(os.listdir(SRC+'/미니게임/'+kind)):
         if f.endswith('.webp'):
             mgmap[kind+'/'+f]=uri(load(SRC+'/미니게임/'+kind+'/'+f),90)
 old="const mgAsset=(kind,i)=>assetUrl('미니게임',kind,String(i).padStart(2,'0')+'.webp');"
 assert old in mg
 mg=mg.replace(old,"const MG_ASSETS="+J(mgmap)+";\nconst mgAsset=(kind,i)=>MG_ASSETS[kind+'/'+String(i).padStart(2,'0')+'.webp'];")
+mg=mg.replace("const mgDetail=(kind,name)=>assetUrl('미니게임',kind,name+'.webp');","const mgDetail=(kind,name)=>MG_ASSETS[kind+'/'+name+'.webp'];")
 html=html.replace('<script src="minigames.js"></script>','<script>'+mg+'</script>')
 open(OUT,'w',encoding='utf-8').write(html)
 print(len(bgmap),'bg',len(posemap),'poses',len(facemap),'faces',len(bustmap),'busts', round(os.path.getsize(OUT)/1e6,1),'MB ->',OUT)

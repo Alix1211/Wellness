@@ -27,10 +27,17 @@ const assert=require('assert/strict');
  await page.evaluate(()=>mgFinish('duplicate',1,'duplicate'));
  assert.equal(await page.evaluate(()=>JSON.stringify(S.members.map(m=>m.st))),after);
  await page.getByRole('button',{name:'방으로 돌아가기'}).click();
- // All three practice games run to completion, no extra rewards.
- for(let kind=0;kind<3;kind++){console.log('practice',kind);
+ // All four practice games run to completion, no extra rewards.
+ for(let kind=0;kind<4;kind++){console.log('practice',kind);
   await page.evaluate(k=>openMiniGame({...mgEligible()[0],kind:k},true),kind);
   await page.getByRole('button',{name:'시작!',exact:true}).click();
+  if(kind===3){
+   const before=await page.locator('.mg-tap-value').allTextContents();
+   await page.getByRole('button',{name:'1번 터치',exact:true}).dispatchEvent('pointerdown',{pointerId:1});
+   const after=await page.locator('.mg-tap-value').allTextContents();
+   assert.notEqual(before[0],after[0]);assert.equal(before[1],after[1]);assert.equal(before[2],after[2]);
+   assert.ok(['surprise','tear','cry','blush'].includes(await page.locator('.mg-face').getAttribute('data-face')));
+  }
   if(kind===1)await page.locator('.mg-canvas').dispatchEvent('pointerdown',{clientX:300,clientY:200});
   await page.evaluate(()=>{for(let n=0;n<1700&&window.testStep;n++)window.testStep(.04);});
   assert.equal(await page.locator('.mg-result').count(),1);
@@ -44,6 +51,6 @@ const assert=require('assert/strict');
  assert.equal(await page.evaluate(()=>JSON.stringify(mgState())),saved);
  assert.equal(await page.locator('script[src]').count(),0);
  assert.deepEqual(errors,[]);
- console.log('PASS: random offer, participant snapshot, pause, three full rounds, no duplicate reward, practice, persistence, offline script.');
+ console.log('PASS: random offer, participant snapshot, pause, four full rounds, no duplicate reward, practice, persistence, offline script.');
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1);});
