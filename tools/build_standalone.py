@@ -50,6 +50,12 @@ for kind in ['상품','아이콘']:
         for f in sorted(os.listdir(d)):
             if f.endswith('.png'): itemmap[f'{kind}/{f[:-4]}']=uri(load(f'{d}/{f}'),88)
 
+trainbg={}
+for n in ['센터','회사','집']:
+    q=f'{SRC}/배경/조교창/{n}.png'
+    if os.path.exists(q):
+        im=load(q,'RGB'); im=im.resize((1280, round(im.height*1280/im.width)), Image.LANCZOS); trainbg[n]=uri(im,80)
+
 def rep(old,new):
     global html
     assert old in html, old[:40]
@@ -61,5 +67,6 @@ rep("const faceUrl = f => assetUrl('표정_낱개',f+'.png');","const FACEMAP = 
 rep("const bustUrl = (set,n) => assetUrl('표정_상반신',set,String(n).padStart(2,'0')+'.png');","const BUSTMAP = %s;\nconst bustUrl = (set,n) => BUSTMAP[set+'/'+String(n).padStart(2,'0')];"%J(bustmap))
 rep("const silUrl = n => assetUrl('표정_상반신','남성실루엣',n+'.png');","const SILMAP = %s;\nconst silUrl = n => SILMAP[n];"%J(silmap))
 rep("const itemUrl = (kind,id) => assetUrl('아이템',kind,id+'.png');","const ITEMMAP = %s;\nconst itemUrl = (kind,id) => ITEMMAP[kind+'/'+id];"%J(itemmap))
+rep("const trainBgUrl = n => assetUrl('배경','조교창',n+'.png');","const TRAINBG = %s;\nconst trainBgUrl = n => TRAINBG[n];"%J(trainbg))
 open(OUT,'w',encoding='utf-8').write(html)
 print(len(bgmap),'bg',len(posemap),'poses',len(facemap),'faces',len(bustmap),'busts', round(os.path.getsize(OUT)/1e6,1),'MB ->',OUT)
