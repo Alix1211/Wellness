@@ -185,6 +185,7 @@ const SN = {ki:'색기', um:'음란도', bo:'복종도', ge:'개방성'};
 const CFG0 = {dayMin:3, speed:1, monthDays:10, join:50, marry:80, sound:true};
 const K = {
   startGold:300, startRep:0,
+  testGrant:true,     // 시험용: 처음 한 번 골드 +99,999 / 명성 999 지급. 정식 때는 false
   visitFee:80, monthFee:25, injuryFee:30, thanks:600, thanksRep:10,
   decay:1.5,          // 하루 동안 훈련을 못 받으면 점수 하나당 깎이는 양
   leaveMargin:3,      // 가입 때 평균보다 이만큼 이상 떨어지면 이탈
@@ -223,8 +224,9 @@ function newState(){
   return {v:3, cfg:{...CFG0}, t:0, day:0, gold:K.startGold, rep:K.startRep, grads:0, leaves:0, injuries:0,
     center:['lobby','basic','gear','group','recovery',null], extra:{},
     office:[{img:'개인사무실.png'}], home:[{img:'거실.png'}],
-    members:[], next:1, ev:[], scripts:null, titles:[[],[],[],[]]};
+    members:[], next:1, ev:[], scripts:null, titles:[[],[],[],[]], granted:false};
 }
+function testGrant(S){ if(K.testGrant && !S.granted){ S.gold+=99999; S.rep=Math.max(S.rep,999); S.granted=true; } }
 function startMembers(S){ for(let i=0;i<5;i++) addMember(S, true); }
 const avg = m => (m.st.ki+m.st.um+m.st.bo+m.st.ge)/4;
 const tierOf = m => { const a=avg(m); return a<35?0:a<55?1:a<80?2:3; };
@@ -420,10 +422,10 @@ function load(){
   try{ const s=JSON.parse(localStorage.getItem(KEY));
     if(s && s.v===3 && Array.isArray(s.center) && Array.isArray(s.members) && s.cfg){
       const d=newState(); s.cfg={...d.cfg,...s.cfg}; s.ev=[]; s.titles=s.titles||d.titles;
-      s.extra=s.extra||{}; s.office=s.office&&s.office.length?s.office:d.office; s.home=s.home&&s.home.length?s.home:d.home;
+      testGrant(s); s.extra=s.extra||{}; s.office=s.office&&s.office.length?s.office:d.office; s.home=s.home&&s.home.length?s.home:d.home;
       return s; }
   }catch{}
-  const s=newState(); startMembers(s); return s;
+  const s=newState(); startMembers(s); testGrant(s); return s;
 }
 function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch{} }
 const $=(q,el=document)=>el.querySelector(q);
@@ -793,8 +795,10 @@ function openSettings(){
   row('입사(회사) 기준 평균',num(C.join,v=>C.join=v,10,95));
   row('결혼(집) 기준 평균',num(C.marry,v=>C.marry=v,20,99));
   row('효과음',sel([[1,'켜짐'],[0,'꺼짐']],C.sound?1:0,v=>C.sound=v==='1'));
+  const gb=document.createElement('button'); gb.className='pill'; gb.textContent='골드 +99,999 · 명성 999'; gb.onclick=()=>{ S.gold+=99999; S.rep=Math.max(S.rep,999); save(); updateHud(); toast('지급했습니다.'); };
+  row('시험용 지급',gb);
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
-  rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); save(); dlg2.close(); render(); };
+  rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
   dlg2.showModal();
 }
