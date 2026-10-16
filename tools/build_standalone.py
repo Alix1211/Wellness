@@ -68,6 +68,16 @@ rep("const bustUrl = (set,n) => assetUrl('표정_상반신',set,String(n).padSta
 rep("const silUrl = n => assetUrl('표정_상반신','남성실루엣',n+'.png');","const SILMAP = %s;\nconst silUrl = n => SILMAP[n];"%J(silmap))
 rep("const itemUrl = (kind,id) => assetUrl('아이템',kind,id+'.png');","const ITEMMAP = %s;\nconst itemUrl = (kind,id) => ITEMMAP[kind+'/'+id];"%J(itemmap))
 rep("const trainBgUrl = n => assetUrl('배경','조교창',n+'.png');","const TRAINBG = %s;\nconst trainBgUrl = n => TRAINBG[n];"%J(trainbg))
+# Campaign images/audio stay local and are embedded in the standalone.
+cam=open(SRC+'/campaign.js',encoding='utf-8').read()
+cammap={}
+for group in ['city','boss','music']:
+    for f in os.listdir(SRC+'/캠페인/'+group):
+        path=SRC+'/캠페인/'+group+'/'+f
+        if f.endswith('.webp'):cammap[group+'/'+f]=uri(load(path),92)
+        elif f.endswith('.ogg'):cammap[group+'/'+f]='data:audio/ogg;base64,'+base64.b64encode(open(path,'rb').read()).decode()
+cam=cam.replace("const campaignAsset=(group,name)=>assetUrl('캠페인',group,name);","const CAM_ASSETS="+J(cammap)+";const campaignAsset=(group,name)=>CAM_ASSETS[group+'/'+name];")
+html=html.replace('<script src="campaign.js"></script>','<script>'+cam+'</script>')
 # Inline mini-game source and sprite assets for offline file:// use.
 mg=open(SRC+'/minigames.js',encoding='utf-8').read()
 mgmap={}

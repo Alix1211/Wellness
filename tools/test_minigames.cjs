@@ -28,6 +28,7 @@ const assert=require('assert/strict');
  assert.equal(await page.evaluate(()=>JSON.stringify(S.members.map(m=>m.st))),after);
  await page.getByRole('button',{name:'방으로 돌아가기'}).click();
  // Every practice game runs to completion without extra rewards.
+ const practiceGold=await page.evaluate(()=>S.gold);
  const gameCount=await page.evaluate(()=>MG_TITLES.length);
  for(let kind=0;kind<gameCount;kind++){console.log('practice',kind);
   await page.evaluate(k=>openMiniGame({...mgEligible()[0],kind:k},true),kind);
@@ -45,7 +46,7 @@ const assert=require('assert/strict');
   assert.match(await page.locator('.mg-result').innerText(),/연습 경기/);
   await page.getByRole('button',{name:'방으로 돌아가기'}).click();
  }
- assert.equal(await page.evaluate(()=>S.gold),originalGold);
+ assert.equal(await page.evaluate(()=>S.gold),practiceGold);
  // Saved feature state survives reload, offline images are embedded.
  const saved=await page.evaluate(()=>{save();return JSON.stringify(mgState());});
  await page.reload();await page.waitForTimeout(200);

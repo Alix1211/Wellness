@@ -422,7 +422,7 @@ const avg = m => (m.st.ki+m.st.um+m.st.bo+m.st.ge)/4;
 const tierOf = m => { const a=avg(m); return a<35?0:a<55?1:a<80?2:3; };
 const lobbyIndex = S => S.center.indexOf('lobby');
 const inRoom = (S,b,i) => S.members.filter(m=>m.loc.b===b && m.loc.i===i);
-function roomCap(S,i){ const R=ROOMS[S.center[i]]; return R ? Math.min(R.max, R.cap+(S.extra[i]||0)) : 0; }
+function roomCap(S,i){ if(S.campaign&&S.center[i]==='lobby')return Math.max(ROOMS.lobby.cap,S.members.filter(m=>m.loc.b==='center').length+1);const R=ROOMS[S.center[i]]; return R ? Math.min(R.max, R.cap+(S.extra[i]||0)) : 0; }
 function slotCap(S,b,i){const sl=S[b][i];return !sl?0:b==='office'&&sl.img==='개인사무실.png'?1:2+Math.max(0,Math.floor(Number(sl.extra)||0));}
 function workCapCost(S,b,i){return K.workCapCost*(Math.max(0,Math.floor(Number(S[b][i]?.extra)||0))+1);}
 function upgradeWorkCap(S,b,i){if(!S[b]?.[i]||b==='office'&&S[b][i].img==='개인사무실.png')return {ok:false,msg:'개인사무실은 1명 전용입니다.'};const cost=workCapCost(S,b,i);if(S.gold<cost)return {ok:false,msg:`골드가 부족합니다. (${cost})`};S.gold-=cost;S[b][i].extra=slotCap(S,b,i)-1;return {ok:true};}
@@ -451,6 +451,7 @@ function addMember(S, free){
 const nameOf = m => m.nick || m.name;
 
 function canPlace(S,m,b,i){
+  if(S.campaign?.phase==='night')return {ok:false,msg:'오늘의 교육은 끝났습니다. 아침에 배치해 주세요.'};
   const a=avg(m);
   if(b==='center'){
     const id=S.center[i], R=ROOMS[id];
@@ -488,15 +489,17 @@ function advance(S, dt){
       for(const k in F.up) m.st[k]=Math.min(100,m.st[k]+F.up[k]*dt*(100-m.st[k])/50);
       for(const k in F.dn) m.st[k]=Math.max(0,m.st[k]-F.dn[k]*dt*m.st[k]/50);
       continue; }
+    if(S.campaign?.phase==='night'){m.hp=Math.min(100,m.hp+100*dt);continue;}
+    const shift=S.campaign?.phase==='day'?2:1;
     const id=S.center[m.loc.i], R=ROOMS[id]; if(!R) continue;
     if(R.train){
       const eff=(m.hp<K.lowHp?K.lowEff:1)*(R.eff||1);
       let tot=0;
-      for(const k in R.train){ const g=R.train[k]*dt*eff; m.st[k]=Math.min(100,m.st[k]+g); tot+=g; }
-      m.hp-=R.hp*dt; S.rep+=tot*K.repPerPt; m.tr+=dt; if(m.tr>=0.3) m.trained=true;
+      for(const k in R.train){ const g=R.train[k]*dt*eff*shift; m.st[k]=Math.min(100,m.st[k]+g); tot+=g; }
+      m.hp-=R.hp*dt*shift; S.rep+=tot*K.repPerPt; m.tr+=dt*shift; if(m.tr>=0.3) m.trained=true;
       if(m.hp<=0) out.push(m);
-    }else if(id==='recovery'){ m.hp=Math.min(100,m.hp+R.regen*dt); }
-    else{ m.hp=Math.min(100,m.hp+(K.lobbyRegen+(S.center.includes('shop')?K.shopBonus:0))*dt); }
+    }else if(id==='recovery'){ m.hp=Math.min(100,m.hp+R.regen*dt*shift); }
+    else{ m.hp=Math.min(100,m.hp+(K.lobbyRegen+(S.center.includes('shop')?K.shopBonus:0))*dt*shift); }
   }
   for(const m of out){
     S.gold=Math.max(0,S.gold-K.injuryFee); S.rep=Math.max(0,S.rep-1); S.injuries++; removeMember(S,m);
@@ -786,7 +789,7 @@ function fillStage(stage, b, slot, big){
   const people=inRoom(S,b,slot);
   const free=b==='center'&&ROOMS[S.center[slot]]&&ROOMS[S.center[slot]].wander;
   const wrap=document.createElement('div'); wrap.className='stage-people'+(free?' free':''); wrap.style.setProperty('--n',free?1:Math.max(1,people.length));
-  if(b!=='center'){const cols=Math.min(4,Math.max(1,people.length),Math.max(1,Math.ceil(Math.sqrt(people.length*1.6))));const rows=Math.max(1,Math.ceil(people.length/cols));wrap.classList.add('community');wrap.style.setProperty('--cols',cols);wrap.style.setProperty('--rows',rows);}
+  if(b!=='center'||S.center[slot]==='lobby'&&people.length>6){const cols=Math.min(4,Math.max(1,people.length),Math.max(1,Math.ceil(Math.sqrt(people.length*1.6))));const rows=Math.max(1,Math.ceil(people.length/cols));wrap.classList.add('community');wrap.style.setProperty('--cols',cols);wrap.style.setProperty('--rows',rows);}
   people.forEach(m=>wrap.append(personEl(m,big)));
   stage.append(wrap);
 }
@@ -801,7 +804,7 @@ function roomEl(k,i){
     const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER.center,t.bg); bg.alt=''; r.append(bg);
     fillStage(r,'center',i,false);
     const n=inRoom(S,'center',i).length, cap=roomCap(S,i);
-    const label=document.createElement('span'); label.className='label'; label.textContent = t.place?`${name} ${n}/${cap}`:name; r.append(label);
+    const label=document.createElement('span'); label.className='label'; label.textContent = id==='lobby'?`${name} ${n}명`:t.place?`${name} ${n}/${cap}`:name; r.append(label);
   }else{
     const sl=S[k][i]; name=stem(sl.img);
     const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER[k],sl.img); bg.alt=''; r.append(bg);
@@ -871,8 +874,8 @@ function updateHud(){
   const mm=S.members,groups=candidateGroups();
   const lob=inRoom(S,'center',lobbyIndex(S)).length;
   const sig=Object.entries(groups).map(([key,list])=>key+':'+list.map(m=>m.id).join(',')).join('|')+`/${lob}/${mm.length}/${moveState.filter}`;
-  if(sig!==alertKey){alertKey=sig;const box=$('#alerts');box.replaceChildren();for(const [key,txt,cls] of [['tired','💤 피곤','hot'],['warn','⚠ 이탈 위험',''],['join','입사 가능','blue'],['marry','집 이동 가능','pink'],['retrain','재교육 필요','hot'],['grad','졸업 임박','gold']]){const list=groups[key];if(!list.length&&moveState.filter!==key)continue;const c=document.createElement('button');c.className='chip '+cls+(moveState.filter===key?' chosen':'');c.textContent=`${txt} ${list.length}`;c.dataset.candidates=key;c.onclick=()=>openCandidates(key);box.append(c);}const c=document.createElement('span');c.className='chip';c.textContent=`회원 ${mm.length}명 · 로비 ${lob}/${ROOMS.lobby.cap}`;box.append(c);}
-  renderMoveTray();
+  if(sig!==alertKey){alertKey=sig;const box=$('#alerts');box.replaceChildren();for(const [key,txt,cls] of [['tired','💤 피곤','hot'],['warn','⚠ 이탈 위험',''],['join','입사 가능','blue'],['marry','집 이동 가능','pink'],['retrain','재교육 필요','hot'],['grad','졸업 임박','gold']]){const list=groups[key];if(!list.length&&moveState.filter!==key)continue;const c=document.createElement('button');c.className='chip '+cls+(moveState.filter===key?' chosen':'');c.textContent=`${txt} ${list.length}`;c.dataset.candidates=key;c.onclick=()=>openCandidates(key);box.append(c);}const c=document.createElement('span');c.className='chip';c.textContent=`회원 ${mm.length}명 · 로비 ${lob}명`;box.append(c);}
+  renderMoveTray();if(typeof campaignRender==='function')campaignRender();
 }
 function candidateGroups(){const mm=S.members;return {all:mm,tired:mm.filter(m=>m.loc.b==='center'&&m.hp<K.lowHp),warn:mm.filter(m=>m.loc.b==='center'&&statusOf(m)==='warn'),join:mm.filter(m=>m.loc.b==='center'&&avg(m)>=S.cfg.join),marry:mm.filter(m=>m.loc.b==='office'&&avg(m)>=S.cfg.marry),retrain:mm.filter(m=>needsRetrain(S,m)),grad:mm.filter(m=>m.loc.b==='home'&&STATS.every(k=>m.st[k]>=95))};}
 function openCandidates(key){if(moveState.filter===key)return closeCandidates();hideCard();moveState.filter=key;moveState.id=null;moveState.key='';focus='all';updateHud();applyFocus();refreshMoveTargets();}
@@ -963,7 +966,7 @@ setInterval(()=>{
   if(document.hidden || dragging || pointerBusy || document.querySelector("#mgDialog[open]")) return;
   dt=Math.min(dt,1.5);
   const before=S.members.length;
-  advance(S, dt*S.cfg.speed/(S.cfg.dayMin*60));
+  if(typeof campaignAdvance==='function')campaignAdvance(S,dt*S.cfg.speed/(S.cfg.dayMin*60));else advance(S,dt*S.cfg.speed/(S.cfg.dayMin*60));
   if(S.ev.length){ S.ev.splice(0).forEach(toast); render(); if(dlg.open && cur) openRoom(cur.k,cur.i,true); }
   updateBars(); updateHud();
   if(now-saveAt>4000){ saveAt=now; save(); }
@@ -1341,7 +1344,7 @@ function openSettings(){
   for(const [id,ic] of [['btnEditor','📝'],['btnEdit','🏗️'],['btnFull','⛶'],['btnMiniGames','🎮']]){ const src=document.getElementById(id); if(!src) continue; const bt=document.createElement('button'); bt.className='pill'; bt.textContent=ic+' '+src.textContent; bt.onclick=()=>{ dlg2.close(); setTimeout(()=>src.click(),0); }; sm.append(bt); }
   b.append(sm);
   row('하루 길이',sel([[1,'1분'],[2,'2분'],[3,'3분'],[5,'5분'],[10,'10분']],C.dayMin,v=>C.dayMin=+v));
-  row('속도 (시험용)',sel([[1,'×1'],[2,'×2'],[5,'×5'],[10,'×10'],[30,'×30']],C.speed,v=>C.speed=+v));
+  row('진행 속도',sel([[1,'×1'],[2,'×2']],C.speed,v=>C.speed=+v));
   row('한 달 (일)',num(C.monthDays,v=>C.monthDays=v,3,30));
   row('입사(회사) 기준 평균',num(C.join,v=>C.join=v,10,95));
   row('결혼(집) 기준 평균',num(C.marry,v=>C.marry=v,20,99));
@@ -1351,7 +1354,7 @@ function openSettings(){
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
   rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
-  const vb=document.createElement('span'); vb.textContent='빌드 1016-J · 물어와! · 지도 카메라 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  const vb=document.createElement('span'); vb.textContent='빌드 1016-K · 송사장과 하루 운영 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
   dlg2.showModal();
 }
 function openEditor(){
@@ -1428,5 +1431,6 @@ preload(); render();
 <script src="fetch-game.js"></script>
 <script src="minigames.js"></script>
 <script src="minigame_behind.js"></script>
+<script src="campaign.js"></script>
 </body>
 </html>
