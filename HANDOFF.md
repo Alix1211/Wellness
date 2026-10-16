@@ -6,6 +6,7 @@
 ## 현재 상태
 - 최신 작업: **1016-Q**(GPT), `1016-P` main에서 새 가지를 만들었습니다. P의 옥상 평균 판정·집 감소 7·미니게임 알림을 모두 유지했습니다.
 - APK 서버 업데이트, SAF 드라이브 공유 JSON, 플레이 기록을 추가했습니다. 자세한 사용/구조는 `android/README.md`, 저장 불변 규칙은 `docs/standards/drive_save_sync.md`입니다. 사용자는 첫 파일 생성/연결을 직접 하기로 했습니다.
+- 자동 빌드 **#5 성공**(2026-10-16). APK `GaiaWellness-1016-Q-original.apk`, versionCode **1100005**, v2/v3 서명 확인. 배포된 gzip SHA-256과 APK 내장 HTML 일치 확인.
 - APK는 기존 GitHub Actions 자동 빌드·Secret 서명·증가 versionCode를 사용합니다. main 성공 빌드는 Release `wellness-live`에 APK와 게임 업데이트도 게시합니다. Secret이 없으면 새 키로 바꾸지 않고 중단합니다.
 - Java 컴파일, baseT/JSON 단위 검사, 브리지 모의 브라우저 검사, 네임드/관리 회귀 통과. **실기기 설치·두 기기의 SAF/Drive 동기화는 아직 확인하지 않았습니다.**
 - 앱의 네이티브 저장 기능은 새 APK 설치가 필요합니다. 이후 게임 수정은 main 자동 빌드 성공 후 다음 실행 때 가져옵니다. 회전 허용은 그대로이며 진동 권한은 추가하지 않았습니다.
