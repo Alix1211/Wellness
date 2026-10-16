@@ -24,7 +24,7 @@ function cameraZoom(z,px=innerWidth/2,py=(cameraArea().top+cameraArea().bottom)/
 function cameraTo(kind='all'){
  const c=camera,a=cameraArea(),b=$(`.building[data-kind="${kind}"]`);let box;
  if(kind==='all'||!b)box={x:20,y:20,w:c.width-40,h:c.height-25};
- else box={x:b.offsetLeft-23,y:b.offsetTop-65,w:b.offsetWidth+46,h:b.offsetHeight+80};
+ else{const head=typeof lifeRoof==='function'?(kind==='center'?195:140):65;box={x:b.offsetLeft-23,y:b.offsetTop-head,w:b.offsetWidth+46,h:b.offsetHeight+head+15};}
  c.z=clamp(Math.min((innerWidth-22)/box.w,Math.max(100,a.bottom-a.top)/box.h),c.min,c.max);
  c.x=innerWidth/2-(box.x+box.w/2)*c.z;c.y=(a.top+a.bottom)/2-(box.y+box.h/2)*c.z;focus=kind;cameraPaint();
 }

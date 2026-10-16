@@ -77,7 +77,7 @@ body.editing .room:not(.empty){outline:3px dashed #3e7969aa;outline-offset:-3px}
 .person .dot.warn{background:#f2c230}.person .dot.join{background:#4a90e2}.person .dot.marry{background:#f06aa8}.person .dot.grad{background:#e6b800}
 .person .dot.grade-low{background:#f7f7f2}.person .dot.grade-grow{background:#569ce2}.person .dot.grade-join{background:#54b87d}.person .dot.grade-home{background:#a778ce}.person .dot.grade-grad{background:#e6b800}.person .dot.retrain{border-color:#e34f59;box-shadow:0 0 0 1px #fff,0 0 5px #e34f59}
 .stage-people.community{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));grid-template-rows:repeat(var(--rows),minmax(0,1fr));align-items:end;justify-items:center;gap:2px}.stage-people.community .person{max-width:100%;min-width:0}
-.room.move-ok{box-shadow:inset 0 0 0 3px #459e78;cursor:pointer}.room.move-no{opacity:.48}.room.drop-ok{box-shadow:inset 0 0 0 5px #3dad7f}.room.drop-no{box-shadow:inset 0 0 0 5px #d46a6a}.candidates-open #row{padding-top:160px}
+.room.move-ok{box-shadow:inset 0 0 0 3px #459e78;cursor:pointer}.room.move-no{opacity:1}.room.drop-ok{box-shadow:inset 0 0 0 5px #3dad7f}.room.drop-no{box-shadow:inset 0 0 0 5px #d46a6a}.candidates-open #row{padding-top:160px}
 #mapLegend{position:fixed;right:10px;top:106px;z-index:4;max-width:340px;font-size:10px;line-height:1.6;color:#587167;background:#fffaf0db;border-radius:8px;padding:4px 7px;pointer-events:none;box-shadow:0 1px 4px #36554512}#mapLegend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 2px 0 5px;border:1px solid #aebbad;vertical-align:middle}#mapLegend .legend-red{border:2px solid #e34f59;background:#fff}
 #dock{flex:none;position:relative;z-index:6;display:flex;align-items:center;gap:8px;padding:6px 10px calc(8px + env(safe-area-inset-bottom,0px));background:linear-gradient(#dcead6,#cde1c9);border-top:3px solid #8fb98a;box-shadow:0 -4px 14px #30504a22}
 #dockList{flex:1;min-width:0;display:flex;gap:9px;overflow-x:auto;overflow-y:hidden;padding:10px 4px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -421,12 +421,12 @@ function startMembers(S){ for(let i=0;i<5;i++) addMember(S, true); }
 const avg = m => (m.st.ki+m.st.um+m.st.bo+m.st.ge)/4;
 const tierOf = m => { const a=avg(m); return a<35?0:a<55?1:a<80?2:3; };
 const lobbyIndex = S => S.center.indexOf('lobby');
-const inRoom = (S,b,i) => S.members.filter(m=>m.loc.b===b && m.loc.i===i);
+const inRoom = (S,b,i) => S.members.filter(m=>m.loc.b===b && m.loc.i===i && !m.loc.roof);
 function roomCap(S,i){ if(S.campaign&&S.center[i]==='lobby')return Math.max(ROOMS.lobby.cap,S.members.filter(m=>m.loc.b==='center').length+1);const R=ROOMS[S.center[i]]; return R ? Math.min(R.max, R.cap+(S.extra[i]||0)) : 0; }
 function slotCap(S,b,i){const sl=S[b][i];return !sl?0:b==='office'&&sl.img==='개인사무실.png'?1:2+Math.max(0,Math.floor(Number(sl.extra)||0));}
 function workCapCost(S,b,i){return K.workCapCost*(Math.max(0,Math.floor(Number(S[b][i]?.extra)||0))+1);}
 function upgradeWorkCap(S,b,i){if(!S[b]?.[i]||b==='office'&&S[b][i].img==='개인사무실.png')return {ok:false,msg:'개인사무실은 1명 전용입니다.'};const cost=workCapCost(S,b,i);if(S.gold<cost)return {ok:false,msg:`골드가 부족합니다. (${cost})`};S.gold-=cost;S[b][i].extra=slotCap(S,b,i)-1;return {ok:true};}
-function needsRetrain(S,m){if(m.loc.b==='center')return false;const need=m.loc.b==='office'?S.cfg.join:S.cfg.marry;return avg(m)<need||STATS.some(k=>m.st[k]<need-K.returnMargin);}
+function needsRetrain(S,m){if(m.loc.roof)return true;if(m.loc.b==='center')return false;const need=m.loc.b==='office'?S.cfg.join:S.cfg.marry;return avg(m)<need||STATS.some(k=>m.st[k]<need-K.returnMargin);}
 
 function genName(S){
   for(let n=0;n<8;n++){ const nm=pick(SUR)+pick(G1)+pick(G2); if(!S.members.some(m=>m.name===nm)) return nm; }
@@ -465,7 +465,7 @@ function canPlace(S,m,b,i){
   const need = b==='office' ? S.cfg.join : S.cfg.marry;
   if(!S[b][i]) return {ok:false,msg:'빈 칸입니다.'};
   if(a<need) return {ok:false,msg:`${b==='office'?'회사는':'집은'} 평균 ${need} 이상만 갈 수 있습니다.`};
-  if(b==='home' && m.loc.b==='center') return {ok:false,msg:'집은 회사를 거친 회원만 갈 수 있습니다.'};
+
   if(inRoom(S,b,i).filter(x=>x!==m).length>=slotCap(S,b,i)) return {ok:false,msg:'정원이 찼습니다. 방에서 정원을 늘려 주세요.'};
   return {ok:true};
 }
@@ -483,11 +483,13 @@ function removeMember(S,m){ S.members=S.members.filter(x=>x!==m); }
 function advance(S, dt){
   const out=[];
   for(const m of S.members){
+    if(m.loc.roof){m.hp=Math.min(100,m.hp+K.homeRegen*dt);continue;}
     if(m.loc.b!=='center'){
       m.hp=Math.min(100,m.hp+K.homeRegen*dt);
       const F=wfx(S,m.loc.b,m.loc.i);
       for(const k in F.up) m.st[k]=Math.min(100,m.st[k]+F.up[k]*dt*(100-m.st[k])/50);
       for(const k in F.dn) m.st[k]=Math.max(0,m.st[k]-F.dn[k]*dt*m.st[k]/50);
+      if(needsRetrain(S,m)){m.loc={...m.loc,roof:true};S.ev.push(`${nameOf(m)}님이 ${m.loc.b==='office'?'회사':'집'} 옥상에서 재교육을 기다립니다.`);}
       continue; }
     if(S.campaign?.phase==='night'){m.hp=Math.min(100,m.hp+100*dt);continue;}
     const shift=S.campaign?.phase==='day'?2:1;
@@ -524,9 +526,10 @@ function endDay(S){
         S.ev.push(`${nameOf(m)}님이 점수가 떨어져 센터를 그만뒀습니다.`);
       }
     }else{
+      if(m.loc.roof)continue;
       S.rep+=avg(m)/100*K.workRepPerDay;
       const need=(m.loc.b==='office'?C.join:C.marry)-K.returnMargin;
-      if(avg(m)<need){ const from=m.loc.b;returnToLobby(S,m); S.ev.push(`${nameOf(m)}님이 ${from==='office'?'회사':'집'}에서 점수가 깎여 재입소했습니다.`); }
+      if(!m.loc.roof&&needsRetrain(S,m)){m.loc={...m.loc,roof:true};S.ev.push(`${nameOf(m)}님이 ${m.loc.b==='office'?'회사':'집'} 옥상에서 재교육을 기다립니다.`);}
     }
   }
   if(S.day%C.monthDays===0){
@@ -560,7 +563,7 @@ function addFloor(S){
   if(S.gold<K.floorCost) return {ok:false,msg:`골드가 부족합니다. (${K.floorCost})`};
   S.gold-=K.floorCost; S.center.push(null,null); return {ok:true};
 }
-const sendable = (S,b) => S.members.filter(m=>m.loc.b===(b==='office'?'center':'office') && avg(m)>=(b==='office'?S.cfg.join:S.cfg.marry));
+const sendable = (S,b) => S.members.filter(m=>m.loc.b!==b && avg(m)>=(b==='office'?S.cfg.join:S.cfg.marry));
 function expandInfo(S,b){
   const free=S[b].reduce((n,_,i)=>n+Math.max(0,slotCap(S,b,i)-inRoom(S,b,i).length),0);
   const can=S[b].length<K.maxSlots && sendable(S,b).length>free;
@@ -663,6 +666,7 @@ function workPoses(m){const b=m.loc.b,slot=m.loc.i,pool=WORKROOM[b][S[b][slot].i
 const HAIR = {"센터/푸시업": 70.1, "센터/아기자세": 68.4, "센터/네발자세": 50.8, "사무실/근력운동_덤벨바벨": 92.9, "사무실/근력운동_머신": 91.6, "사무실/근력운동_하체": 101.8, "사무실/요가_기본": 105.0, "사무실/요가_바닥운동": 124.2, "사무실/요가_스트레칭": 112.1, "사무실/운동후표정": 201.1, "사무실/준비운동_상체": 132.1, "센터/근력운동_덤벨바벨": 84.5, "센터/근력운동_머신": 86.1, "센터/근력운동_하체": 93.2, "센터/사과포즈": 344.3, "센터/요가_기본": 77.6, "센터/요가_동작변화": 102.6, "센터/요가_응용": 81.0, "센터/운동후표정": 172.1, "센터/준비운동_상체": 124.9, "센터/준비운동_하체": 129.3, "센터/특수훈련실": 153.1, "센터/판타지구속포즈": 159.5, "집/1000040211": 122.0, "집/1000040212": 139.2, "집/1000040213": 111.6, "집/1000040214": 139.1, "집/1000040215": 131.7, "집/1000040216": 111.2, "집/1000040217": 115.1};
 const poseScale = rel => { const f=rel.split('/').slice(0,2).join('/'); const m=HAIR[f]||100; return 0.174*Math.pow(77.6/m,0.6); };   // 머리 크기 기준 배율
 function fitPose(img){
+  if(typeof lifeFitPose==='function'&&lifeFitPose(img))return;
   const nh=img.naturalHeight, nw=img.naturalWidth; if(!nh||!img.dataset.rel) return;
   const wrap=img.closest('.stage-people'); const n=wrap?(parseFloat(wrap.style.getPropertyValue('--n'))||1):1;
   const s=poseScale(img.dataset.rel); let h=nh*s;
@@ -737,7 +741,8 @@ const row=$('#row');
 function memberPoses(m){
   const R=ROOMS[S.center[m.loc.i]];
   let poses;
-  if(m.loc.b!=='center') poses=workPoses(m);
+  if(m.loc.roof) poses=[m.loc.b==='office'?'사무실/생활/stay.webp':'집/1000040214/02.png'];
+  else if(m.loc.b!=='center') poses=workPoses(m);
   else if(R&&R.dev) poses=['센터/특수훈련실/'+GEAR[m.pose%GEAR.length]+'.png'];
   else if(R&&R.sets) poses=R.sets[m.pose%R.sets.length];
   else poses=(R&&R.poses.length)?R.poses:ROOMS.lobby.poses;
@@ -786,6 +791,7 @@ function paintPerson(p,m){
 function updateBars(){ $$('.person').forEach(p=>{ const m=mById(+p.dataset.id); if(m) paintPerson(p,m); }); }
 
 function fillStage(stage, b, slot, big){
+  if(typeof lifeFillGroup==='function'&&b==='center'&&S.center[slot]==='group'){lifeFillGroup(stage,slot,big);return;}
   const people=inRoom(S,b,slot);
   const free=b==='center'&&ROOMS[S.center[slot]]&&ROOMS[S.center[slot]].wander;
   const wrap=document.createElement('div'); wrap.className='stage-people'+(free?' free':''); wrap.style.setProperty('--n',free?1:Math.max(1,people.length));
@@ -822,7 +828,7 @@ function render(){
   anim=[]; wand=[]; actors=actors.filter(a=>a.dlg); row.replaceChildren();
   for(const k of ['office','center','home']){
     const b=document.createElement('section'); b.className='building '+k; b.dataset.kind=k;
-    const roof=document.createElement('div'); roof.className='roof'; roof.textContent=TITLE[k]; b.append(roof);
+    const roof=document.createElement('div'); roof.className='roof'; roof.textContent=TITLE[k]; b.append(roof);if(typeof lifeRoof==='function')lifeRoof(b,k,roof);
     const list = k==='center'?S.center:S[k], cols=k==='center'?2:1;
     for(let rowI=list.length/cols-1; rowI>=0; rowI--){
       const f=document.createElement('div'); f.className='floor';
@@ -877,17 +883,17 @@ function updateHud(){
   if(sig!==alertKey){alertKey=sig;const box=$('#alerts');box.replaceChildren();for(const [key,txt,cls] of [['tired','💤 피곤','hot'],['warn','⚠ 이탈 위험',''],['join','입사 가능','blue'],['marry','집 이동 가능','pink'],['retrain','재교육 필요','hot'],['grad','졸업 임박','gold']]){const list=groups[key];if(!list.length&&moveState.filter!==key)continue;const c=document.createElement('button');c.className='chip '+cls+(moveState.filter===key?' chosen':'');c.textContent=`${txt} ${list.length}`;c.dataset.candidates=key;c.onclick=()=>openCandidates(key);box.append(c);}const c=document.createElement('span');c.className='chip';c.textContent=`회원 ${mm.length}명 · 로비 ${lob}명`;box.append(c);}
   renderMoveTray();if(typeof campaignRender==='function')campaignRender();
 }
-function candidateGroups(){const mm=S.members;return {all:mm,tired:mm.filter(m=>m.loc.b==='center'&&m.hp<K.lowHp),warn:mm.filter(m=>m.loc.b==='center'&&statusOf(m)==='warn'),join:mm.filter(m=>m.loc.b==='center'&&avg(m)>=S.cfg.join),marry:mm.filter(m=>m.loc.b==='office'&&avg(m)>=S.cfg.marry),retrain:mm.filter(m=>needsRetrain(S,m)),grad:mm.filter(m=>m.loc.b==='home'&&STATS.every(k=>m.st[k]>=95))};}
+function candidateGroups(){const mm=S.members;return {all:mm,tired:mm.filter(m=>m.loc.b==='center'&&m.hp<K.lowHp),warn:mm.filter(m=>m.loc.b==='center'&&statusOf(m)==='warn'),join:mm.filter(m=>m.loc.b==='center'&&avg(m)>=S.cfg.join),marry:mm.filter(m=>m.loc.b!=='home'&&avg(m)>=S.cfg.marry),retrain:mm.filter(m=>needsRetrain(S,m)),grad:mm.filter(m=>m.loc.b==='home'&&STATS.every(k=>m.st[k]>=95))};}
 function openCandidates(key){if(moveState.filter===key)return closeCandidates();hideCard();moveState.filter=key;moveState.id=null;moveState.key='';focus='all';updateHud();applyFocus();refreshMoveTargets();}
 function closeCandidates(){moveState.filter=null;moveState.id=null;moveState.key='';refreshMoveTargets();updateHud();fit();}
 
 function selectMove(id){moveState.id=moveState.id===id?null:id;moveState.key='';renderMoveTray();refreshMoveTargets();if(moveState.id!==null)locate(id);}
-function refreshMoveTargets(id=moveState.id){const m=mById(id);$$('.room').forEach(r=>{const same=m&&m.loc.b===r.dataset.kind&&m.loc.i===+r.dataset.slot;const ok=m&&!same&&canPlace(S,m,r.dataset.kind,+r.dataset.slot).ok;r.classList.toggle('move-ok',!!ok);r.classList.toggle('move-no',!!m&&!ok);});}
+function refreshMoveTargets(id=moveState.id){const m=mById(id);$$('.room').forEach(r=>{const same=m&&!m.loc.roof&&m.loc.b===r.dataset.kind&&m.loc.i===+r.dataset.slot;const ok=m&&!same&&canPlace(S,m,r.dataset.kind,+r.dataset.slot).ok;r.classList.toggle('move-ok',!!ok);r.classList.toggle('move-no',!!m&&!ok);});}
 function moveMemberTo(id,b,i){const m=mById(id);if(!m)return false;const check=canPlace(S,m,b,i);if(!check.ok){toast(check.msg);return false;}place(S,m,b,i);moveState.id=null;moveState.key='';save();render();return true;}
 const FACE_POOL={tired:['시무룩','눈물글썽'],warn:['눈물글썽','눈물참기','시무룩'],retrain:['뾰로통','혼란'],lowhp:['눈물참기','당황'],grad:['반짝','활짝웃음','윙크'],home:['윙크','능청','활짝웃음'],join:['활짝웃음','눈감고웃음','능청'],grow:['눈감고웃음','편안','기본','놀람'],low:['기본','편안','혼란','놀람']};
 function gradeOf(m){return STATS.every(k=>m.st[k]>=95)?'grad':avg(m)>=S.cfg.marry?'home':avg(m)>=S.cfg.join?'join':avg(m)>=S.cfg.join/2?'grow':'low';}
 function faceOf(m){let pool;if(m.hp<K.tiredHp)pool=FACE_POOL.tired;else if(statusOf(m)==='warn')pool=FACE_POOL.warn;else if(needsRetrain(S,m))pool=FACE_POOL.retrain;else if(m.hp<K.lowHp)pool=FACE_POOL.lowhp;else pool=FACE_POOL[gradeOf(m)];return pool[(m.id*3+Math.floor(S.t*8))%pool.length];}
-function whereOf(m){return m.loc.b==='center'?((ROOMS[S.center[m.loc.i]]||{}).name||'센터'):TITLE[m.loc.b];}
+function whereOf(m){return m.loc.roof?TITLE[m.loc.b]+' 옥상':m.loc.b==='center'?((ROOMS[S.center[m.loc.i]]||{}).name||'센터'):TITLE[m.loc.b];}
 function renderMoveTray(){
   if(dragging||pointerBusy)return;
   const groups=candidateGroups(), list=(moveState.filter&&groups[moveState.filter])||groups.all;
@@ -1001,7 +1007,7 @@ function bindDrag(el,id,fromTray=false){
       const r=roomAt(ev.clientX,ev.clientY);
       if(r){
         const b=r.dataset.kind, i=+r.dataset.slot;
-        if(!(b===m.loc.b&&i===m.loc.i)){
+        if(m.loc.roof||!(b===m.loc.b&&i===m.loc.i)){
           const c=canPlace(S,m,b,i);
           if(c.ok){ place(S,m,b,i);moveState.id=null;moveState.key=''; save(); } else toast(c.msg);
         }
@@ -1013,14 +1019,14 @@ function bindDrag(el,id,fromTray=false){
     el.addEventListener('pointermove',onMove); el.addEventListener('pointerup',onUp); el.addEventListener('pointercancel',onCancel);
   });
 }
-function dropOk(m,r){ const b=r.dataset.kind,i=+r.dataset.slot; if(b===m.loc.b&&i===m.loc.i) return false; return canPlace(S,m,b,i).ok; }
+function dropOk(m,r){ const b=r.dataset.kind,i=+r.dataset.slot; if(!m.loc.roof&&b===m.loc.b&&i===m.loc.i) return false; return canPlace(S,m,b,i).ok; }
 
 /* 상세 카드 */
 const card=$('#card');
 function hideCard(){ card.style.display='none'; }
 function showCard(m,x,y){
   const a=avg(m), tags=m.tags.join(' · ');
-  const where = m.loc.b==='center' ? (ROOMS[S.center[m.loc.i]]||{}).name : TITLE[m.loc.b];
+  const where = whereOf(m);
   const bar=(label,v,cls='')=>`<div class="bar ${cls}"><span>${label}</span><div><i style="width:${clamp(v,0,100)}%"></i></div><span>${Math.round(v)}</span></div>`;
   card.innerHTML=`<h3>${m.name}${m.nick?` <small>(${m.nick})</small>`:''}</h3><div class="tags">${tags}</div>`+
     STATS.map(k=>bar(SN[k],m.st[k])).join('')+bar('체력',m.hp,'hpb')+
@@ -1247,7 +1253,7 @@ function buildShop(box){
   box.append(Object.assign(document.createElement('h3'),{textContent:'매점 · 도구 구매 (골드 또는 명성치) — 기본 도구는 한 번만 사면 계속 쓰고, 토이는 쓰면 사라지는 1회용입니다'}));
   Object.entries(ITEMS).forEach(([k,it])=>{
     const owned=it.perm&&S.own[k], c=document.createElement('div'); c.className='shopcard'+(lastBuy===k?' flashc':'');
-    c.innerHTML=`<img alt="" src="${itemUrl('상품',k)}"><div><b>${it.name}</b><span class="badge ${it.perm?'perm':'once'}">${it.perm?'영구':'1회용'}</span><em class="${lastBuy===k?'jump':''}">${it.perm?(owned?'보유 ✔':'미보유'):'보유 '+(S.inv[k]||0)}</em></div><small>${it.desc}<br>${gainText(it)} (체력 −${it.hp})<br>${it.rooms.map(r=>ROOMS[r].name).join('·')}</small><div class="buy"></div>`;
+    c.innerHTML=`<img alt="" src="${itemUrl('상품',k)}"><div><b class="tool-name" data-tool="${k}" tabindex="0" role="button" aria-label="${it.name} 기능 설명">${it.name}</b><span class="badge ${it.perm?'perm':'once'}">${it.perm?'영구':'1회용'}</span><em class="${lastBuy===k?'jump':''}">${it.perm?(owned?'보유 ✔':'미보유'):'보유 '+(S.inv[k]||0)}</em></div><small>${it.desc}<br>${gainText(it)} (체력 −${it.hp})<br>${it.rooms.map(r=>ROOMS[r].name).join('·')}</small><div class="buy"></div>`;
     [['gold','🪙'],['rep','⭐']].forEach(([cur2,ic])=>{
       const b=document.createElement('button'); b.textContent=owned?'보유 중':`${ic} ${it[cur2]}`; b.disabled=owned||(cur2==='gold'?S.gold:S.rep)<it[cur2];
       b.onclick=()=>{ const r=buyItem(S,k,cur2); if(!r.ok) return toast(r.msg); buyFx(c,k); lastBuy=k;
@@ -1290,7 +1296,7 @@ function openRoom(k,i,refresh){
     const bg=document.createElement('img'); bg.className='bg'; bg.src=bgUrl(FOLDER[k],sl.img); bg.alt=''; stage.append(bg);
     fillStage(stage,k,i,true);
     if(!(k==='office'&&sl.img==='개인사무실.png')){const add=document.createElement('button');add.className='pill';add.textContent=`정원 +1 (${workCapCost(S,k,i)}💰)`;add.onclick=()=>{const r=upgradeWorkCap(S,k,i);if(!r.ok)return toast(r.msg);save();render();openRoom(k,i,true);};actions.append(add);}
-    info.textContent=(k==='office'?`평균 ${S.cfg.join} 이상 회원이 갈 수 있습니다. 여기서 평균 ${S.cfg.marry}까지 올리면 집으로 보낼 수 있습니다.`:`회사를 거쳐 평균 ${S.cfg.marry} 이상이 된 회원이 갈 수 있습니다. 점수가 떨어지면 센터로 돌아옵니다.`)+`\n${fxText(S[k][i].img,k)}`; info.style.whiteSpace='pre-line';
+    info.textContent=(k==='office'?`평균 ${S.cfg.join} 이상 회원이 갈 수 있습니다. 여기서 평균 ${S.cfg.marry}까지 올리면 집으로 보낼 수 있습니다.`:`평균 ${S.cfg.marry} 이상인 회원이 갈 수 있습니다. 점수가 떨어지면 센터로 돌아옵니다.`)+`\n${fxText(S[k][i].img,k)}`; info.style.whiteSpace='pre-line';
   }
   stage.hidden=(k==='center'&&!id); stage.classList.toggle('compact',showChooser);
   if(!showChooser&&(k!=='center'||id)) mountScene(stage,k,i);
@@ -1354,7 +1360,7 @@ function openSettings(){
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
   rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
-  const vb=document.createElement('span'); vb.textContent='빌드 1016-K · 송사장과 하루 운영 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  const vb=document.createElement('span'); vb.textContent='빌드 1016-L · 송사장과 하루 운영 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
   dlg2.showModal();
 }
 function openEditor(){
@@ -1432,5 +1438,6 @@ preload(); render();
 <script src="minigames.js"></script>
 <script src="minigame_behind.js"></script>
 <script src="campaign.js"></script>
+<script src="room-life.js"></script>
 </body>
 </html>

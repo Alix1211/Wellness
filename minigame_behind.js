@@ -39,7 +39,7 @@ function mgBehind(board){
  const power=mgNode('div','mg-throw-power',undefined,board),powerBar=mgNode('i','',undefined,power);
  mgNode('p','mg-small','아래로 당겨서 놓기 · 방향으로 조준, 길이로 힘 조절',board);
  const scale=h/600,origin={x:w*.5,y:h*.93},floor=h*.95,maxPull=h*.21,gain=7.15;
- const actorSize=Math.min(h*.65,w*.62),foot=h*.62,hitY=foot-actorSize*.47,rx=actorSize*.26,ry=actorSize*.37;
+ const actorSize=Math.min(h*.65,w*.62),foot=h*.62,hitY=foot-actorSize*.24,rx=actorSize*.115,ry=actorSize*.08;
  const round=mgRound,metrics=round.behind={shots:0,hits:0,misses:0,maxCombo:0,bounceHits:0};
  let elapsed=0,time=30,score=0,combo=0,acc=0,cool=0,spawn=0,serial=0,shotSerial=0,ended=false,pointer=null,start=null,aim={x:0,y:maxPull*.78};
  let current=0,next=1,bag=[2],shots=[],marks=[],target;

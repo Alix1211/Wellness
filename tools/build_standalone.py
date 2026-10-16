@@ -24,6 +24,7 @@ for folder in ['사무실','센터','집']:
         bgmap[f'{folder}/{f}']=uri(im,80)
 
 poses=sorted(set(re.findall(r"'((?:센터|사무실|집)/[^']+?\.png)'", html))|{'센터/특수훈련실/'+n for n in os.listdir(SRC+'/포즈_낱개/센터/특수훈련실') if n.endswith('.png')})
+poses=sorted(set(poses)|{str(p.relative_to(os.path.join(SRC,'포즈_낱개'))) for folder in ['사무실/생활','센터/짝활동','센터/기어가기'] for p in __import__('pathlib').Path(SRC+'/포즈_낱개/'+folder).glob('*.webp')})
 posemap={}
 for rel in poses:
     p=f'{SRC}/포즈_낱개/{rel}'
@@ -99,5 +100,9 @@ html=html.replace('<script src="fetch-game.js"></script>','<script>'+open(SRC+'/
 html=html.replace('<script src="camera-ui.js"></script>','<script>'+open(SRC+'/camera-ui.js',encoding='utf-8').read()+'</script>')
 html=html.replace('<script src="minigames.js"></script>','<script>'+mg+'</script>')
 html=html.replace('<script src="minigame_behind.js"></script>','<script>'+open(SRC+'/minigame_behind.js',encoding='utf-8').read()+'</script>')
+life=open(SRC+'/room-life.js',encoding='utf-8').read()
+lifemap={f[:-5]:uri(load(SRC+'/생활연출/'+f),92) for f in os.listdir(SRC+'/생활연출') if f.endswith('.webp')}
+life=life.replace("const lifeAsset=name=>assetUrl('생활연출',name+'.webp');",'const LIFE_ASSETS='+J(lifemap)+';const lifeAsset=name=>LIFE_ASSETS[name];')
+html=html.replace('<script src="room-life.js"></script>','<script>'+life+'</script>')
 open(OUT,'w',encoding='utf-8').write(html)
 print(len(bgmap),'bg',len(posemap),'poses',len(facemap),'faces',len(bustmap),'busts', round(os.path.getsize(OUT)/1e6,1),'MB ->',OUT)
