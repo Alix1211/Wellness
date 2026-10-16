@@ -6,6 +6,13 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: wellness-release
+  cancel-in-progress: false
+
 jobs:
   apk:
     runs-on: ubuntu-24.04
@@ -22,6 +29,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: 저장 분기 규칙 검사
+        run: |
+          javac -d /tmp/gaia-sync-test android/src/city/gaia/wellness/SyncDecision.java tools/SyncDecisionTest.java
+          java -cp /tmp/gaia-sync-test SyncDecisionTest
+          curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/gaia-json.jar
+          javac -cp /tmp/gaia-json.jar -d /tmp/gaia-sync-test android/src/city/gaia/wellness/SaveBundle.java tools/SaveBundleTest.java
+          java -cp /tmp/gaia-sync-test:/tmp/gaia-json.jar SaveBundleTest
 
       - name: Android SDK (platform 35, build-tools 35.0.0)
         run: |
@@ -51,8 +66,8 @@ jobs:
             echo "$KS" | base64 -d > android/keys/gaia-test.jks
             echo "signed=original" >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::ANDROID_KEYSTORE_B64 가 없어 새 서명 키로 만듭니다. 기존에 설치한 앱 위에는 설치되지 않습니다."
-            echo "signed=NEWKEY" >> "$GITHUB_OUTPUT"
+            echo "::error::기존 서명 키 ANDROID_KEYSTORE_B64가 없습니다. 새 키로 바꾸지 않고 중단합니다."
+            exit 1
           fi
 
       - name: 단일 HTML과 APK 만들기
@@ -67,3 +82,15 @@ jobs:
             GaiaWellness-*.apk
             gaia-wellness.html
           retention-days: 30
+
+      - name: 서버 업데이트 묶음 만들기
+        run: python3 tools/prepare_web_update.py gaia-wellness.html web-update "${{ steps.ver.outputs.label }}"
+
+      - name: 검증한 APK와 게임 업데이트 게시
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view wellness-live --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create wellness-live --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "가이아 웰니스 · 최신 설치 및 게임 업데이트" --notes "앱 실행 시 게임 업데이트를 확인합니다. 설치 APK는 빌드 이름을 확인하고 받아 주세요."
+          gh release upload wellness-live web-update/game-*.html.gz "GaiaWellness-${{ steps.ver.outputs.label }}-${{ steps.key.outputs.signed }}.apk" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload wellness-live web-update/manifest.json --repo "$GITHUB_REPOSITORY" --clobber

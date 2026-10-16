@@ -104,7 +104,7 @@ life=open(SRC+'/room-life.js',encoding='utf-8').read()
 lifemap={f[:-5]:uri(load(SRC+'/생활연출/'+f),92) for f in os.listdir(SRC+'/생활연출') if f.endswith('.webp')}
 life=life.replace("const lifeAsset=name=>assetUrl('생활연출',name+'.webp');",'const LIFE_ASSETS='+J(lifemap)+';const lifeAsset=name=>LIFE_ASSETS[name];')
 html=html.replace('<script src="room-life.js"></script>','<script>'+life+'</script>')
-for extra in ['named-members.js','save-transfer.js']:
+for extra in ['sync-boot.js','named-members.js','save-transfer.js','drive-sync.js']:
     html=html.replace('<script src="'+extra+'"></script>','<script>'+open(SRC+'/'+extra,encoding='utf-8').read()+'</script>')
 open(OUT,'w',encoding='utf-8').write(html)
 print(len(bgmap),'bg',len(posemap),'poses',len(facemap),'faces',len(bustmap),'busts', round(os.path.getsize(OUT)/1e6,1),'MB ->',OUT)

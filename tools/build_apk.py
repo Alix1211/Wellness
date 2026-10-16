@@ -1,6 +1,6 @@
 """Build the offline Android wrapper with the Android SDK, without Gradle dependencies."""
 from pathlib import Path
-import os,subprocess,shutil,zipfile,sys
+import os,subprocess,shutil,zipfile,sys,hashlib
 ROOT=Path(__file__).resolve().parents[1]
 sdk=Path(os.environ.get('ANDROID_SDK_ROOT',str(ROOT.parent/'android-sdk')))
 bt=sdk/'build-tools/35.0.0'; jar=sdk/'platforms/android-35/android.jar'
@@ -9,6 +9,7 @@ for d in ['classes','dex','assets']:(build/d).mkdir(exist_ok=True)
 html=Path(sys.argv[1]) if len(sys.argv)>1 else ROOT.parent/'gaia-wellness-1016-O.html'
 output=Path(sys.argv[2]) if len(sys.argv)>2 else ROOT.parent/'GaiaWellness-1016-O.apk'
 shutil.copyfile(html,build/'assets/index.html')
+(build/'assets/bundle-sha.txt').write_text(hashlib.sha256(html.read_bytes()).hexdigest())
 def run(*args):subprocess.run([str(a) for a in args],check=True)
 srcs=list(source.glob('src/**/*.java'))
 if (sdk/'ecj.jar').exists():

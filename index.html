@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="sync-boot.js"></script>
 <title>가이아 웰니스 센터</title>
 <link rel="icon" href="data:,">
 <style>
@@ -694,7 +695,7 @@ function load(){
   }catch{}
   const s=newState(); startMembers(s); testGrant(s); return s;
 }
-function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch{} }
+function save(){ if(window.GAIA_SYNC_BUSY||window.GAIA_SYNC_APPLYING)return;try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch{} }
 const $=(q,el=document)=>el.querySelector(q);
 const $$=(q,el=document)=>[...el.querySelectorAll(q)];
 const mById = id => S.members.find(m=>m.id===id);
@@ -975,7 +976,7 @@ setInterval(()=>{
 let last=Date.now(), saveAt=0;
 setInterval(()=>{
   const now=Date.now(); let dt=(now-last)/1000; last=now;
-  if(document.hidden || dragging || pointerBusy || document.querySelector("#mgDialog[open]")) return;
+  if(window.GAIA_SYNC_BUSY || window.GAIA_SYNC_APPLYING || document.hidden || dragging || pointerBusy || document.querySelector("#mgDialog[open]")) return;
   dt=Math.min(dt,1.5);
   const before=S.members.length;
   if(typeof campaignAdvance==='function')campaignAdvance(S,dt*S.cfg.speed/(S.cfg.dayMin*60));else advance(S,dt*S.cfg.speed/(S.cfg.dayMin*60));
@@ -1367,7 +1368,7 @@ function openSettings(){
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
   rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
-  const vb=document.createElement('span'); vb.textContent='빌드 1016-P · 송사장과 하루 운영·미니게임 알림·옥상 판정 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  const vb=document.createElement('span'); vb.textContent='빌드 1016-Q · 송사장과 하루 운영·미니게임 알림·옥상 판정 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
   dlg2.showModal();
 }
 function openEditor(){
@@ -1448,5 +1449,6 @@ preload(); render();
 <script src="room-life.js"></script>
 <script src="named-members.js"></script>
 <script src="save-transfer.js"></script>
+<script src="drive-sync.js"></script>
 </body>
 </html>
