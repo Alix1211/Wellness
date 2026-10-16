@@ -384,7 +384,7 @@ function useItem(S,i,id){
   const left=(S.cd[i]||0)-S.t; if(left>0) return {ok:false,msg:`아직 준비 중입니다. (${Math.ceil(left*S.cfg.dayMin*60/S.cfg.speed)}초)`};
   if(!it.perm) S.inv[id]--; S.cd[i]=S.t+ITEM_CD;
   let tot=0;
-  for(const m of ms){ for(const k in it.up){ const g=Math.min(100,m.st[k]+it.up[k])-m.st[k]; m.st[k]+=g; tot+=g; } m.hp=Math.max(3,m.hp-it.hp); m.trained=true; }
+  for(const m of ms){ for(const k in it.up){ const g=Math.min(100,m.st[k]+it.up[k]*(m.named?.5:1))-m.st[k]; m.st[k]+=g; tot+=g; } m.hp=Math.max(3,m.hp-it.hp); m.trained=true; }
   S.rep+=tot*K.repPerPt; return {ok:true,members:ms,it};
 }
 /* 1:1 직접 조교: 한 명에게만 쓰는 대신 효과 ×1.5, 체력 소모 ×2. 체력이 모자라면 못 씀(부상 방지) */
@@ -395,7 +395,7 @@ function useItemSolo(S,m,id){
   const need=Math.round(it.hp*SOLO_HP);
   if(m.hp<need+5) return {ok:false,msg:'너무 지쳤습니다. 체력이 회복될 때까지 쉬게 해 주세요.'};
   if(!it.perm) S.inv[id]--; let tot=0;
-  for(const k in it.up){ const add=Math.round(it.up[k]*SOLO_UP), g=Math.min(100,m.st[k]+add)-m.st[k]; m.st[k]+=g; tot+=g; }
+  for(const k in it.up){ const add=it.up[k]*SOLO_UP*(m.named?.5:1), g=Math.min(100,m.st[k]+add)-m.st[k]; m.st[k]+=g; tot+=g; }
   m.hp-=need; m.trained=true; S.rep+=tot*K.repPerPt; return {ok:true,it};
 }
 const ROOM_ORDER = ['lobby','basic','gear','group','recovery','shop','posture','punish','special','elite'];
@@ -476,6 +476,7 @@ function place(S,m,b,i){
     const RR=ROOMS[S.center[i]]; if(RR&&(RR.sets||RR.dev)) m.pose=Math.floor(rnd()*(RR.sets?RR.sets.length:GEAR.length));
   }
   m.loc={b,i}; m.tr=0;
+  const ne=m.named&&S.namedStories?.entries[m.named],nk=b+':'+i;if(ne&&!ne.rooms.includes(nk))ne.rooms.push(nk);
 }
 function returnToLobby(S,m){ m.loc={b:'center',i:lobbyIndex(S)}; m.tr=0; }
 function removeMember(S,m){ S.members=S.members.filter(x=>x!==m); }
@@ -487,8 +488,8 @@ function advance(S, dt){
     if(m.loc.b!=='center'){
       m.hp=Math.min(100,m.hp+K.homeRegen*dt);
       const F=wfx(S,m.loc.b,m.loc.i);
-      for(const k in F.up) m.st[k]=Math.min(100,m.st[k]+F.up[k]*dt*(100-m.st[k])/50);
-      for(const k in F.dn) m.st[k]=Math.max(0,m.st[k]-F.dn[k]*dt*m.st[k]/50);
+      for(const k in F.up) m.st[k]=Math.min(100,m.st[k]+F.up[k]*dt*(100-m.st[k])/50*(m.named?.5:1));
+      for(const k in F.dn) m.st[k]=Math.max(0,m.st[k]-F.dn[k]*dt*m.st[k]/50*(m.named?.5:1));
       if(needsRetrain(S,m)){m.loc={...m.loc,roof:true};S.ev.push(`${nameOf(m)}님이 ${m.loc.b==='office'?'회사':'집'} 옥상에서 재교육을 기다립니다.`);}
       continue; }
     if(S.campaign?.phase==='night'){m.hp=Math.min(100,m.hp+100*dt);continue;}
@@ -497,17 +498,17 @@ function advance(S, dt){
     if(R.train){
       const eff=(m.hp<K.lowHp?K.lowEff:1)*(R.eff||1);
       let tot=0;
-      for(const k in R.train){ const g=R.train[k]*dt*eff*shift; m.st[k]=Math.min(100,m.st[k]+g); tot+=g; }
+      for(const k in R.train){ const g=R.train[k]*dt*eff*shift*(m.named?.5:1); m.st[k]=Math.min(100,m.st[k]+g); tot+=g; }
       m.hp-=R.hp*dt*shift; S.rep+=tot*K.repPerPt; m.tr+=dt*shift; if(m.tr>=0.3) m.trained=true;
       if(m.hp<=0) out.push(m);
     }else if(id==='recovery'){ m.hp=Math.min(100,m.hp+R.regen*dt*shift); }
     else{ m.hp=Math.min(100,m.hp+(K.lobbyRegen+(S.center.includes('shop')?K.shopBonus:0))*dt*shift); }
   }
   for(const m of out){
-    S.gold=Math.max(0,S.gold-K.injuryFee); S.rep=Math.max(0,S.rep-1); S.injuries++; removeMember(S,m);
-    S.ev.push(`${nameOf(m)}님이 무리한 훈련으로 부상을 입고 센터를 떠났습니다. 위약금 ${K.injuryFee}골드`);
+    S.gold=Math.max(0,S.gold-K.injuryFee); S.rep=Math.max(0,S.rep-1); S.injuries++; if(m.named){returnToLobby(S,m);m.hp=10;}else removeMember(S,m);
+    S.ev.push(`${nameOf(m)}님이 무리한 훈련으로 ${m.named?"로비에서 회복합니다.":"센터를 떠났습니다."} 위약금 ${K.injuryFee}골드`);
   }
-  for(const m of [...S.members]) if(m.loc.b==='home'&&STATS.every(k=>m.st[k]>=99.5)){
+  for(const m of [...S.members]) if(!m.named&&m.loc.b==='home'&&STATS.every(k=>m.st[k]>=99.5)){
     S.gold+=K.thanks; S.rep+=K.thanksRep; S.grads++; removeMember(S,m);
     S.ev.push(`🎉 ${nameOf(m)}님이 모든 점수 100 달성! "안녕~" 사례비 ${K.thanks}골드`);
   }
@@ -519,9 +520,9 @@ function endDay(S){
   const C=S.cfg;
   for(const m of [...S.members]){
     if(m.loc.b==='center'){
-      if(!m.trained) STATS.forEach(k=>{ m.st[k]=Math.max(0,m.st[k]-K.decay); });
+      if(!m.trained) STATS.forEach(k=>{ m.st[k]=Math.max(0,m.st[k]-K.decay*(m.named?.5:1)); });
       m.trained=false; m.tr=0;
-      if(S.day-m.born>=K.grace && avg(m) < m.sign-K.leaveMargin){
+      if(!m.named&&S.day-m.born>=K.grace && avg(m) < m.sign-K.leaveMargin){
         S.leaves++; S.rep=Math.max(0,S.rep-0.5); removeMember(S,m);
         S.ev.push(`${nameOf(m)}님이 점수가 떨어져 센터를 그만뒀습니다.`);
       }
@@ -906,7 +907,7 @@ function renderMoveTray(){
   for(const m of list){
     const btn=document.createElement('button'); btn.className='mcard f-'+gradeOf(m)+(moveState.id===m.id?' selected':''); btn.dataset.id=m.id; btn.setAttribute('aria-label',`${nameOf(m)} 선택`);
     const nm=document.createElement('b'); nm.textContent=nameOf(m);
-    const im=document.createElement('img'); im.alt=''; im.src=faceUrl(faceOf(m)); im.draggable=false;
+    const im=document.createElement('img'); im.alt=''; im.src=m.named&&typeof namedAsset==='function'?namedAsset(m.named,'face'):faceUrl(faceOf(m)); im.draggable=false;
     const wh=document.createElement('small'); wh.textContent=whereOf(m);
     btn.append(nm,im,wh); bindDrag(btn,m.id,true); btn.onclick=e=>{ if(e.detail===0) selectMove(m.id); }; box.append(btn);
   }
@@ -1034,6 +1035,7 @@ function showCard(m,x,y){
     `<div class="meta">평균 <b>${a.toFixed(1)}</b> (가입 때 ${m.sign.toFixed(1)})<br>소속 ${S.day-m.born}일째 · ${where||''}<br>${statusText(m)}</div>`;
   if(m.loc.b!=='center'||m.loc.i!==lobbyIndex(S)){ const b=document.createElement('button'); b.className='pill'; b.textContent='로비로 보내기'; b.onclick=()=>{ returnToLobby(S,m); save(); hideCard(); render(); }; card.append(b); }
   const rb=document.createElement('button'); rb.className='pill'; rb.style.marginLeft='6px'; rb.textContent='직접 조교'; rb.onclick=()=>{ hideCard(); openSolo(m); }; card.append(rb);
+  if(m.named&&typeof namedShow==='function'){const nb=document.createElement('button');nb.className='pill';nb.textContent='★ 개인 이야기';nb.onclick=()=>{hideCard();namedShow(m.named);};card.append(nb);}
   card.style.display='block';
   const w=250,h=card.offsetHeight; card.style.left=clamp(x-w/2,8,innerWidth-w-8)+'px'; card.style.top=clamp(y+16,8,innerHeight-h-8)+'px';
 }
@@ -1080,7 +1082,7 @@ function mountScene(stage,k,i){
     const m=ms[Math.floor(Math.random()*ms.length)], pools=dlgPools(k,i,m);
     const arr=pools.length?getDlg(pools[Math.floor(Math.random()*pools.length)]):[];
     if(!arr.length){ sceneTimer=setTimeout(next,4000); return; }
-    let sc=arr[Math.floor(Math.random()*arr.length)]; if(arr.length>1&&sc===lastSc) sc=arr[(arr.indexOf(sc)+1)%arr.length]; lastSc=sc;
+    let sc=arr[Math.floor(Math.random()*arr.length)]; if(arr.length>1&&sc===lastSc) sc=arr[(arr.indexOf(sc)+1)%arr.length]; lastSc=sc;if(m.named&&typeof namedDialogue==='function')sc=namedDialogue(m);
     const side=Math.random()<.5?'L':'R', oth=side==='L'?'R':'L';
     const bust=document.createElement('img'); bust.className='bust '+side; bust.alt=''; layer.append(bust);
     const sd=SILS[Math.floor(Math.random()*SILS.length)];
@@ -1091,7 +1093,7 @@ function mountScene(stage,k,i){
       if(run!==sceneRun||!layer.isConnected) return;
       if(li>=sc.l.length){ bust.classList.remove('on'); sil.classList.remove('on'); bub.style.opacity=0; sceneTimer=setTimeout(next,2000); return; }
       const [who,text]=sc.l[li++], b=isBust(who,sc.l);
-      if(b){ bust.src=bustUrl(setName,bustFace(text)); void bust.offsetWidth; bust.classList.add('on'); } else { void sil.offsetWidth; sil.classList.add('on'); }
+      if(b){ bust.src=m.named&&typeof namedAsset==='function'?namedAsset(m.named,'face'):bustUrl(setName,bustFace(text)); void bust.offsetWidth; bust.classList.add('on'); } else { void sil.offsetWidth; sil.classList.add('on'); }
       bub.className='bub '+(b?side:oth)+(b?'':' male'); bub.firstChild.textContent=b?nameOf(m):who; bub.lastChild.textContent=fillLine(S,m,text); bub.style.opacity=1;
       sceneTimer=setTimeout(step,clamp(1700+text.length*60,2400,5600));
     };
@@ -1181,12 +1183,12 @@ function toyFx(c,k){ const {fx,stage,at,bust}=c;
 }
 function itemFx(stage,i,k,ms,opt={}){
   const it=ITEMS[k]; stopScene(); $$('.ifx,.scene',stage).forEach(x=>x.remove());
-  const arr=useSets(k,opt.room!==undefined?opt.room:S.center[i]), sc=arr.length?arr[Math.floor(Math.random()*arr.length)]:null;
+  const arr=useSets(k,opt.room!==undefined?opt.room:S.center[i]), sc=ms[0]?.named&&typeof namedDialogue==='function'?namedDialogue(ms[0]):arr.length?arr[Math.floor(Math.random()*arr.length)]:null;
   const lines=sc?sc.l:[['회원',`(${it.name} 사용!)`]];
   const side=Math.random()<.5?'L':'R', oth=side==='L'?'R':'L', toy=!it.perm, set=opt.set||'센터';
   const face=it.face[Math.floor(Math.random()*it.face.length)];
   const fx=document.createElement('div'); fx.className='ifx';
-  fx.innerHTML=`<div class="veil"></div><img class="prod" alt="" src="${itemUrl('상품',k)}" style="left:${side==='L'?68:32}%"><img class="ibust ${side}" alt="" src="${bustUrl(set,face)}"><div class="ibub"><b></b><span></span></div><div class="gain">${gainText(it,opt.mul||1)}${opt.solo?'':` · ${ms.length}명`}</div>`;
+  fx.innerHTML=`<div class="veil"></div><img class="prod" alt="" src="${itemUrl('상품',k)}" style="left:${side==='L'?68:32}%"><img class="ibust ${side}" alt="" src="${ms[0]?.named&&typeof namedAsset==='function'?namedAsset(ms[0].named,'face'):bustUrl(set,face)}"><div class="ibub"><b></b><span></span></div><div class="gain">${gainText(it,opt.mul||1)}${opt.solo?'':` · ${ms.length}명`}</div>`;
   stage.append(fx);
   const bust=$('.ibust',fx), bub=$('.ibub',fx), gain=$('.gain',fx), prod=$('.prod',fx), T=[]; let n=-1, done=false;
   const at=(f,t)=>T.push(setTimeout(f,t));
@@ -1225,7 +1227,7 @@ function openSolo(m){
   $('#tTitle').textContent=`직접 조교 · ${nameOf(m)}`;
   const st=$('#tStage'); st.replaceChildren(); st.className='stage-big';
   const bg=document.createElement('img'); bg.className='bg'; bg.alt=''; bg.src=trainBgUrl(set); st.append(bg);
-  const bu=document.createElement('img'); bu.className='tbust'; bu.alt=''; bu.src=bustUrl(set,1); st.append(bu);
+  const bu=document.createElement('img'); bu.className='tbust'; bu.alt=''; bu.src=m.named&&typeof namedAsset==='function'?namedAsset(m.named,'pose'):bustUrl(set,1); st.append(bu);
   const fl=document.createElement('div'); fl.className='flash'; st.append(fl);
   $('#tInfo').textContent=`${nameOf(m)}님 (${where||''}) — 도구를 골라 한 명에게 직접 사용합니다. 방 전체에 쓸 때보다 효과 ×${SOLO_UP}, 체력 소모 ×${SOLO_HP}입니다.`;
   const tools=$('#tTools'); tools.replaceChildren();
@@ -1361,7 +1363,7 @@ function openSettings(){
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
   rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
-  const vb=document.createElement('span'); vb.textContent='빌드 1016-N · 송사장과 하루 운영 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  const vb=document.createElement('span'); vb.textContent='빌드 1016-O · 송사장과 하루 운영 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
   dlg2.showModal();
 }
 function openEditor(){
@@ -1440,5 +1442,7 @@ preload(); render();
 <script src="minigame_behind.js"></script>
 <script src="campaign.js"></script>
 <script src="room-life.js"></script>
+<script src="named-members.js"></script>
+<script src="save-transfer.js"></script>
 </body>
 </html>

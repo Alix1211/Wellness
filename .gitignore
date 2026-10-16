@@ -1,0 +1,5 @@
+
+# Local Android build and signing key (retain privately for subsequent updates)
+android/build/
+android/keys/
+*.apk
