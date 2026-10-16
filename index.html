@@ -664,13 +664,13 @@ const WORKROOM = {
 };
 function workPoses(m){const b=m.loc.b,slot=m.loc.i,pool=WORKROOM[b][S[b][slot].img]||['kneel','arch','fold'];const key=pool[(m.id+slot)%pool.length],frames=WORKPOSE[b][key];return frames.length===3?[...frames,frames[1]]:frames;}
 const HAIR = {"센터/푸시업": 70.1, "센터/아기자세": 68.4, "센터/네발자세": 50.8, "사무실/근력운동_덤벨바벨": 92.9, "사무실/근력운동_머신": 91.6, "사무실/근력운동_하체": 101.8, "사무실/요가_기본": 105.0, "사무실/요가_바닥운동": 124.2, "사무실/요가_스트레칭": 112.1, "사무실/운동후표정": 201.1, "사무실/준비운동_상체": 132.1, "센터/근력운동_덤벨바벨": 84.5, "센터/근력운동_머신": 86.1, "센터/근력운동_하체": 93.2, "센터/사과포즈": 344.3, "센터/요가_기본": 77.6, "센터/요가_동작변화": 102.6, "센터/요가_응용": 81.0, "센터/운동후표정": 172.1, "센터/준비운동_상체": 124.9, "센터/준비운동_하체": 129.3, "센터/특수훈련실": 153.1, "센터/판타지구속포즈": 159.5, "집/1000040211": 122.0, "집/1000040212": 139.2, "집/1000040213": 111.6, "집/1000040214": 139.1, "집/1000040215": 131.7, "집/1000040216": 111.2, "집/1000040217": 115.1};
-const poseScale = rel => { const f=rel.split('/').slice(0,2).join('/'); const m=HAIR[f]||100; return 0.174*Math.pow(77.6/m,0.6); };   // 머리 크기 기준 배율
+const poseScale = rel => { const f=rel.split('/').slice(0,2).join('/'); const m=HAIR[f]||100; return 0.18*(77.6/m); };   // 머리 크기 기준 배율
 function fitPose(img){
   if(typeof lifeFitPose==='function'&&lifeFitPose(img))return;
   const nh=img.naturalHeight, nw=img.naturalWidth; if(!nh||!img.dataset.rel) return;
   const wrap=img.closest('.stage-people'); const n=wrap?(parseFloat(wrap.style.getPropertyValue('--n'))||1):1;
   const s=poseScale(img.dataset.rel); let h=nh*s;
-  const wMax=wrap?.classList.contains('community')?160*(+wrap.style.getPropertyValue('--rows')||1)/(+wrap.style.getPropertyValue('--cols')||1):(90/n)/(9/16), hMax=94;
+  const wMax=wrap?.classList.contains('community')?160*(+wrap.style.getPropertyValue('--rows')||1)/(+wrap.style.getPropertyValue('--cols')||1):(90/n)/(9/16), hMax=70;
   if(nw*s>wMax) h*=wMax/(nw*s);
   const X=Math.min(h,hMax)/0.94, p=img.parentElement; p.style.height=(p.classList.contains('free')?X*0.965:X)+'%'; img.style.height='100%';
 }
@@ -739,6 +739,7 @@ let anim=[], actors=[], wand=[]; const WANDER=new Map();
 const row=$('#row');
 
 function memberPoses(m){
+  if(m.loc.b==='center'&&S.center[m.loc.i]==='group')return ['센터/운동후표정/03.png'];
   const R=ROOMS[S.center[m.loc.i]];
   let poses;
   if(m.loc.roof) poses=[m.loc.b==='office'?'사무실/생활/stay.webp':'집/1000040214/02.png'];
@@ -1360,7 +1361,7 @@ function openSettings(){
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
   rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
-  const vb=document.createElement('span'); vb.textContent='빌드 1016-L · 송사장과 하루 운영 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  const vb=document.createElement('span'); vb.textContent='빌드 1016-M · 송사장과 하루 운영 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
   dlg2.showModal();
 }
 function openEditor(){
