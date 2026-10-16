@@ -1,0 +1,69 @@
+# 자동 APK 빌드: main에 코드가 올라오면(또는 Actions 탭에서 'Run workflow') 안드로이드 APK를 만든다.
+# 서명 키는 저장소 Secret `ANDROID_KEYSTORE_B64`(gaia-test.jks 를 base64 로 바꾼 글자)에 넣어 둔다.
+name: Build APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pillow
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK (platform 35, build-tools 35.0.0)
+        run: |
+          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          SDKM="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: 빌드 이름·버전 정하기
+        id: ver
+        run: |
+          LABEL=$(grep -o -m1 '빌드 10[0-9]*-[A-Z0-9.]*' index.html | head -1 | sed 's/빌드 //')
+          [ -n "$LABEL" ] || LABEL="unknown"
+          CODE=$((1100000 + GITHUB_RUN_NUMBER))
+          sed -i -E "s/android:versionCode=\"[0-9]+\"/android:versionCode=\"$CODE\"/; s/android:versionName=\"[^\"]*\"/android:versionName=\"$LABEL\"/" android/AndroidManifest.xml
+          echo "label=$LABEL" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+
+      - name: 서명 키 준비
+        id: key
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          mkdir -p android/keys
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > android/keys/gaia-test.jks
+            echo "signed=original" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::ANDROID_KEYSTORE_B64 가 없어 새 서명 키로 만듭니다. 기존에 설치한 앱 위에는 설치되지 않습니다."
+            echo "signed=NEWKEY" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 단일 HTML과 APK 만들기
+        run: |
+          python3 tools/build_standalone.py gaia-wellness.html
+          python3 tools/build_apk.py gaia-wellness.html "GaiaWellness-${{ steps.ver.outputs.label }}-${{ steps.key.outputs.signed }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GaiaWellness-${{ steps.ver.outputs.label }}-${{ steps.key.outputs.signed }}
+          path: |
+            GaiaWellness-*.apk
+            gaia-wellness.html
+          retention-days: 30
