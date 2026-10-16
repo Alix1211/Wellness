@@ -96,6 +96,10 @@ body.editing .room:not(.empty){outline:3px dashed #3e7969aa;outline-offset:-3px}
 #btnGear.alert::after{content:'';position:absolute;right:1px;top:1px;width:13px;height:13px;border-radius:50%;background:#ff5a6e;border:2px solid #fff}
 .setmenu{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.setmenu .pill{padding:12px 8px;font-size:15px}
 .chip.chosen{box-shadow:inset 0 0 0 2px #508878}
+#mgAlert{position:fixed;left:50%;transform:translateX(-50%);z-index:8;max-width:calc(100vw - 20px);padding:10px 16px;border-radius:999px;background:linear-gradient(#ffe27a,#ffb84d);color:#5a3200;font-weight:700;font-size:14px;border:3px solid #fff;box-shadow:0 4px 14px #0004;animation:mgpulse 1s infinite;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#mgAlert[hidden]{display:none}
+@keyframes mgpulse{50%{transform:translateX(-50%) scale(1.06);box-shadow:0 4px 14px #0004,0 0 18px 6px #ffd75e}}
+.mg-badge.mg-ping{animation:mgping .5s 5}
+@keyframes mgping{50%{transform:scale(1.5)}}
 .person .zz{position:absolute;left:2%;top:10%;font-size:18px;display:none;pointer-events:none;animation:zz 1s infinite alternate}
 @keyframes zz{to{transform:translateY(-4px)}}
 .person .heart{position:absolute;pointer-events:none;color:#ff5c93;font-size:16px;animation:rise 1.6s forwards;text-shadow:0 0 3px #fff}
@@ -343,12 +347,12 @@ const WFX = {
     '화장실.png':{up:{um:60,ge:52},dn:{bo:18}}
   },
   home:{
-    '거실.png':{up:{ge:28,ki:24},dn:{um:21}},
-    '침실.png':{up:{ki:28,um:24},dn:{bo:21}},
-    '화장실.png':{up:{um:28,bo:24},dn:{ge:21}},
-    '지하실.png':{up:{bo:28,um:24},dn:{ki:21}},
-    '빈방.png':{up:{ge:28,bo:24},dn:{ki:21}},
-    '서재.png':{up:{bo:28,ge:24},dn:{um:21}}
+    '거실.png':{up:{ge:28,ki:24},dn:{um:7}},
+    '침실.png':{up:{ki:28,um:24},dn:{bo:7}},
+    '화장실.png':{up:{um:28,bo:24},dn:{ge:7}},
+    '지하실.png':{up:{bo:28,um:24},dn:{ki:7}},
+    '빈방.png':{up:{ge:28,bo:24},dn:{ki:7}},
+    '서재.png':{up:{bo:28,ge:24},dn:{um:7}}
   }
 };
 const wfx = (S,b,i) => (WFX[b]&&S[b][i]&&WFX[b][S[b][i].img])||{up:{},dn:{}};
@@ -426,7 +430,7 @@ function roomCap(S,i){ const R=ROOMS[S.center[i]]; return R ? Math.min(R.max, R.
 function slotCap(S,b,i){const sl=S[b][i];return !sl?0:b==='office'&&sl.img==='개인사무실.png'?1:2+Math.max(0,Math.floor(Number(sl.extra)||0));}
 function workCapCost(S,b,i){return K.workCapCost*(Math.max(0,Math.floor(Number(S[b][i]?.extra)||0))+1);}
 function upgradeWorkCap(S,b,i){if(!S[b]?.[i]||b==='office'&&S[b][i].img==='개인사무실.png')return {ok:false,msg:'개인사무실은 1명 전용입니다.'};const cost=workCapCost(S,b,i);if(S.gold<cost)return {ok:false,msg:`골드가 부족합니다. (${cost})`};S.gold-=cost;S[b][i].extra=slotCap(S,b,i)-1;return {ok:true};}
-function needsRetrain(S,m){if(m.loc.b==='center')return false;const need=m.loc.b==='office'?S.cfg.join:S.cfg.marry;return avg(m)<need||STATS.some(k=>m.st[k]<need-K.returnMargin);}
+function needsRetrain(S,m){if(m.loc.b==='center')return false;const need=m.loc.b==='office'?S.cfg.join:S.cfg.marry;return avg(m)<need;}
 
 function genName(S){
   for(let n=0;n<8;n++){ const nm=pick(SUR)+pick(G1)+pick(G2); if(!S.members.some(m=>m.name===nm)) return nm; }
@@ -1349,7 +1353,7 @@ function openSettings(){
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
   rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
-  const vb=document.createElement('span'); vb.textContent='빌드 1015-I · 회원 바 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  const vb=document.createElement('span'); vb.textContent='빌드 1015-K · 미니게임 알림·재교육 판정 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
   dlg2.showModal();
 }
 function openEditor(){
