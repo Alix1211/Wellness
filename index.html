@@ -1368,7 +1368,7 @@ function openSettings(){
   const rs=document.createElement('button'); rs.className='pill'; rs.textContent='처음부터 다시 (저장 삭제)'; rs.style.background='#f3dede';
   rs.onclick=()=>{ if(rs.dataset.c!=='1'){ rs.dataset.c='1'; rs.textContent='정말 지울까요? 한 번 더 누르세요'; return; } S=newState(); startMembers(S); testGrant(S); save(); dlg2.close(); render(); };
   row('초기화',rs);
-  const vb=document.createElement('span'); vb.textContent='빌드 1016-Q · 송사장과 하루 운영·미니게임 알림·옥상 판정 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
+  const vb=document.createElement('span'); vb.textContent='빌드 1016-R · 송사장과 하루 운영·미니게임 알림·옥상 판정 · 시험용 자동지급 '+(K.testGrant?'켜짐(구버전)':'꺼짐'); vb.style.cssText='font-size:13px;color:#789'; row('버전',vb);
   dlg2.showModal();
 }
 function openEditor(){
@@ -1433,7 +1433,7 @@ function openEditor(){
 /* 버튼 */
 $$('[data-focus]').forEach(b=>b.onclick=()=>{ focus=b.dataset.focus; applyFocus(); });
 $('#btnEdit').onclick=()=>{ editing=!editing; document.body.classList.toggle('editing',editing); $('#btnEdit').classList.toggle('on',editing); $('#btnEdit').textContent=editing?'변경 완료':'방 변경'; if(editing) toast('바꿀 방을 누르세요.'); };
-$('#btnGear').onclick=openSettings; setInterval(()=>{ const mb=document.getElementById('btnMiniGames'); $('#btnGear').classList.toggle('alert',!!(mb&&mb.textContent.includes('🎉'))); },1000); $('#btnEditor').onclick=openEditor;
+$('#btnGear').onclick=()=>openSettings(); setInterval(()=>{ const mb=document.getElementById('btnMiniGames'); $('#btnGear').classList.toggle('alert',!!(mb&&mb.textContent.includes('🎉'))); },1000); $('#btnEditor').onclick=openEditor;
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
 $('#btnFull').onclick=async()=>{ const d=document.documentElement; try{ if(fsEl()) await (document.exitFullscreen||document.webkitExitFullscreen).call(document); else await (d.requestFullscreen||d.webkitRequestFullscreen).call(d); }catch{ toast('전체 화면을 지원하지 않는 환경입니다.'); } };
 ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{ $('#btnFull').textContent=fsEl()?'전체 화면 해제':'전체 화면'; setTimeout(fit,50); }));
